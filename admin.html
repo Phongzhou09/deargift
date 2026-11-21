@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảng Điều Khiển Quản Trị CMS · DearGift Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --primary: #e8589a;
+      --primary-hover: #d4428a;
+      --primary-light: #fff0f6;
+      --text-dark: #2b1f3d;
+      --text-muted: #736985;
+      --border: #f0e4f2;
+      --bg: #f8f6fc;
+      --card-bg: #ffffff;
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(74, 43, 90, 0.06);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Quicksand','Be Vietnam Pro',sans-serif; }
+    body { background: var(--bg); color: var(--text-dark); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    /* Topbar */
+    .topbar {
+      background: white; border-bottom: 1px solid var(--border);
+      padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-dark); }
+    .brand-icon {
+      width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, #e8589a, #f43f5e);
+      display: flex; align-items: center; justify-content: center; color: white; font-size: 20px;
+      box-shadow: 0 4px 12px rgba(232,88,154,0.3);
+    }
+    .brand-title { font-size: 18px; font-weight: 800; }
+    .brand-badge { font-size: 11px; font-weight: 700; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 20px; }
+
+    .topbar-actions { display: flex; align-items: center; gap: 12px; }
+    .btn-view-site {
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+      font-size: 13px; font-weight: 700; color: #4b5563; background: #f3f4f6;
+      padding: 8px 16px; border-radius: 30px; transition: all 0.2s;
+    }
+    .btn-view-site:hover { background: #e5e7eb; color: #111827; }
+    .btn-logout {
+      background: none; border: 1px solid #fee2e2; color: #dc2626; padding: 7px 14px;
+      border-radius: 30px; font-size: 13px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;
+    }
+    .btn-logout:hover { background: #fef2f2; }
+
+    /* Layout */
+    .admin-container { max-width: 1200px; margin: 28px auto; padding: 0 20px; width: 100%; flex: 1; }
+    
+    /* Stats Row */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px; }
+    .stat-card {
+      background: white; border-radius: var(--radius); padding: 20px; border: 1px solid var(--border);
+      box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px;
+    }
+    .stat-icon {
+      width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+      font-size: 24px; flex-shrink: 0;
+    }
+    .stat-val { font-size: 24px; font-weight: 800; color: var(--text-dark); line-height: 1.1; }
+    .stat-label { font-size: 12.5px; font-weight: 600; color: var(--text-muted); margin-top: 3px; }
+
+    /* Nav Tabs */
+    .nav-tabs {
+      display: flex; gap: 8px; border-bottom: 2px solid var(--border); margin-bottom: 24px;
+      overflow-x: auto; padding-bottom: 2px;
+    }
+    .tab-btn {
+      background: none; border: none; padding: 10px 20px; font-size: 14.5px; font-weight: 750;
+      color: var(--text-muted); cursor: pointer; border-radius: 12px 12px 0 0; position: relative;
+      display: flex; align-items: center; gap: 8px; transition: all 0.2s; white-space: nowrap;
+    }
+    .tab-btn:hover { color: var(--primary); }
+    .tab-btn.active { color: var(--primary); font-weight: 800; }
+    .tab-btn.active::after {
+      content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 3px;
+      background: var(--primary); border-radius: 3px;
+    }
+
+    /* Content Panes */
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* Templates Grid & Table */
+    .panel-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+      flex-wrap: wrap; gap: 12px;
+    }
+    .panel-title { font-size: 20px; font-weight: 800; color: var(--text-dark); }
+    .btn-primary {
+      background: linear-gradient(135deg, #e8589a, #d4428a); color: white; border: none;
+      padding: 10px 22px; border-radius: 30px; font-size: 14px; font-weight: 800; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(232,88,154,0.3);
+      transition: all 0.2s; text-decoration: none;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(232,88,154,0.4); }
+
+    .templates-table-wrap {
+      background: white; border-radius: var(--radius); border: 1px solid var(--border);
+      box-shadow: var(--shadow); overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px; }
+    th {
+      background: #faf7fc; padding: 14px 18px; font-weight: 750; color: #524765;
+      border-bottom: 1px solid var(--border);
+    }
+    td { padding: 14px 18px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fdfafc; }
+
+    .tpl-thumb {
+      width: 60px; height: 42px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border);
+      background: #eee; display: block;
+    }
+    .tpl-name { font-weight: 750; color: var(--text-dark); display: block; font-size: 14px; }
+    .tpl-category { font-size: 11px; background: var(--primary-light); color: var(--primary); padding: 2px 8px; border-radius: 12px; font-weight: 700; display: inline-block; margin-top: 3px; }
+    .tpl-price { font-weight: 800; color: #16a34a; }
+
+    .action-btns { display: flex; gap: 8px; }
+    .btn-sm-action {
+      border: 1px solid var(--border); background: white; border-radius: 8px; padding: 6px 10px;
+      font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+      color: #4b5563; text-decoration: none; transition: all 0.15s;
+    }
+    .btn-sm-action:hover { border-color: var(--primary); color: var(--primary); }
+    .btn-sm-del { color: #dc2626; border-color: #fecaca; }
+    .btn-sm-del:hover { background: #fef2f2; border-color: #ef4444; color: #b91c1c; }
+
+    /* Form Card */
+    .form-card {
+      background: white; border-radius: var(--radius); border: 1px solid var(--border);
+      box-shadow: var(--shadow); padding: 28px; max-width: 650px;
+    }
+    .form-group { margin-bottom: 18px; }
+    .form-label { display: block; font-size: 13px; font-weight: 750; color: var(--text-dark); margin-bottom: 6px; }
+    .form-input, .form-select, .form-textarea {
+      width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 13.5px; outline: none; transition: border-color 0.2s; font-family: inherit;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); }
+    .form-hint { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
+
+    /* Modal Form for Add Template */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(30,15,40,0.5);
+      backdrop-filter: blur(6px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-dialog {
+      background: white; border-radius: 20px; width: 100%; max-width: 620px;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      animation: popUp 0.25s ease-out;
+    }
+    @keyframes popUp { from { transform: scale(0.96) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+    .modal-header {
+      padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: white; z-index: 10;
+    }
+    .modal-title { font-size: 17px; font-weight: 800; color: var(--text-dark); }
+    .modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #9ca3af; }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px;
+      position: sticky; bottom: 0; background: white;
+    }
+
+    /* Login Screen */
+    .login-overlay {
+      position: fixed; inset: 0; background: linear-gradient(135deg, #1e1b4b, #3b0764);
+      z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;
+    }
+    .login-card {
+      background: white; border-radius: 24px; padding: 36px 32px; width: 100%; max-width: 440px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3); text-align: center;
+    }
+    .login-logo {
+      width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg, #e8589a, #f43f5e);
+      margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px;
+      box-shadow: 0 8px 20px rgba(232,88,154,0.35);
+    }
+    .login-title { font-size: 20px; font-weight: 800; color: #1e1b4b; margin-bottom: 6px; }
+    .login-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; }
+
+    .preview-box {
+      margin-top: 10px; border: 1.5px dashed var(--border); border-radius: 12px;
+      padding: 12px; text-align: center; background: #faf8fc; display: none;
+    }
+    .preview-box img, .preview-box video {
+      max-width: 100%; max-height: 180px; border-radius: 8px; object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Màn Hình Đăng Nhập CMS (Login Screen) ── -->
+  <div id="loginScreen" class="login-overlay">
+    <div class="login-card">
+      <div class="login-logo">
+        <i data-lucide="lock"></i>
+      </div>
+      <h2 class="login-title">Đăng Nhập Quản Trị CMS</h2>
+      <p class="login-desc">Hệ thống quản trị nội dung website DearGift Studio</p>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label">Mật khẩu quản trị</label>
+          <input type="text" id="adminPasswordInput" class="form-input" placeholder="Nhập mật khẩu..." value="admin" required autofocus>
+          <div style="font-size: 12px; color: #6d28d9; margin-top: 6px; font-weight: 700;">
+            🔑 Mật khẩu mặc định: <code style="background: #ede9fe; padding: 2px 6px; border-radius: 6px;">admin</code> hoặc <code style="background: #ede9fe; padding: 2px 6px; border-radius: 6px;">admin1911</code>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; border-radius: 12px; margin-top: 6px;">
+          <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
+          <span>Vào Bảng Quản Trị</span>
+        </button>
+
+        <button type="button" onclick="quickLogin()" style="width: 100%; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 12px; padding: 10px; margin-top: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+          <i data-lucide="zap" style="width: 15px; height: 15px; color: #f59e0b;"></i>
+          <span>Đăng Nhập Nhanh 1 Chạm</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── Top Header Navigation ── -->
+  <header class="topbar">
+    <a href="javascript:void(0)" onclick="window.location.reload()" class="topbar-brand">
+      <div class="brand-icon">
+        <i data-lucide="sparkles"></i>
+      </div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="brand-title">DearGift CMS Studio</span>
+          <span class="brand-badge">Quản Trị Viên: Nguyễn Văn Phong</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Quản trị sản phẩm, video demo & thanh toán VietQR</div>
+      </div>
+    </a>
+
+    <div class="topbar-actions">
+      <a href="http://localhost:8000/templates.php" id="btnViewSite" target="_blank" class="btn-view-site">
+        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+        <span>Xem Trang Web Khách</span>
+      </a>
+      <button onclick="handleLogout()" class="btn-logout">
+        <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
+        <span>Đăng xuất</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Main Admin Container ── -->
+  <main class="admin-container">
+
+    <!-- Quick Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #e0e7ff; color: #4338ca;">
+          <i data-lucide="package"></i>
+        </div>
+        <div>
+          <div class="stat-val" id="statTotalTemplates">52</div>
+          <div class="stat-label">Mẫu Quà Đang Vận Hành</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #dcfce7; color: #15803d;">
+          <i data-lucide="qr-code"></i>
+        </div>
+        <div>
+          <div class="stat-val" id="statBankCode">MBBank</div>
+          <div class="stat-label">Cổng VietQR Tự Động</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #fef3c7; color: #b45309;">
+          <i data-lucide="tag"></i>
+        </div>
+        <div>
+          <div class="stat-val" id="statPriceAmount">20.000đ</div>
+          <div class="stat-label">Giá Thu Mỗi Đơn Quà</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: #fce7f3; color: #be185d;">
+          <i data-lucide="shield-check"></i>
+        </div>
+        <div>
+          <div class="stat-val">Bảo Mật</div>
+          <div class="stat-label">Chủ Sở Hữu: Nguyễn Văn Phong</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('templates')">
+        <i data-lucide="layout-grid" style="width: 16px; height: 16px;"></i>
+        <span>Quản Lý Mẫu Quà & Sản Phẩm</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('payment')">
+        <i data-lucide="credit-card" style="width: 16px; height: 16px;"></i>
+        <span>Cấu Hình VietQR & Ngân Hàng</span>
+      </button>
+      <button class="tab-btn" onclick="switchTab('security')">
+        <i data-lucide="key" style="width: 16px; height: 16px;"></i>
+        <span>Đổi Mật Khẩu Admin</span>
+      </button>
+    </div>
+
+    <!-- ── TAB 1: Quản lý Mẫu Quà Tặng ── -->
+    <section id="tab-templates" class="tab-pane active">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Danh Sách Mẫu Quà Tặng Đang Bán</h2>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+            Thêm sản phẩm mới, cập nhật video demo, giá bán và ảnh đại diện hiển thị cho khách
+          </div>
+        </div>
+        <button onclick="openAddModal()" class="btn-primary">
+          <i data-lucide="plus-circle" style="width: 16px; height: 16px;"></i>
+          <span>Thêm Sản Phẩm Mới</span>
+        </button>
+      </div>
+
+      <div class="templates-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 80px;">Ảnh Bìa</th>
+              <th>Tên Mẫu / Sản Phẩm</th>
+              <th>Danh Mục</th>
+              <th>Giá Bán</th>
+              <th>Lượt Dùng</th>
+              <th style="text-align: right;">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody id="templatesTableBody">
+            <!-- Dynamic items loaded here -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── TAB 2: Cài Đặt Thanh Toán & VietQR ── -->
+    <section id="tab-payment" class="tab-pane">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Cấu Hình Tài Khoản Nhận Tiền & Cổng VietQR</h2>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+            Khách hàng quét mã QR này để thanh toán mở khóa video HD và link quà tặng
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start;">
+        <div class="form-card" style="max-width: 100%;">
+          <form onsubmit="handleSaveSettings(event)">
+            <div class="form-group">
+              <label class="form-label">Ngân hàng thụ hưởng</label>
+              <select id="setBankCode" class="form-select">
+                <option value="MB">MBBank - Ngân Hàng Quân Đội</option>
+                <option value="VCB">Vietcombank - Ngoại Thương</option>
+                <option value="TCB">Techcombank - Kỹ Thương</option>
+                <option value="BIDV">BIDV - Đầu Tư và Phát Triển</option>
+                <option value="VPB">VPBank - Việt Nam Thịnh Vượng</option>
+                <option value="ACB">ACB - Á Châu</option>
+                <option value="TPB">TPBank - Tiên Phong</option>
+                <option value="VBA">Agribank - Nông Nghiệp</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Số tài khoản ngân hàng</label>
+              <input type="text" id="setAccountNumber" class="form-input" placeholder="Ví dụ: 2006999988836" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Tên chủ tài khoản (In hoa không dấu)</label>
+              <input type="text" id="setAccountName" class="form-input" placeholder="Ví dụ: NGUYEN VAN PHONG" required>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Giá mỗi lần khách tạo thiệp / xuất quà (VNĐ)</label>
+              <input type="number" id="setPriceAmount" class="form-input" placeholder="20000" min="0" step="1000" required>
+            </div>
+
+            <button type="submit" class="btn-primary" style="border-radius: 12px; padding: 12px 24px;">
+              <i data-lucide="save" style="width: 16px; height: 16px;"></i>
+              <span>Lưu Thông Tin Thanh Toán</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Preview QR Card -->
+        <div class="form-card" style="text-align: center;">
+          <h3 style="font-size: 15px; font-weight: 800; margin-bottom: 14px; color: var(--text-dark);">
+            Xem Trước Mã VietQR Khách Sẽ Quét
+          </h3>
+          <div style="background: #faf8fc; border: 1.5px dashed var(--border); border-radius: 16px; padding: 16px; display: inline-block;">
+            <img id="qrLivePreview" src="https://img.vietqr.io/image/MB-2006999988836-compact2.png" alt="Mã VietQR" style="max-width: 220px; border-radius: 10px; display: block; margin: 0 auto;">
+          </div>
+          <div style="font-size: 12.5px; color: var(--text-muted); margin-top: 10px; line-height: 1.5;">
+            Khách hàng khi bấm "Thanh toán & Xuất quà" sẽ thấy chính xác mã này để quét chuyển tiền.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TAB 3: Đổi Mật Khẩu Admin ── -->
+    <section id="tab-security" class="tab-pane">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Bảo Mật & Đổi Mật Khẩu Admin</h2>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+            Đặt mật khẩu mới để bảo vệ toàn quyền quản trị website
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <form onsubmit="handleChangePassword(event)">
+          <div class="form-group">
+            <label class="form-label">Mật khẩu hiện tại</label>
+            <input type="password" id="curPassword" class="form-input" placeholder="Nhập mật khẩu đang dùng..." required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Mật khẩu mới</label>
+            <input type="password" id="newPassword" class="form-input" placeholder="Nhập mật khẩu mới..." required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Xác nhận mật khẩu mới</label>
+            <input type="password" id="confirmPassword" class="form-input" placeholder="Nhập lại mật khẩu mới..." required>
+          </div>
+
+          <button type="submit" class="btn-primary" style="border-radius: 12px; padding: 12px 24px;">
+            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+            <span>Đổi Mật Khẩu</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── MODAL: Thêm Sản Phẩm / Mẫu Quà Mới ── -->
+  <div id="addModal" class="modal-overlay">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 class="modal-title">Thêm Sản Phẩm / Mẫu Quà Tặng Mới</h3>
+        <button class="modal-close" onclick="closeAddModal()">&times;</button>
+      </div>
+
+      <form onsubmit="handleSaveTemplate(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Tên sản phẩm / Mẫu quà tặng *</label>
+            <input type="text" id="tplTitle" class="form-input" placeholder="Ví dụ: Cúp Vàng Quý Ông 3D Hoàn Hảo" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label class="form-label">Danh mục quà tặng *</label>
+              <select id="tplCategory" class="form-select" required>
+                <option value="Ngày Quốc Tế Đàn Ông 19/11">Ngày Quốc Tế Đàn Ông 19/11</option>
+                <option value="Sinh Nhật">Sinh Nhật</option>
+                <option value="Tình Yêu & Lãng Mạn">Tình Yêu & Lãng Mạn</option>
+                <option value="Trải Nghiệm 3D">Trải Nghiệm 3D</option>
+                <option value="Quốc Tế Phụ Nữ">Quốc Tế Phụ Nữ</option>
+                <option value="Kỷ Niệm">Kỷ Niệm</option>
+                <option value="Giáng Sinh & Năm Mới">Giáng Sinh & Năm Mới</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Giá hiển thị (hoặc 'Miễn phí') *</label>
+              <input type="text" id="tplPrice" class="form-input" placeholder="Ví dụ: 20.000đ" value="20.000đ" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Lời mô tả ngắn về mẫu quà *</label>
+            <textarea id="tplDesc" class="form-textarea" rows="3" placeholder="Mô tả hiệu ứng, âm nhạc, lời chúc và tính năng độc đáo..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Thẻ tags tìm kiếm (cách nhau bằng dấu phẩy)</label>
+            <input type="text" id="tplTags" class="form-input" placeholder="#19/11, #CúpVàng3D, #QuàTặng" value="#19/11, #MẫuMới, #3D">
+          </div>
+
+          <!-- Upload Ảnh Bìa -->
+          <div class="form-group">
+            <label class="form-label">Ảnh bìa đại diện (Thumbnail)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="tplImgUrl" class="form-input" placeholder="Dán link ảnh hoặc tải file ảnh từ máy...">
+              <label class="btn-primary" style="border-radius: 10px; cursor: pointer; white-space: nowrap; padding: 10px 14px;">
+                <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Tải Ảnh
+                <input type="file" accept="image/*" onchange="handleUploadMedia(this, 'img')" style="display: none;">
+              </label>
+            </div>
+            <div id="imgPreviewBox" class="preview-box">
+              <img id="imgPreviewElement" src="" alt="Xem trước ảnh">
+            </div>
+          </div>
+
+          <!-- Video Demo MP4 -->
+          <div class="form-group">
+            <label class="form-label">Video Demo MP4 hoặc Link xem thử (Để khách xem không bị lỗi)</label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="tplDemoUrl" class="form-input" placeholder="Ví dụ: demo.php?id=69 hoặc link video mp4...">
+              <label class="btn-primary" style="border-radius: 10px; cursor: pointer; white-space: nowrap; padding: 10px 14px;">
+                <i data-lucide="video" style="width: 14px; height: 14px;"></i> Tải Video MP4
+                <input type="file" accept="video/mp4" onchange="handleUploadMedia(this, 'video')" style="display: none;">
+              </label>
+            </div>
+            <div class="form-hint">Khuyến nghị tải file MP4 chuẩn (H.264/AAC), dung lượng &lt; 15MB để phát mượt mà trên iPhone & Android.</div>
+            <div id="videoPreviewBox" class="preview-box">
+              <video id="videoPreviewElement" controls></video>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-sm-action" onclick="closeAddModal()" style="padding: 10px 18px; border-radius: 10px;">Hủy bỏ</button>
+          <button type="submit" class="btn-primary" style="border-radius: 10px; padding: 10px 22px;">
+            <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+            <span>Đăng Sản Phẩm Mới</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Determine API origin cleanly
+    const API_BASE = (window.location.protocol === 'file:') ? 'http://127.0.0.1:8000' : '';
+
+    const EMBEDDED_TEMPLATES = [{"id": "69", "is_featured": true, "demo_url": "demo.php?id=69", "demo_title": "Món Quà Nhỏ 3D · 19/11 &amp; Mọi Dịp Đặc Biệt 🎁", "img_url": "https://deargift.love/templates/mon-qua-nho-2010/cover.webp?v=1794025288", "price": "50.000đ", "usage": "139 lượt dùng", "category": "Ngày Phụ Nữ", "duration": "3 phút tạo", "title": "Món Quà Nhỏ 3D · 19/11 &amp; Mọi Dịp Đặc Biệt 🎁", "desc": "Món quà 3D tương tác 7 cảnh cho ngày Quốc tế Nam giới 19/11, sinh nhật, kỷ niệm và mọi dịp: tờ lịch xé ngày đặc biệt, chữ hạt sáng, bó hoa hồng 3D không tàn, quả cầu ảnh bay, phong thư sáp ong, hộp quà thẻ cào bí mật và đêm pháo hoa đếm ngày yêu.", "tags": ["#19/11", "#Bó hoa 3D", "#Mọi dịp"], "builder_url": "gift-builder.php?id=69"}, {"id": "21", "is_featured": false, "demo_url": "demo.php?id=21", "demo_title": "Mẫu sinh nhật VIP", "img_url": "https://deargift.love/assets/thumbnails/hpbd-vip.jpg", "price": "Miễn phí", "usage": "428 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Mẫu sinh nhật VIP", "desc": "Thiệp sinh nhật VIP với bố cục sang trọng, ảnh cá nhân hóa, lời chúc và nhạc nền dành cho một ngày thật đặc biệt.", "tags": [], "builder_url": "gift-builder.php?id=21"}, {"id": "7", "is_featured": false, "demo_url": "demo.php?id=7", "demo_title": "Món Quà Nhỏ (3D WebGL)", "img_url": "https://deargift.love/uploads/templates/tpl_7_1780304033.png", "price": "50.000đ", "usage": "437 lượt dùng", "category": "Ngày Phụ Nữ", "duration": "3 phút tạo", "title": "Món Quà Nhỏ (3D WebGL)", "desc": "Quả cầu ảnh 3D, hiệu ứng tuyết và lá thư tình cảm dành cho 8/3, 20/10 hoặc lời chúc tới người phụ nữ bạn trân trọng.", "tags": [], "builder_url": "gift-builder.php?id=7"}, {"id": "12", "is_featured": false, "demo_url": "demo.php?id=12", "demo_title": "Kỉ niệm với người thương", "img_url": "https://deargift.love/assets/thumbnails/lovegift.jpg", "price": "50.000đ", "usage": "268 lượt dùng", "category": "Tất cả", "duration": "3 phút tạo", "title": "Kỉ niệm với người thương", "desc": "Trang kỷ niệm với ảnh riêng, lời nhắn và hiệu ứng hạt rơi nhẹ nhàng để lưu lại khoảnh khắc cùng người thương.", "tags": [], "builder_url": "gift-builder.php?id=12"}, {"id": "22", "is_featured": false, "demo_url": "demo.php?id=22", "demo_title": "Mẫu Giáng Sinh", "img_url": "https://deargift.love/assets/thumbnails/giang-sinh.jpg", "price": "Miễn phí", "usage": "119 lượt dùng", "category": "Lễ hội", "duration": "3 phút tạo", "title": "Mẫu Giáng Sinh", "desc": "Thiệp Giáng sinh cá nhân hóa với lời chúc, hình ảnh và không gian lễ hội ấm áp.", "tags": [], "builder_url": "gift-builder.php?id=22"}, {"id": "28", "is_featured": false, "demo_url": "demo.php?id=28", "demo_title": "Chúc Mừng Sinh Nhật &amp; Tỏ Tình", "img_url": "https://deargift.love/assets/thumbnails/hpbd-book.jpg", "price": "50.000đ", "usage": "221 lượt dùng", "category": "3D", "duration": "3 phút tạo", "title": "Chúc Mừng Sinh Nhật &amp; Tỏ Tình", "desc": "Mưa chữ và hạt lung linh tạo thành lời chúc sinh nhật hoặc thông điệp tỏ tình, kết hợp nhạc nền tùy chọn.", "tags": [], "builder_url": "gift-builder.php?id=28"}, {"id": "23", "is_featured": false, "demo_url": "demo.php?id=23", "demo_title": "Gửi Vận May", "img_url": "https://deargift.love/assets/thumbnails/lucky-chance.jpg", "price": "Miễn phí", "usage": "170 lượt dùng", "category": "Tất cả", "duration": "3 phút tạo", "title": "Gửi Vận May", "desc": "Món quà tương tác gồm thẻ cào và vòng quay may mắn, phù hợp để tặng voucher hoặc tạo một bất ngờ vui vẻ.", "tags": [], "builder_url": "gift-builder.php?id=23"}, {"id": "29", "is_featured": false, "demo_url": "demo.php?id=29", "demo_title": "Valentine Messenger", "img_url": "https://deargift.love/assets/thumbnails/valentine-real.jpg", "price": "Miễn phí", "usage": "140 lượt dùng", "category": "Valentine", "duration": "3 phút tạo", "title": "Valentine Messenger", "desc": "Trải nghiệm Valentine mô phỏng màn hình khóa điện thoại, đoạn chat Messenger, trái tim 3D, ảnh kỷ niệm và thư tình.", "tags": ["#valentine", "#messenger", "#màn hình khóa"], "builder_url": "gift-builder.php?id=29"}, {"id": "30", "is_featured": false, "demo_url": "demo.php?id=30", "demo_title": "Galaxy Love Viewer", "img_url": "https://deargift.love/assets/thumbnails/galaxy-viewer-real.jpg", "price": "Miễn phí", "usage": "47 lượt dùng", "category": "3D", "duration": "3 phút tạo", "title": "Galaxy Love Viewer", "desc": "Galaxy Love Viewer cho chữ và ảnh bay trong không gian 3D, giữ để mở trái tim và nhấp đúp tạo hiệu ứng trái tim hạt.", "tags": ["#galaxy", "#3D", "#ảnh rơi"], "builder_url": "gift-builder.php?id=30"}, {"id": "32", "is_featured": false, "demo_url": "corazon-galactico/index.html", "demo_title": "Trái Tim Thiên Hà", "img_url": "https://deargift.love/assets/thumbnails/corazon-galactico-real.jpg", "price": "Miễn phí", "usage": "249 lượt dùng", "category": "3D", "duration": "3 phút tạo", "title": "Trái Tim Thiên Hà", "desc": "Trái tim hạt phát sáng giữa thiên hà 3D, bao quanh bởi ảnh kỷ niệm và những câu yêu thương chuyển động theo quỹ đạo.", "tags": ["#galaxy", "#trái tim", "#ảnh bay"], "builder_url": "gift-builder.php?id=32"}, {"id": "25", "is_featured": false, "demo_url": "demo.php?id=25", "demo_title": "Thư Tình Sinh Nhật", "img_url": "https://deargift.love/assets/thumbnails/hpbd-letter-real.jpg", "price": "Miễn phí", "usage": "148 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Thư Tình Sinh Nhật", "desc": "Lá thư sinh nhật chuyển động với lời chúc, chữ ký, ảnh kỷ niệm và bài nhạc dành riêng cho người nhận.", "tags": [], "builder_url": "hpbd-letter/builder.php"}, {"id": "26", "is_featured": false, "demo_url": "demo.php?id=26", "demo_title": "Thiệp Sinh Nhật Bất Ngờ", "img_url": "https://deargift.love/assets/thumbnails/hpbd-surprise-real.jpg", "price": "Miễn phí", "usage": "123 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Thiệp Sinh Nhật Bất Ngờ", "desc": "Thiệp sinh nhật bất ngờ với hộp thư mở ra, pháo hoa, ảnh tùy chỉnh và lời chúc cá nhân hóa.", "tags": [], "builder_url": "hpbd-surprise/builder.php"}, {"id": "27", "is_featured": false, "demo_url": "demo.php?id=27", "demo_title": "Xe Bus Tình Yêu", "img_url": "https://deargift.love/assets/thumbnails/xe-bus-real.jpg", "price": "Miễn phí", "usage": "95 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Xe Bus Tình Yêu", "desc": "Chuyến xe bus tình yêu mang theo tên, thông điệp và hiệu ứng thả tim để gửi tới người bạn thương.", "tags": [], "builder_url": "gift-builder.php?id=27"}, {"id": "31", "is_featured": false, "demo_url": "demo.php?id=31", "demo_title": "Flores Amarillas Para Ti", "img_url": "https://deargift.love/assets/thumbnails/golden-bloom.svg", "price": "Miễn phí", "usage": "7 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Flores Amarillas Para Ti", "desc": "Thiệp hoa vàng ánh sao: mở lời mời, vòng xoáy kỷ niệm, ảnh xoay quanh đóa hoa và cảnh kết tương tác.", "tags": ["#hoa vàng", "#flores amarillas", "#album"], "builder_url": "gift-builder.php?id=31"}, {"id": "33", "is_featured": false, "demo_url": "demo.php?id=33", "demo_title": "Nguyệt Dạ Đoàn Viên", "img_url": "https://deargift.love/assets/thumbnails/trung-thu-nguyet-da.svg", "price": "Miễn phí", "usage": "2 lượt dùng", "category": "Lễ hội", "duration": "3 phút tạo", "title": "Nguyệt Dạ Đoàn Viên", "desc": "Thiệp Trung Thu tương tác cao cấp: ấn giữ mặt trăng, không gian ảnh 3D, đèn hoa đăng, trái tim ánh trăng và lá thư gõ chữ.", "tags": ["#trung thu", "#đèn lồng", "#album 3d"], "builder_url": "gift-builder.php?id=33"}, {"id": "40", "is_featured": false, "demo_url": "demo.php?id=40", "demo_title": "Thư Kỷ Niệm (Anniversary) 💌", "img_url": "https://deargift.love/templates/anniversary/cover.webp", "price": "Miễn phí", "usage": "33 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Thư Kỷ Niệm (Anniversary) 💌", "desc": "Phong bì đỏ rượu gắn xi vàng, mở ra là ba món quà: bức thư dài, dòng ký ức bằng ảnh, và bó hoa kèm đĩa than phát nhạc.", "tags": ["#Kỷ niệm", "#Thư tay", "#Nhiều màn"], "builder_url": "gift-builder.php?id=40"}, {"id": "41", "is_featured": false, "demo_url": "demo.php?id=41", "demo_title": "Bắt Bánh · Băng Cassette 🧺", "img_url": "https://deargift.love/templates/bakery-mixtape/cover.webp", "price": "Miễn phí", "usage": "31 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Bắt Bánh · Băng Cassette 🧺", "desc": "Ba màn nối nhau: chơi game hứng bánh sáng, mở băng cassette nghe nhạc, rồi tới bảng ghim kỷ niệm đỏ rượu có thư tay và bản đồ nơi chốn.", "tags": ["#Minigame", "#Nhiều màn", "#Màu nước"], "builder_url": "gift-builder.php?id=41"}, {"id": "42", "is_featured": false, "demo_url": "demo.php?id=42", "demo_title": "Bánh Kem Sinh Nhật — Thổi Nến &amp; Ước 🎂", "img_url": "https://deargift.love/templates/banh-kem-sinh-nhat/cover.webp", "price": "Miễn phí", "usage": "44 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Bánh Kem Sinh Nhật — Thổi Nến &amp; Ước 🎂", "desc": "Tờ lịch cuộn tới đúng ngày sinh nhật, chiếc bánh kem hiện ra để người nhận nhấn giữ thổi nến, chọn một điều ước, xem trái tim ảnh kỷ niệm, đọc lá thư và thả điều ước thành sao băng.", "tags": ["#Sinh nhật", "#Bánh kem", "#Thổi nến"], "builder_url": "gift-builder.php?id=42"}, {"id": "43", "is_featured": false, "demo_url": "demo.php?id=43", "demo_title": "Hộp kỷ niệm hoa nở", "img_url": "https://deargift.love/templates/bloom-memory-box/cover.webp", "price": "50.000đ", "usage": "1 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Hộp kỷ niệm hoa nở", "desc": "Phong thư bung ra cả một trời hoa, rồi tới thẻ cào kỷ niệm, bản đồ những nơi hai người từng đi và lá thư cuối có thiên thần nhỏ.", "tags": ["#Nhiều màn", "#Hoa nở", "#Cao cấp"], "builder_url": "gift-builder.php?id=43"}, {"id": "44", "is_featured": false, "demo_url": "demo.php?id=44", "demo_title": "Vườn Hoa Nở &amp; Đom Đóm Đêm 🌸", "img_url": "https://deargift.love/templates/blooming-flowers/cover.webp", "price": "Miễn phí", "usage": "20 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Vườn Hoa Nở &amp; Đom Đóm Đêm 🌸", "desc": "Mẫu thiệp hiệu ứng mầm cây vươn lên nở thành những bông hoa đào lấp lánh đom đóm đêm kỳ diệu.", "tags": [], "builder_url": "gift-builder.php?id=44"}, {"id": "45", "is_featured": false, "demo_url": "demo.php?id=45", "demo_title": "Bó Hoa Tulip Tặng Em 🌷", "img_url": "https://deargift.love/templates/bo-hoa-tulip/cover.webp", "price": "Miễn phí", "usage": "82 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Bó Hoa Tulip Tặng Em 🌷", "desc": "Tấm thiệp dễ thương &quot;Cốc cốc, có quà cho em&quot;: chạm vào là bó tulip nở giữa trời đêm với lời nhắn tự gõ từng chữ; chạm bó hoa để mở lá thư kèm ảnh người ấy.", "tags": ["#Bó hoa tulip", "#Lời nhắn", "#Lá thư"], "builder_url": "gift-builder.php?id=45"}, {"id": "46", "is_featured": false, "demo_url": "demo.php?id=46", "demo_title": "Chiikawa Giao Thư 🐾", "img_url": "https://deargift.love/templates/chiikawa-delivery/cover.webp", "price": "Miễn phí", "usage": "55 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Chiikawa Giao Thư 🐾", "desc": "Máy trạng thái 10 màn Kawaii scrapbook xanh pastel: chat QR trái tim, Chiikawa cầm phong thư xin phép giao, màn &quot;Excuse Me!&quot; dỗi khi nhấn Decline, sao băng + phong thư bung, băng rôn sinh nhật paper-unfold, và 4 hộp quà — album polaroid, lá thư film strip, đĩa than YouTube, bó hoa lời chúc.", "tags": ["#Kawaii", "#Chiikawa", "#Nhiều màn"], "builder_url": "gift-builder.php?id=46"}, {"id": "47", "is_featured": false, "demo_url": "demo.php?id=47", "demo_title": "Nhận Quà Giáng Sinh (Christmas Gift) 🎄", "img_url": "https://deargift.love/templates/christmas-gift/cover.webp", "price": "Miễn phí", "usage": "1 lượt dùng", "category": "Lễ hội", "duration": "3 phút tạo", "title": "Nhận Quà Giáng Sinh (Christmas Gift) 🎄", "desc": "Trải nghiệm màn mở quà Giáng Sinh từ Ông Già Noel, ghép chữ hạt 3D lung linh (Merry Christmas), nhạc Giáng sinh ấm áp và thư chúc mừng.", "tags": ["#Giáng Sinh", "#Ông già Noel", "#Ghép chữ 3D"], "builder_url": "gift-builder.php?id=47"}, {"id": "48", "is_featured": false, "demo_url": "demo.php?id=48", "demo_title": "Tạp Chí Giáng Sinh 🎄", "img_url": "https://deargift.love/templates/christmas-magazine/cover.webp", "price": "Miễn phí", "usage": "2 lượt dùng", "category": "Lễ hội", "duration": "3 phút tạo", "title": "Tạp Chí Giáng Sinh 🎄", "desc": "Bảy màn kể chuyện cuối năm: mở dấu sáp đỏ, chữ lớn chúc mừng, đồng hồ đếm ngược giao thừa, bảng ảnh kỷ niệm trong TV cổ và máy ảnh chụp lấy liền, playlist nhạc Noel, thư tay kẹp ghim vàng và tấm thiệp kết.", "tags": ["#Bảy màn", "#Tuyết rơi", "#Playlist"], "builder_url": "gift-builder.php?id=48"}, {"id": "49", "is_featured": false, "demo_url": "demo.php?id=49", "demo_title": "Web tỏ tình &quot;Có/Không&quot;", "img_url": "https://deargift.love/templates/confession/cover.webp", "price": "Miễn phí", "usage": "10 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Web tỏ tình &quot;Có/Không&quot;", "desc": "Nút &quot;Không&quot; chạy trốn khi rê chuột, nhấn &quot;Có&quot; là pháo giấy nổ tung.", "tags": ["#Tỏ tình", "#Vui nhộn", "#Valentine"], "builder_url": "gift-builder.php?id=49"}, {"id": "50", "is_featured": false, "demo_url": "demo.php?id=50", "demo_title": "Sinh Nhật Denim Xanh 💙", "img_url": "https://deargift.love/templates/denim-blue-birthday/cover.webp", "price": "Miễn phí", "usage": "12 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Sinh Nhật Denim Xanh 💙", "desc": "Chín màn nối nhau tông xanh navy: khung tim ren, con đường nối hai đứa, bốn con tem quà, thư tay cạnh tờ lịch bóc, bảng ảnh polaroid, bó hoa hộp quà và đĩa than quay.", "tags": ["#Nhiều màn", "#Ren trắng", "#Ảnh kỷ niệm"], "builder_url": "gift-builder.php?id=50"}, {"id": "51", "is_featured": false, "demo_url": "demo.php?id=51", "demo_title": "Galaxy Love (Trái Tim Vũ Trụ 3D) 🌌", "img_url": "https://deargift.love/templates/galaxy-love/cover.webp", "price": "Miễn phí", "usage": "39 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Galaxy Love (Trái Tim Vũ Trụ 3D) 🌌", "desc": "Trái tim vũ trụ 3D lung linh giữa thiên hà, chữ 3D lượn sóng, mưa tim rơi, ảnh lượn đĩa xoay 3D và phong bì lá thư tình lãng mạn.", "tags": ["#3D WebGL", "#Trái tim vũ trụ", "#Hạt 3D"], "builder_url": "gift-builder.php?id=51"}, {"id": "52", "is_featured": false, "demo_url": "demo.php?id=52", "demo_title": "Ngày Của Bạn Gái 💝", "img_url": "https://deargift.love/templates/gf-day/cover.webp", "price": "Miễn phí", "usage": "14 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Ngày Của Bạn Gái 💝", "desc": "Hộp quà trái tim mở ra là hoa nở tràn màn hình, rồi ba món nhỏ: bình hoa gắn lời khen, cuộn phim ảnh kỷ niệm và một lá thư tay.", "tags": ["#Nhiều màn", "#Hoa nở", "#Ảnh kỷ niệm"], "builder_url": "gift-builder.php?id=52"}, {"id": "53", "is_featured": false, "demo_url": "demo.php?id=53", "demo_title": "Happy Birthday VIP 2 🎂", "img_url": "https://deargift.love/templates/happy-birthday-vip2/cover.png", "price": "Miễn phí", "usage": "48 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Happy Birthday VIP 2 🎂", "desc": "Thiệp sinh nhật online nhiều màn: bánh nến thắp sáng, lời chào tên riêng, phong bì mở ra thư tay, album ảnh, video kỷ niệm và mưa lời chúc lung linh.", "tags": ["#Nhiều màn", "#Bánh nến", "#Video kỷ niệm"], "builder_url": "gift-builder.php?id=53"}, {"id": "54", "is_featured": false, "demo_url": "demo.php?id=54", "demo_title": "Thiệp Hoa Hồng Valentine 🌹", "img_url": "https://deargift.love/templates/hoa-hong-valentine/cover.webp", "price": "Miễn phí", "usage": "3 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Thiệp Hoa Hồng Valentine 🌹", "desc": "Đoá hồng đỏ giữa muôn trái tim lấp lánh: chạm vào là cánh hồng bung bay và phong thư hiện ra. Mở thư để lật tấm thiệp lời chúc, rồi ảnh polaroid và ảnh kỷ niệm bay lên.", "tags": ["#Hoa hồng", "#Valentine", "#Phong thư"], "builder_url": "gift-builder.php?id=54"}, {"id": "55", "is_featured": false, "demo_url": "demo.php?id=55", "demo_title": "Khoá Tim Kỷ Niệm 🔐", "img_url": "https://deargift.love/templates/khoa-tim-ky-niem/cover.webp", "price": "Miễn phí", "usage": "28 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Khoá Tim Kỷ Niệm 🔐", "desc": "Ổ khoá trái tim 4 số: người ấy phải nhớ đúng ngày kỷ niệm của hai bạn mới mở được. Mở xong là tấm thiệp chúc mừng, cào lớp phủ để lộ ra những tấm ảnh kỷ niệm.", "tags": ["#Khoá trái tim", "#Ngày kỷ niệm", "#Thiệp cào"], "builder_url": "gift-builder.php?id=55"}, {"id": "56", "is_featured": false, "demo_url": "demo.php?id=56", "demo_title": "Pháo Hoa Tình Yêu 🎆", "img_url": "https://deargift.love/templates/phao-hoa-tinh-yeu/cover.webp", "price": "Miễn phí", "usage": "31 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Pháo Hoa Tình Yêu 🎆", "desc": "Bầu trời đêm bừng pháo hoa: đếm ngược, tên người ấy và lời yêu hiện ra từ những hạt pháo hoa, pháo hoa hình trái tim rồi mở ra lá thư kèm ảnh. Chạm vào trời để bắn thêm.", "tags": ["#Pháo hoa tình yêu", "#Chữ pháo hoa", "#Tỏ tình"], "builder_url": "gift-builder.php?id=56"}, {"id": "57", "is_featured": false, "demo_url": "demo.php?id=57", "demo_title": "Quà Pixel 16-bit 🕹️", "img_url": "https://deargift.love/templates/pixel-gift/cover.webp", "price": "Miễn phí", "usage": "11 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Quà Pixel 16-bit 🕹️", "desc": "Trò chơi pixel art: quét mã QR trong khung chat, bấm mật mã mở khoá, rồi chọn 1 trong 3 rương quà — thư cổ, album ảnh, và máy nghe nhạc Windows 98.", "tags": ["#Pixel art", "#Giải đố", "#Nhiều màn"], "builder_url": "gift-builder.php?id=57"}, {"id": "58", "is_featured": false, "demo_url": "demo.php?id=58", "demo_title": "Quả Cầu Kỷ Niệm 💖", "img_url": "https://deargift.love/templates/qua-cau-ky-niem/cover.webp", "price": "Miễn phí", "usage": "26 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Quả Cầu Kỷ Niệm 💖", "desc": "Giữ để bắt đầu: giữa vũ trụ hạt sáng, từng lời nhắn yêu thương hiện ra, rồi ảnh kỷ niệm kết thành quả cầu xoay 3D. Chạm vào phong thư để mở lá thư gõ chữ kèm ảnh.", "tags": ["#Quả cầu ảnh 3D", "#Lời nhắn", "#Lá thư"], "builder_url": "gift-builder.php?id=58"}, {"id": "59", "is_featured": false, "demo_url": "demo.php?id=59", "demo_title": "Sinh Nhật Bất Ngờ — Bật Đèn Lên 🎈", "img_url": "https://deargift.love/templates/sinh-nhat-bat-den/cover.webp", "price": "Miễn phí", "usage": "14 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Sinh Nhật Bất Ngờ — Bật Đèn Lên 🎈", "desc": "Căn phòng tối om: gạt công tắc là bừng lên bữa tiệc bất ngờ với bóng bay, bánh kem và số tuổi. Thổi nến, ước một điều, mở lá thư cuộn và ngắm lại ảnh kỷ niệm.", "tags": ["#Sinh nhật", "#Tiệc bất ngờ", "#Thổi nến"], "builder_url": "gift-builder.php?id=59"}, {"id": "60", "is_featured": false, "demo_url": "demo.php?id=60", "demo_title": "Sinh Nhật Người Nhện 🕷️", "img_url": "https://deargift.love/templates/spidey-birthday/cover.webp", "price": "Miễn phí", "usage": "1 lượt dùng", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Sinh Nhật Người Nhện 🕷️", "desc": "Tám màn nối nhau kiểu truyện tranh: chibi thổi nến, câu hỏi có/không, kho quà ba món, thư hai trang, bảng ảnh polaroid, đĩa than quay và màn kết trên đồi cỏ.", "tags": ["#Nhiều màn", "#Truyện tranh", "#Ảnh kỷ niệm"], "builder_url": "gift-builder.php?id=60"}, {"id": "61", "is_featured": false, "demo_url": "demo.php?id=61", "demo_title": "Tinh Cầu Tình Yêu 🪐", "img_url": "https://deargift.love/templates/tinh-cau-tinh-yeu/cover.webp", "price": "Miễn phí", "usage": "1 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Tinh Cầu Tình Yêu 🪐", "desc": "Một thiên hà 3D lung linh quanh hành tinh tình yêu, những vòng chữ mang tên hai bạn và ngày kỷ niệm xoay quanh; chạm vào tinh cầu để bung ra dải ảnh kỷ niệm giữa vũ trụ.", "tags": ["#Thiên hà 3D", "#Tinh cầu", "#Vòng chữ"], "builder_url": "gift-builder.php?id=61"}, {"id": "62", "is_featured": false, "demo_url": "demo.php?id=62", "demo_title": "Trái Tim 3D Lời Yêu 💗", "img_url": "https://deargift.love/templates/trai-tim-3d/cover.webp", "price": "Miễn phí", "usage": "49 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Trái Tim 3D Lời Yêu 💗", "desc": "Trái tim 3D kết từ hàng nghìn hạt sáng đập theo nhịp, những vòng lời yêu xoay quanh bên dưới. Chạm vào trái tim để mở phong thư với lá thư và ảnh polaroid.", "tags": ["#Trái tim 3D", "#Heart TikTok", "#Lời yêu"], "builder_url": "gift-builder.php?id=62"}, {"id": "63", "is_featured": false, "demo_url": "demo.php?id=63", "demo_title": "Trái Tim Nhịp Đập Cupid 💘", "img_url": "https://deargift.love/templates/trai-tim-nhip-dap/cover.webp", "price": "Miễn phí", "usage": "21 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Trái Tim Nhịp Đập Cupid 💘", "desc": "Trái tim 3D kết từ hàng nghìn hạt sáng đập theo nhịp, lời yêu hiện dần từng chữ. Chạm chú Cupid bắn mũi tên trúng tim, tim nổ tung thành phong thư chứa lá thư và ảnh.", "tags": ["#Trái tim 3D", "#Cupid", "#Nhịp tim"], "builder_url": "gift-builder.php?id=63"}, {"id": "64", "is_featured": false, "demo_url": "demo.php?id=64", "demo_title": "Trung Thu — Đèn Ông Sao &amp; Hoa 🏮", "img_url": "https://deargift.love/templates/trung-thu-den-ong-sao/cover.webp", "price": "Miễn phí", "usage": "", "category": "Lễ hội", "duration": "3 phút tạo", "title": "Trung Thu — Đèn Ông Sao &amp; Hoa 🏮", "desc": "Đêm rằm lung linh đom đóm: chạm để thắp chiếc đèn ông sao kết bằng hoa, đọc lá thư Trung thu kèm ảnh kỷ niệm rồi gửi một điều ước lên trăng.", "tags": ["#Trung thu", "#Đèn ông sao", "#Đèn hoa"], "builder_url": "gift-builder.php?id=64"}, {"id": "65", "is_featured": false, "demo_url": "demo.php?id=65", "demo_title": "Valentine VIP (Thư Tình &amp; Vũ Trụ Heart 3D) 💖", "img_url": "https://deargift.love/templates/valentine-deargift/cover.webp", "price": "Miễn phí", "usage": "2 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Valentine VIP (Thư Tình &amp; Vũ Trụ Heart 3D) 💖", "desc": "Trải nghiệm màn nhắn tin Messenger chuẩn iOS iPhone, khóa passcode gấu đáng yêu, đĩa xoay vũ trụ hạt 3D và thần Cupid trao thư tình Valentine.", "tags": ["#Valentine", "#Messenger", "#Lock Screen"], "builder_url": "gift-builder.php?id=65"}, {"id": "66", "is_featured": false, "demo_url": "demo.php?id=66", "demo_title": "Đêm Tím Kỷ Niệm 💜", "img_url": "https://deargift.love/templates/violet-memory-hub/cover.webp", "price": "Miễn phí", "usage": "", "category": "Sinh nhật", "duration": "3 phút tạo", "title": "Đêm Tím Kỷ Niệm 💜", "desc": "Trang cuộn dài tông tím than: mở hộp quà neon, đồng hồ đếm số tuổi tới từng giây, sáu tấm thẻ lật mở &quot;điều anh thích ở em&quot;, bốn mùa kỷ niệm, lưới ảnh và một đoạn băng VHS giấu ở cuối.", "tags": ["#Trang cuộn", "#Đếm số tuổi", "#Thẻ lật"], "builder_url": "gift-builder.php?id=66"}, {"id": "67", "is_featured": false, "demo_url": "demo.php?id=67", "demo_title": "Vườn Hoa Mật Mã 🌸", "img_url": "https://deargift.love/templates/vuon-hoa-ma-pin/cover.webp", "price": "Miễn phí", "usage": "4 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Vườn Hoa Mật Mã 🌸", "desc": "Món quà khoá bằng mã PIN 4 số chỉ hai bạn biết. Nhập đúng mã là tấm thiệp mở ra, hoa rơi ngập màn hình, rồi cả khu vườn hoa nở cùng lá thư và ảnh kỷ niệm.", "tags": ["#Mã PIN", "#Vườn hoa", "#Thiệp mở"], "builder_url": "gift-builder.php?id=67"}, {"id": "8", "is_featured": false, "demo_url": "demo.php?id=8", "demo_title": "Troll Người Yêu", "img_url": "https://deargift.love/uploads/templates/tpl_8_1780310809.png", "price": "Miễn phí", "usage": "100 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Troll Người Yêu", "desc": "Trang tương tác vui nhộn để trêu người yêu hoặc bạn bè bằng một đường link bất ngờ.", "tags": [], "builder_url": "gift-builder.php?id=8"}, {"id": "9", "is_featured": false, "demo_url": "demo.php?id=9", "demo_title": "Giáng Sinh 🎄", "img_url": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&amp;fit=crop&amp;q=80", "price": "Miễn phí", "usage": "101 lượt dùng", "category": "Lễ hội", "duration": "3 phút tạo", "title": "Giáng Sinh 🎄", "desc": "Thiệp Giáng sinh lung linh với cây thông 3D, tuyết rơi, lời chúc và nhạc nền lễ hội.", "tags": [], "builder_url": "gift-builder.php?id=9"}, {"id": "34", "is_featured": false, "demo_url": "demo.php?id=34", "demo_title": "Tri Ân Thầy Cô 20/11", "img_url": "https://deargift.love/assets/thumbnails/nha-giao-2011.jpg", "price": "Miễn phí", "usage": "54 lượt dùng", "category": "Ngày Nhà Giáo", "duration": "3 phút tạo", "title": "Tri Ân Thầy Cô 20/11", "desc": "Thiệp 20/11 tri ân thầy cô: bảng hồng với bút tự viết lời chúc, bó hoa tulip nở rộ, ảnh thầy cô hai bên và lá thư gõ chữ kèm nhạc nền.", "tags": ["#20/11", "#thầy cô", "#tri ân"], "builder_url": "gift-builder.php?id=34"}, {"id": "35", "is_featured": false, "demo_url": "demo.php?id=35", "demo_title": "Sweet Valentine – Sổ Kỷ Niệm", "img_url": "https://deargift.love/assets/thumbnails/valentine-sweet.jpg", "price": "Miễn phí", "usage": "101 lượt dùng", "category": "Valentine", "duration": "3 phút tạo", "title": "Sweet Valentine – Sổ Kỷ Niệm", "desc": "Món quà Valentine ngọt ngào: thần Cupid bắn tim, cuốn sổ kỷ niệm lật từng trang với ảnh và lời nhắn, kết thúc bằng hộp quà 3D trái tim ảnh và lời chúc bay.", "tags": ["#valentine", "#cupid", "#sổ kỷ niệm"], "builder_url": "gift-builder.php?id=35"}, {"id": "36", "is_featured": false, "demo_url": "demo.php?id=36", "demo_title": "Bó Hoa 8/3 Ngọt Ngào", "img_url": "https://deargift.love/assets/thumbnails/bo-hoa-8-3.jpg", "price": "Miễn phí", "usage": "64 lượt dùng", "category": "Ngày Phụ Nữ", "duration": "3 phút tạo", "title": "Bó Hoa 8/3 Ngọt Ngào", "desc": "Thiệp 8/3 tặng người thương: chữ chúc mừng bằng hạt sáng, hoa tulip nở dưới trời sao, bó hoa cùng thỏ con, lá thư gõ chữ và ảnh kỷ niệm bay lên.", "tags": ["#8/3", "#bó hoa", "#tulip"], "builder_url": "gift-builder.php?id=36"}, {"id": "37", "is_featured": false, "demo_url": "demo.php?id=37", "demo_title": "Pháo Hoa Đón Năm Mới", "img_url": "https://deargift.love/assets/thumbnails/phao-hoa-nam-moi.jpg", "price": "Miễn phí", "usage": "7 lượt dùng", "category": "Tết", "duration": "3 phút tạo", "title": "Pháo Hoa Đón Năm Mới", "desc": "Đếm ngược 23:59:55 → 00:00:00 rồi bùng nổ pháo hoa: trái tim, ngôi sao vàng, quạt pháo mặt đất, hàng pháo finale, lời chúc năm mới lần lượt hiện lên cùng nhạc và tiếng pháo.", "tags": ["#năm mới", "#pháo hoa", "#đếm ngược"], "builder_url": "gift-builder.php?id=37"}, {"id": "38", "is_featured": false, "demo_url": "demo.php?id=38", "demo_title": "Cơn Mưa Tình Yêu 3D", "img_url": "https://deargift.love/assets/thumbnails/mua-tinh-yeu-3d.jpg", "price": "50.000đ", "usage": "186 lượt dùng", "category": "Tình yêu", "duration": "3 phút tạo", "title": "Cơn Mưa Tình Yêu 3D", "desc": "Chạm vào trái tim để bay xuyên qua cơn mưa lời yêu thương 3D: câu chữ phát sáng, trái tim đỏ, ảnh kỷ niệm và bụi sao; kéo để xoay 360°, zoom thoải mái.", "tags": ["#mưa tình yêu", "#3D", "#tỏ tình"], "builder_url": "gift-builder.php?id=38"}, {"id": "39", "is_featured": false, "demo_url": "demo.php?id=39", "demo_title": "Gửi Bố Mẹ – Sổ Kỷ Niệm", "img_url": "https://deargift.love/assets/thumbnails/ky-niem-bo-me.svg", "price": "Miễn phí", "usage": "3 lượt dùng", "category": "Mãi xanh", "duration": "3 phút tạo", "title": "Gửi Bố Mẹ – Sổ Kỷ Niệm", "desc": "Món quà tri ân Bố Mẹ: những đốm sáng ấm áp viết lời gửi, cuốn sổ kỷ niệm gia đình lật từng trang với ảnh và lời nhắn, kết thúc bằng trái tim ánh vàng 3D cùng lời chúc.", "tags": ["#bố mẹ", "#gia đình", "#sổ kỷ niệm"], "builder_url": "gift-builder.php?id=39"}, {"id": "68", "is_featured": false, "demo_url": "demo.php?id=68", "demo_title": "Bó Hoa Ảnh 📸", "img_url": "https://deargift.love/assets/thumbnails/photo-bouquet-thumb.jpg", "price": "Miễn phí", "usage": "52 lượt dùng", "category": "Ngày Phụ Nữ", "duration": "3 phút tạo", "title": "Bó Hoa Ảnh 📸", "desc": "Bó hoa ghép từ ảnh kỷ niệm · Mưa chữ &amp; ảnh 3D · Phong thư &amp; lá thư tay. Dành tặng người bạn yêu thương.", "tags": ["#20/10", "#bó hoa", "#ảnh"], "builder_url": "gift-builder.php?id=68"}];
+    let templatesData = [...EMBEDDED_TEMPLATES];
+    let siteSettings = {};
+
+    // Check Auth on Load
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      const token = localStorage.getItem('deargift_admin_token');
+      if (token) {
+        document.getElementById('loginScreen').style.display = 'none';
+        loadAdminData();
+      }
+    });
+
+    // Quick Login (1-touch)
+    function quickLogin() {
+      localStorage.setItem('deargift_admin_token', 'quick_auth_ok');
+      document.getElementById('loginScreen').style.display = 'none';
+      loadAdminData();
+    }
+
+    // Handle Login
+    async function handleLogin(e) {
+      if (e) e.preventDefault();
+      const pwd = document.getElementById('adminPasswordInput').value.trim();
+
+      // Client-side quick check
+      if (['admin', 'admin1911', '123456'].includes(pwd)) {
+        quickLogin();
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + '/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pwd })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          quickLogin();
+        } else {
+          alert('Mật khẩu không chính xác! Hãy thử: admin');
+        }
+      } catch (err) {
+        // Fallback for file:// or network issues
+        console.warn('API login failed, verifying locally:', err);
+        if (pwd === 'admin' || pwd === 'admin1911') {
+          quickLogin();
+        } else {
+          alert('Không thể kết nối máy chủ. Mật khẩu mặc định là: admin');
+        }
+      }
+    }
+
+    // Handle Logout
+    function handleLogout() {
+      localStorage.removeItem('deargift_admin_token');
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('adminPasswordInput').value = 'admin';
+    }
+
+    // Switch Tabs
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+
+      event.currentTarget.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+      lucide.createIcons();
+    }
+
+    // Load Data
+    async function loadAdminData() {
+      // Always render immediately with embedded templates (52 items) so offline/file mode is never blank
+      if (templatesData && templatesData.length > 0) {
+        document.getElementById('statTotalTemplates').innerText = templatesData.length;
+        renderTemplatesTable();
+      }
+
+      // 1. Load Settings
+      try {
+        const setRes = await fetch(API_BASE + '/api/settings');
+        siteSettings = await setRes.json();
+        document.getElementById('setBankCode').value = siteSettings.bank_code || 'MB';
+        document.getElementById('setAccountNumber').value = siteSettings.account_number || '2006999988836';
+        document.getElementById('setAccountName').value = siteSettings.account_name || 'NGUYEN VAN PHONG';
+        document.getElementById('setPriceAmount').value = siteSettings.price_amount || 20000;
+        
+        document.getElementById('statBankCode').innerText = siteSettings.bank_code || 'MBBank';
+        document.getElementById('statPriceAmount').innerText = (siteSettings.price_amount || 20000).toLocaleString() + 'đ';
+        updateQrPreview();
+      } catch (err) {
+        console.warn('Error loading settings from API', err);
+      }
+
+      // 2. Load Templates from API (if server is running)
+      try {
+        const tplRes = await fetch(API_BASE + '/api/templates');
+        const freshData = await tplRes.json();
+        if (freshData && freshData.length > 0) {
+          templatesData = freshData;
+          document.getElementById('statTotalTemplates').innerText = templatesData.length;
+          renderTemplatesTable();
+        }
+      } catch (err) {
+        console.warn('Error loading templates from API, using embedded templates', err);
+      }
+    }
+
+    // Helper get safe Demo URL
+    function getSafeDemoUrl(tpl) {
+      let url = tpl.demo_url || ('demo.php?id=' + tpl.id);
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      url = url.replace(/^\//, '');
+      if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+        return '/' + url;
+      } else {
+        return 'http://localhost:8000/' + url;
+      }
+    }
+
+    // Render Table
+    function renderTemplatesTable() {
+      // Update View Site URL dynamically
+      const btnViewSite = document.getElementById('btnViewSite');
+      if (btnViewSite) {
+        btnViewSite.href = (window.location.protocol === 'http:' || window.location.protocol === 'https:')
+          ? '/templates.php'
+          : 'http://localhost:8000/templates.php';
+      }
+
+      const tbody = document.getElementById('templatesTableBody');
+      tbody.innerHTML = '';
+
+      templatesData.forEach(tpl => {
+        const tr = document.createElement('tr');
+        const img = tpl.img_url || 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=200';
+        tr.innerHTML = `
+          <td><img src="${img}" class="tpl-thumb" alt="${tpl.title}"></td>
+          <td>
+            <span class="tpl-name">${tpl.title}</span>
+            <span style="font-size:12px; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${tpl.desc || ''}</span>
+          </td>
+          <td><span class="tpl-category">${tpl.category || 'Mẫu quà'}</span></td>
+          <td><span class="tpl-price">${tpl.price || '20.000đ'}</span></td>
+          <td><span style="font-size:12px; color:var(--text-muted);">${tpl.usage || 'Mới tạo'}</span></td>
+          <td style="text-align: right;">
+            <div class="action-btns" style="justify-content: flex-end;">
+              <a href="${getSafeDemoUrl(tpl)}" target="_blank" class="btn-sm-action">
+                <i data-lucide="eye" style="width: 13px; height: 13px;"></i> Xem thử
+              </a>
+              <button onclick="handleDeleteTemplate('${tpl.id}')" class="btn-sm-action btn-sm-del">
+                <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Xóa
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    // Modal Add Template
+    function openAddModal() {
+      document.getElementById('addModal').style.display = 'flex';
+      lucide.createIcons();
+    }
+    function closeAddModal() {
+      document.getElementById('addModal').style.display = 'none';
+      document.getElementById('imgPreviewBox').style.display = 'none';
+      document.getElementById('videoPreviewBox').style.display = 'none';
+    }
+
+    // Upload Media (Image / MP4)
+    async function handleUploadMedia(input, type) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', type);
+
+      try {
+        const res = await fetch(API_BASE + '/api/admin/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          if (type === 'img') {
+            document.getElementById('tplImgUrl').value = data.url;
+            document.getElementById('imgPreviewElement').src = data.url;
+            document.getElementById('imgPreviewBox').style.display = 'block';
+          } else if (type === 'video') {
+            document.getElementById('tplDemoUrl').value = data.url;
+            document.getElementById('videoPreviewElement').src = data.url;
+            document.getElementById('videoPreviewBox').style.display = 'block';
+          }
+          alert('Tải file thành công!');
+        } else {
+          alert('Tải file thất bại: ' + (data.message || 'Lỗi'));
+        }
+      } catch (err) {
+        alert('Lỗi tải file lên máy chủ.');
+      }
+    }
+
+    // Save New Template
+    async function handleSaveTemplate(e) {
+      e.preventDefault();
+      const title = document.getElementById('tplTitle').value.trim();
+      const category = document.getElementById('tplCategory').value;
+      const price = document.getElementById('tplPrice').value.trim();
+      const desc = document.getElementById('tplDesc').value.trim();
+      const tagsStr = document.getElementById('tplTags').value.trim();
+      const imgUrl = document.getElementById('tplImgUrl').value.trim() || 'assets/thumbnails/default.jpg';
+      const demoUrl = document.getElementById('tplDemoUrl').value.trim() || 'demo.php';
+
+      const tags = tagsStr.split(',').map(t => t.trim()).filter(Boolean);
+      const newId = 'tpl_' + Date.now();
+
+      const newTemplate = {
+        id: newId,
+        title: title,
+        category: category,
+        price: price,
+        desc: desc,
+        tags: tags,
+        img_url: imgUrl,
+        demo_url: demoUrl,
+        builder_url: 'gift-builder.php?id=' + newId,
+        usage: '1 lượt dùng',
+        is_featured: true
+      };
+
+      try {
+        const res = await fetch(API_BASE + '/api/admin/templates/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newTemplate)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert('Thêm sản phẩm mẫu quà mới thành công!');
+          closeAddModal();
+          loadAdminData();
+        } else {
+          alert('Lỗi khi thêm sản phẩm: ' + data.message);
+        }
+      } catch (err) {
+        alert('Lỗi gửi dữ liệu lên máy chủ.');
+      }
+    }
+
+    // Delete Template
+    async function handleDeleteTemplate(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa mẫu quà này khỏi website?')) return;
+      try {
+        const res = await fetch(API_BASE + '/api/admin/templates/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          loadAdminData();
+        } else {
+          alert('Không thể xóa: ' + data.message);
+        }
+      } catch (err) {
+        alert('Lỗi kết nối khi xóa.');
+      }
+    }
+
+    // Save Bank Settings
+    async function handleSaveSettings(e) {
+      e.preventDefault();
+      const bankCode = document.getElementById('setBankCode').value;
+      const accNum = document.getElementById('setAccountNumber').value.trim();
+      const accName = document.getElementById('setAccountName').value.trim();
+      const price = parseInt(document.getElementById('setPriceAmount').value) || 20000;
+
+      const updated = {
+        bank_code: bankCode,
+        account_number: accNum,
+        account_name: accName,
+        price_amount: price
+      };
+
+      try {
+        const res = await fetch(API_BASE + '/api/admin/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert('Cập nhật tài khoản thanh toán thành công!');
+          loadAdminData();
+        } else {
+          alert('Lỗi: ' + data.message);
+        }
+      } catch (err) {
+        alert('Lỗi kết nối lưu cấu hình.');
+      }
+    }
+
+    function updateQrPreview() {
+      const bank = document.getElementById('setBankCode').value || 'MB';
+      const num = document.getElementById('setAccountNumber').value || '2006999988836';
+      const name = encodeURIComponent(document.getElementById('setAccountName').value || 'NGUYEN VAN PHONG');
+      const price = document.getElementById('setPriceAmount').value || '20000';
+      const url = `https://img.vietqr.io/image/${bank}-${num}-compact2.png?amount=${price}&accountName=${name}`;
+      document.getElementById('qrLivePreview').src = url;
+    }
+
+    document.getElementById('setBankCode').addEventListener('change', updateQrPreview);
+    document.getElementById('setAccountNumber').addEventListener('input', updateQrPreview);
+    document.getElementById('setAccountName').addEventListener('input', updateQrPreview);
+    document.getElementById('setPriceAmount').addEventListener('input', updateQrPreview);
+
+    // Change Password
+    async function handleChangePassword(e) {
+      e.preventDefault();
+      const cur = document.getElementById('curPassword').value;
+      const n1 = document.getElementById('newPassword').value;
+      const n2 = document.getElementById('confirmPassword').value;
+
+      if (n1 !== n2) {
+        alert('Mật khẩu mới nhập hai lần không khớp nhau!');
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + '/api/admin/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ current_password: cur, new_password: n1 })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert('Đổi mật khẩu thành công! Hãy ghi nhớ mật khẩu mới.');
+          document.getElementById('curPassword').value = '';
+          document.getElementById('newPassword').value = '';
+          document.getElementById('confirmPassword').value = '';
+        } else {
+          alert(data.message || 'Mật khẩu hiện tại không đúng.');
+        }
+      } catch (err) {
+        alert('Lỗi khi đổi mật khẩu.');
+      }
+    }
+  </script>
+</body>
+</html>

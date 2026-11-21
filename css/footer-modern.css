@@ -1,0 +1,130 @@
+/* ============================================================
+   FOOTER – một kiểu thống nhất cho mọi trang.
+   Nạp từ includes/footer.php (sau mọi CSS khác) để thắng các luật cũ
+   đang chồng nhau (nền hồng ở home-modern, chữ tối ở pastel-theme...).
+   ============================================================ */
+html body .site-footer.site-footer {
+    --ft-ink: #2f2740;
+    --ft-soft: #5b5470;
+    --ft-pink: #d6377f;
+    --ft-line: #eadff3;
+    position: relative;
+    margin-top: 40px;
+    padding: 56px 0 24px !important;
+    color: var(--ft-ink) !important;
+    background: linear-gradient(180deg, #fff7fb 0%, #f4efff 100%) !important;
+    border: 0 !important;
+    border-top: 1px solid var(--ft-line) !important;
+}
+html body .site-footer.site-footer::before { display: none !important; }
+
+/* Lưới cột */
+html body .site-footer.site-footer > .container:first-child {
+    display: grid !important;
+    grid-template-columns: 1.6fr 1fr 1fr 1fr !important;
+    gap: 36px !important;
+}
+html body .site-footer.site-footer > .container:first-child > div:first-child {
+    grid-column: auto !important;
+    max-width: 360px !important;
+}
+
+/* Logo + mô tả */
+html body .site-footer.site-footer .brand-name {
+    color: var(--ft-ink) !important;
+    -webkit-text-fill-color: var(--ft-ink) !important;
+    background: none !important;
+    font-weight: 800;
+}
+html body .site-footer.site-footer .brand-mark { background: #fff !important; }
+html body .site-footer.site-footer p {
+    color: var(--ft-soft) !important;
+    font-size: 13.5px !important;
+    line-height: 1.7 !important;
+}
+
+/* Hộp giờ hỗ trợ */
+html body .site-footer.site-footer > .container:first-child > div:first-child > div:nth-of-type(2) {
+    color: var(--ft-soft) !important;
+    background: #fff !important;
+    border: 1px solid var(--ft-line) !important;
+    border-left: 3px solid var(--ft-pink) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 6px 18px rgba(61, 53, 81, .05);
+}
+html body .site-footer.site-footer > .container:first-child > div:first-child > div:nth-of-type(2) > div:first-child {
+    color: var(--ft-ink) !important;
+}
+
+/* Mạng xã hội: nút hồng, icon trắng, luôn nhìn thấy */
+html body .site-footer.site-footer .social-dot {
+    width: 38px !important;
+    height: 38px !important;
+    color: #fff !important;
+    background: linear-gradient(135deg, #ff7eb3, #d6377f) !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    box-shadow: 0 6px 16px rgba(214, 55, 127, .28);
+}
+html body .site-footer.site-footer .social-dot svg { color: #fff !important; stroke: currentColor; }
+html body .site-footer.site-footer .social-dot:hover { transform: translateY(-2px); filter: brightness(1.05); }
+
+/* Tiêu đề cột + link */
+html body .site-footer.site-footer .footer-heading {
+    margin-bottom: 4px !important;
+    color: var(--ft-pink) !important;
+    -webkit-text-fill-color: var(--ft-pink) !important;
+    background: none !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+html body .site-footer.site-footer .footer-link-list { gap: 9px !important; }
+html body .site-footer.site-footer .footer-link-list a {
+    color: var(--ft-ink) !important;
+    font-size: 13.5px !important;
+    font-weight: 600 !important;
+    text-decoration: none !important;
+}
+html body .site-footer.site-footer .footer-link-list a:hover { color: var(--ft-pink) !important; }
+
+/* Dòng cuối */
+html body .site-footer.site-footer .footer-bottom {
+    margin-top: 36px !important;
+    padding-top: 18px !important;
+    color: var(--ft-soft) !important;
+    border-top: 1px dashed #dcd0ea !important;
+    font-size: 12.5px !important;
+}
+html body .site-footer.site-footer .footer-bottom span { color: var(--ft-soft) !important; }
+html body .site-footer.site-footer .footer-bottom a { color: var(--ft-pink) !important; font-weight: 700; }
+
+/* Máy tính bảng */
+@media (max-width: 960px) {
+    html body .site-footer.site-footer > .container:first-child { grid-template-columns: 1fr 1fr 1fr !important; }
+    html body .site-footer.site-footer > .container:first-child > div:first-child { grid-column: 1 / -1 !important; max-width: none !important; }
+}
+
+/* Điện thoại: giới thiệu ở trên, 2 cột link, chính sách ở dưới */
+@media (max-width: 640px) {
+    html body .site-footer.site-footer { padding: 36px 0 90px !important; }
+    html body .site-footer.site-footer > .container:first-child {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 26px 18px !important;
+    }
+    html body .site-footer.site-footer > .container:first-child > div:first-child { grid-column: 1 / -1 !important; }
+    html body .site-footer.site-footer > .container:first-child > div:last-child { grid-column: 1 / -1 !important; }
+    html body .site-footer.site-footer > .container:first-child > div:last-child .footer-link-list {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr;
+        column-gap: 18px;
+    }
+    html body .site-footer.site-footer .footer-link-list a { font-size: 13px !important; }
+    html body .site-footer.site-footer .footer-bottom {
+        flex-direction: column;
+        align-items: center !important;
+        text-align: center;
+        gap: 6px !important;
+    }
+}

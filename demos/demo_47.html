@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<!--
+  © DearGift (deargift.love) — Bản quyền thiết kế & mã nguồn thuộc Nguyễn Văn Phong. All rights reserved.
+-->
+<meta name="copyright" content="© DearGift - Nguyễn Văn Phong. All rights reserved.">
+<meta name="dg-protected" content="1">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nhận Quà Giáng Sinh (Christmas Gift) 🎄</title>
+<meta name="description" content="Chạm để khám phá hiệu ứng của mẫu quà này.">
+<meta property="og:title" content="Nhận Quà Giáng Sinh (Christmas Gift) 🎄">
+<meta property="og:description" content="Chạm để khám phá hiệu ứng của mẫu quà này.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="../templates/christmas-gift/cover.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="675">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Nhận Quà Giáng Sinh (Christmas Gift) 🎄">
+<meta name="twitter:description" content="Chạm để khám phá hiệu ứng của mẫu quà này.">
+<meta name="twitter:image" content="../templates/christmas-gift/cover.jpg">
+<meta name="theme-color" content="#10b981">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎄</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800;900&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../templates/_v3/assets/css/gift.css?v=1794023395">
+</head>
+<body class="gift-body tpl-body-christmas-gift">
+
+    <div class="gift-preview-flag">XEM THỬ</div>
+
+
+
+<main class="gift-stage">
+    <style>
+body.tpl-body-christmas-gift .gift-stage { display: block; padding: 0; }
+body.tpl-body-christmas-gift .gift-brand { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; }
+</style>
+<link rel="stylesheet" href="../templates/christmas-gift/style.css?v=1792591470">
+
+<script>
+window.__XMAS_BASE = "../templates/christmas-gift";
+window.__XMAS_VER = "1792591470";
+// Gắn ?v=version vào URL asset để luôn tải bản mới nhất.
+window.__xv = function (u) {
+    var v = window.__XMAS_VER;
+    return v ? u + (u.indexOf('?') < 0 ? '?' : '&') + 'v=' + v : u;
+};
+// Mẫu gốc là app 3 tầng của LoveGift: mỗi tầng nạp tầng sau bằng đường dẫn tương đối
+// (gift/…, assets/…, final_gift/…). Trên LoveGift trang chạy ở /demo.php nên các path đó
+// trỏ sai → 404. Hàm này viết lại mọi path tương đối trong HTML được nạp về gốc mẫu.
+window.__xmasFix = function (html) {
+    var b = window.__XMAS_BASE || '';
+    return String(html).replace(
+        /(src|href)=(["'])(?:\.\/)?((?:assets|gift|final_gift)\/)/g,
+        '$1=$2' + b + '/$3'
+    );
+};
+window.giftChristmasData = {"recipientName":"Người thương","musicType":"","musicFile":"","letter":{"greeting":"Gửi Người thương thân mến,","content":"Chạm để khám phá hiệu ứng của mẫu quà này.","signature":"DearGift"},"photos":[],"vipGift":{"type":"photos","images":[]}};
+window.settings = {"countdown":10,"sequence":"MERRY|CHRISTMAS|2026","sequenceColor":"#ffffff","recipientName":"Người thương"};
+</script>
+
+<body>
+    <!-- Start Overlay -->
+    <div id="start-overlay" class="start-overlay">
+        <div class="start-overlay-content">
+            <img src="../templates/christmas-gift/assets/images/santa_notify.png" alt="Santa" class="santa-notify-icon">
+            <h1 class="start-title">🎄 Ông già Noel đang phát quà rồi! 🎄</h1>
+            <p class="start-message">Bạn đã sẵn sàng để nhận món quà đặc biệt chưa?</p>
+            <button id="start-button" class="start-button">Sẵn sàng</button>
+        </div>
+    </div>
+
+    <!-- Orientation Lock Message (for mobile) -->
+    <div id="orientation-lock" class="orientation-lock">
+        <div class="orientation-message">
+            <img src="../templates/christmas-gift/assets/images/rotate.png" alt="Rotate" class="rotate-icon">
+            <p>Vui lòng bật xoay ngang màn hình nhé người đẹp</p>
+        </div>
+    </div>
+
+
+    <!-- Background Video -->
+    <video id="backgroundVideo" class="background-video" muted playsinline preload="auto" style="display: none;" oncontextmenu="return false;" controlslist="nodownload nofullscreen noremoteplayback">
+        <source src="../templates/christmas-gift/assets/images/intro.mp4" type="video/mp4">
+    </video>
+
+    <!-- Main Canvas for Text Animation -->
+    <canvas class="canvas" style="display: none;"></canvas>
+
+
+    <!-- Music Control -->
+    <div id="musicControl" class="music-control" title="Play Music" style="display: none;">▶</div>
+    <!-- Nhạc nền: phát từ màn intro (được index.js gọi play sau cú "Sẵn sàng"). -->
+    <audio id="christmasAudio" loop src="../templates/christmas-gift/assets/music.mp3" preload="auto"></audio>
+
+    <!-- Settings Script (define before index.js) -->
+<script src="../templates/christmas-gift/index.js?v=1792591470"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' crossorigin="anonymous"></script>
+</main>
+
+<script src="../templates/_v3/assets/js/effects.js?v=1792591738"></script>
+<script src="../templates/_v3/assets/js/gift.js?v=1792591738"></script>
+<script src="../js/security.js?v=1790434588" defer></script>
+</body>
+</html>

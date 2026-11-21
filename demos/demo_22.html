@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<!--
+  © DearGift (deargift.love) — Bản quyền thiết kế & mã nguồn thuộc Nguyễn Văn Phong. All rights reserved.
+-->
+<meta name="copyright" content="© DearGift - Nguyễn Văn Phong. All rights reserved.">
+<meta name="dg-protected" content="1">
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Christmas - Nhận Quà Giáng Sinh Đặc Biệt</title>
+    <link rel="icon" type="image/png" href="assets/images/logo.png">
+    <meta name="description" content="Nhận quà Giáng sinh đặc biệt với lời chúc ấm áp từ người thân yêu. Trải nghiệm tuyệt vời với animation đẹp mắt và nhạc nền lãng mạn.">
+    <meta name="keywords" content="quà giáng sinh, christmas gift, lời chúc giáng sinh, merry christmas, quà tặng online">
+    <meta name="author" content="Gift Christmas">
+    
+    <!-- Open Graph - Facebook & Zalo -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Gift Christmas - Nhận Quà Giáng Sinh Đặc Biệt">
+    <meta property="og:description" content="Nhận quà Giáng sinh đặc biệt với lời chúc ấm áp từ người thân yêu. Trải nghiệm tuyệt vời với animation đẹp mắt và nhạc nền lãng mạn.">
+    <meta property="og:image" content="assets/images/background1.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="vi_VN">
+    <meta property="og:site_name" content="Gift Christmas">
+    
+    
+    <link rel="preload" as="image" href="assets/images/background1.jpg">
+    <link rel="stylesheet" href="style.css?v=1791559366">
+
+<script>
+    // Injected by gift.php
+    window.giftChristmasData = {"id":"PV12566B","recipientName":"Người thương","musicType":"file","musicFile":"assets/musics/hoanhipgiangsinh.mp3","letter":{"greeting":"Gửi Người thương thân mến,","content":"Chạm để khám phá hiệu ứng của mẫu quà này.","signature":"DearGift"},"photos":[],"vipGift":{"type":"photos","images":[]}};
+    window.giftAssetVersion = 1791559678;
+    window.addEventListener('message', function(event) {
+        if (event.source !== window.parent) return;
+        if (!event.data) return;
+        var isDG = event.data.type === 'DG_LIVE_PREVIEW_UPDATE' || event.data.type === 'LIVE_PREVIEW_UPDATE';
+        if (!isDG) return;
+        var data = event.data.payload || event.data.data || {};
+        if (!data) return;
+        
+        var esc = function(s) {
+            return String(s).replace(/[&<>"']/g, function(c) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+            });
+        };
+        var rName = esc(data.recipient_name || 'bạn');
+        var sName = esc(data.sender_name || 'Người thân yêu');
+        var msg = esc(data.message || '');
+        var photos = Array.isArray(data.photos) ? data.photos : [];
+        
+        window.giftChristmasData = window.giftChristmasData || {};
+        window.giftChristmasData.recipientName = rName;
+        window.giftChristmasData.photos = photos;
+        window.giftChristmasData.vipGift = { type: 'photos', images: photos };
+        window.giftChristmasData.letter = {
+            greeting: 'Gửi ' + rName + ' thân mến,',
+            content: msg,
+            signature: sName
+        };
+        
+        if (data.music_url) {
+            window.giftChristmasData.musicFile = data.music_url;
+            var audio = document.getElementById('bg-music') || document.querySelector('audio');
+            if (audio && audio.src !== data.music_url) {
+                audio.src = data.music_url;
+            }
+        }
+        
+        if (window.giftManager && typeof window.giftManager.updateLetterContent === 'function') {
+            window.giftManager.updateLetterContent();
+        }
+    });
+    if (window.parent && window.parent !== window) {
+        window.parent.postMessage({ type: 'DG_PREVIEW_READY' }, window.location.origin);
+    }
+    window.settings = {
+        countdown: 10,
+        sequence: "MERRY|CHRISTMAS|2026",
+        sequenceColor: "#ffffff",
+        recipientName: "Người thương"
+    };
+</script>
+</head>
+<body>
+    <!-- Start Overlay -->
+    <div id="start-overlay" class="start-overlay">
+        <div class="start-overlay-content">
+            <img src="assets/images/santa_notify.png" alt="Santa" class="santa-notify-icon">
+            <h1 class="start-title">🎄 Ông già Noel đang phát quà rồi! 🎄</h1>
+            <p class="start-message">Bạn đã sẵn sàng để nhận món quà đặc biệt chưa?</p>
+            <button id="start-button" class="start-button">Sẵn sàng</button>
+        </div>
+    </div>
+
+    <!-- Orientation Lock Message (for mobile) -->
+    <div id="orientation-lock" class="orientation-lock">
+        <div class="orientation-message">
+            <img src="assets/images/rotate.png" alt="Rotate" class="rotate-icon">
+            <p>Vui lòng bật xoay ngang màn hình nhé người đẹp</p>
+        </div>
+    </div>
+
+
+    <!-- Background Video -->
+    <video id="backgroundVideo" class="background-video" muted playsinline preload="auto" style="display: none;" oncontextmenu="return false;" controlslist="nodownload nofullscreen noremoteplayback">
+        <source src="assets/images/intro.mp4" type="video/mp4">
+    </video>
+
+    <!-- Main Canvas for Text Animation -->
+    <canvas class="canvas" style="display: none;"></canvas>
+
+
+    <!-- Music Control -->
+    <div id="musicControl" class="music-control" title="Play Music" style="display: none;">▶</div>
+    <audio id="christmasAudio" loop>
+        <!-- Source sẽ được set động từ giftData hoặc để trống -->
+    </audio>
+
+    <!-- Settings Script (define before index.js) -->
+    <script>
+        // Default settings - bạn có thể thay đổi các giá trị này
+        // Giữ settings đã được gift.php inject (tên người nhận, sequence...), chỉ dùng mặc định khi chưa có
+        const settings = Object.assign({
+            countdown: 10,
+            sequence: "Chúc mừng giáng sinh!|🎉🎂🎁|Merry Christmas!|#gift",
+            sequenceColor: "#ffffff",
+            recipientName: "bé yêu" // Tên người nhận quà
+        }, window.settings || {});
+        window.settings = settings;
+
+    </script>
+
+    <!-- Load GiftChristmas API helper -->
+    <script type="module">
+        import { getGiftIdFromUrl, getGiftChristmasById } from './api/gift-christmas.js';
+        
+        // Lưu functions vào window để dùng trong index.js
+        window.getGiftIdFromUrl = getGiftIdFromUrl;
+        window.getGiftChristmasById = getGiftChristmasById;
+        
+        // Fetch GiftChristmas data nếu có ID trong URL
+        async function initGiftChristmas() {
+            // Nếu data đã được inject sẵn (ví dụ từ gift.php)
+            if (window.giftChristmasData) {
+                setupBackgroundMusic(window.giftChristmasData);
+                return;
+            }
+
+            const giftId = getGiftIdFromUrl();
+            if (giftId) {
+                try {
+                    const giftData = await getGiftChristmasById(giftId);
+                    
+                    // Lưu vào window để dùng ở các trang khác
+                    window.giftChristmasData = giftData;
+                    
+                    // Setup nhạc nền nếu có
+                    setupBackgroundMusic(giftData);
+                } catch (error) {
+                    console.error('❌ Error loading GiftChristmas:', error);
+                    // Vẫn tiếp tục với flow bình thường nếu không load được
+                }
+            }
+        }
+        
+        // Setup nhạc nền từ đầu (phát từ intro video)
+        function setupBackgroundMusic(giftData) {
+            if (!giftData.musicType || !giftData.musicFile) {
+                return;
+            }
+            
+            const christmasAudio = document.getElementById('christmasAudio');
+            if (!christmasAudio) {
+                console.warn('⚠️ Audio element not found');
+                return;
+            }
+            
+            let musicUrl = '';
+            
+            if (giftData.musicType === 'sample') {
+                // Nhạc mẫu từ assets/musics/
+                musicUrl = `assets/musics/${giftData.musicFile}`;
+            } else if (giftData.musicType === 'file') {
+                // Nhạc upload từ URL
+                musicUrl = giftData.musicFile;
+            }
+            
+            if (musicUrl) {
+                // Thay đổi source của audio element
+                christmasAudio.innerHTML = `<source src="${musicUrl}" type="audio/mpeg">`;
+                christmasAudio.load();
+                
+                // KHÔNG tự động phát nhạc - đợi click "Sẵn sàng"
+                // Nhạc sẽ được phát khi click button "Sẵn sàng" trong readyOverlayBtn handler
+                
+                console.log('🎵 Background music setup:', musicUrl);
+            }
+        }
+        
+        // Gọi init khi DOM ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGiftChristmas);
+        } else {
+            initGiftChristmas();
+        }
+    </script>
+
+    <!-- Main JavaScript -->
+    <script src="index.js?v=1791559678"></script>
+<script src="../js/android-landscape.js" defer></script>
+<script src="../js/security.js?v=1790434588" defer></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
+

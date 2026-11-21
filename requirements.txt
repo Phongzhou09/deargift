@@ -1,0 +1,2 @@
+# DearGift 3D Web Platform
+# Python standard library only

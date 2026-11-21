@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-label="Nguyệt Dạ Đoàn Viên">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="38%" r="78%"><stop stop-color="#17365e"/><stop offset=".52" stop-color="#091229"/><stop offset="1" stop-color="#03050f"/></radialGradient>
+    <radialGradient id="moon" cx="35%" cy="28%"><stop stop-color="#fffdf0"/><stop offset=".45" stop-color="#ffe9a9"/><stop offset="1" stop-color="#c88632"/></radialGradient>
+    <linearGradient id="lantern" x2="1"><stop stop-color="#7c1024"/><stop offset=".45" stop-color="#ff7545"/><stop offset=".58" stop-color="#ffd27e"/><stop offset="1" stop-color="#8d1629"/></linearGradient>
+    <filter id="glow"><feGaussianBlur stdDeviation="18" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1200" height="675" fill="url(#sky)"/>
+  <g fill="#ffe8a0" opacity=".85">
+    <circle cx="80" cy="76" r="2"/><circle cx="177" cy="185" r="3"/><circle cx="286" cy="83" r="2"/><circle cx="385" cy="214" r="2"/><circle cx="494" cy="102" r="3"/><circle cx="739" cy="89" r="2"/><circle cx="826" cy="178" r="3"/><circle cx="1035" cy="91" r="2"/><circle cx="1125" cy="211" r="3"/><circle cx="953" cy="283" r="2"/><circle cx="154" cy="331" r="2"/>
+  </g>
+  <circle cx="600" cy="285" r="164" fill="#f8ca67" opacity=".18" filter="url(#glow)"/>
+  <circle cx="600" cy="285" r="112" fill="url(#moon)" filter="url(#glow)"/>
+  <g fill="#9c652d" opacity=".14"><ellipse cx="558" cy="251" rx="35" ry="20"/><ellipse cx="637" cy="299" rx="29" ry="38"/><ellipse cx="577" cy="339" rx="40" ry="18"/></g>
+  <g stroke="#c02e42" stroke-width="7" fill="none" opacity=".85"><ellipse cx="600" cy="285" rx="178" ry="143" transform="rotate(-12 600 285)"/><ellipse cx="600" cy="285" rx="194" ry="128" transform="rotate(18 600 285)" opacity=".55"/></g>
+  <g transform="translate(368 315)" fill="#fff7e2" filter="url(#glow)"><path d="M42 123C9 123-9 103 4 78c8-15 22-23 38-25-6-31-1-52 12-54 13-2 17 28 15 51h8c5-31 16-52 28-48 13 5 6 35-4 57 17 10 26 25 26 43 0 28-25 42-61 42Z"/><circle cx="86" cy="68" r="4" fill="#5a3a1e"/></g>
+  <g transform="translate(886 106)"><path d="M0 0v61" stroke="#e7bd66"/><rect x="-34" y="59" width="68" height="90" rx="27" fill="url(#lantern)" filter="url(#glow)"/><path d="M-25 60h50M-24 149h48" stroke="#f6c75d" stroke-width="7"/></g>
+  <g transform="translate(200 138) scale(.65)"><path d="M0 0v61" stroke="#e7bd66"/><rect x="-34" y="59" width="68" height="90" rx="27" fill="url(#lantern)" filter="url(#glow)"/><path d="M-25 60h50M-24 149h48" stroke="#f6c75d" stroke-width="7"/></g>
+  <path d="M0 560c160-64 275 14 426-4 150-18 277-86 438-42 139 38 222-22 336-10v171H0Z" fill="#050916" opacity=".82"/>
+  <text x="600" y="532" text-anchor="middle" fill="#ffe6a1" font-family="Georgia,serif" font-size="48" font-weight="700">NGUYỆT DẠ ĐOÀN VIÊN</text>
+  <text x="600" y="572" text-anchor="middle" fill="#d8bd7d" font-family="Arial,sans-serif" font-size="15" letter-spacing="5">MỘT ĐÊM TRĂNG · MỘT MÓN QUÀ</text>
+</svg>

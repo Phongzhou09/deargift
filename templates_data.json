@@ -1,0 +1,942 @@
+[
+  {
+    "id": "69",
+    "is_featured": true,
+    "demo_url": "demo.php?id=69",
+    "demo_title": "Món Quà Nhỏ 3D · 19/11 &amp; Mọi Dịp Đặc Biệt 🎁",
+    "img_url": "https://deargift.love/templates/mon-qua-nho-2010/cover.webp?v=1794025288",
+    "price": "50.000đ",
+    "usage": "139 lượt dùng",
+    "category": "Ngày Phụ Nữ",
+    "duration": "3 phút tạo",
+    "title": "Món Quà Nhỏ 3D · 19/11 &amp; Mọi Dịp Đặc Biệt 🎁",
+    "desc": "Món quà 3D tương tác 7 cảnh cho ngày Quốc tế Nam giới 19/11, sinh nhật, kỷ niệm và mọi dịp: tờ lịch xé ngày đặc biệt, chữ hạt sáng, bó hoa hồng 3D không tàn, quả cầu ảnh bay, phong thư sáp ong, hộp quà thẻ cào bí mật và đêm pháo hoa đếm ngày yêu.",
+    "tags": [
+      "#19/11",
+      "#Bó hoa 3D",
+      "#Mọi dịp"
+    ],
+    "builder_url": "gift-builder.php?id=69"
+  },
+  {
+    "id": "21",
+    "is_featured": false,
+    "demo_url": "demo.php?id=21",
+    "demo_title": "Mẫu sinh nhật VIP",
+    "img_url": "https://deargift.love/assets/thumbnails/hpbd-vip.jpg",
+    "price": "Miễn phí",
+    "usage": "428 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Mẫu sinh nhật VIP",
+    "desc": "Thiệp sinh nhật VIP với bố cục sang trọng, ảnh cá nhân hóa, lời chúc và nhạc nền dành cho một ngày thật đặc biệt.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=21"
+  },
+  {
+    "id": "7",
+    "is_featured": false,
+    "demo_url": "demo.php?id=7",
+    "demo_title": "Món Quà Nhỏ (3D WebGL)",
+    "img_url": "https://deargift.love/uploads/templates/tpl_7_1780304033.png",
+    "price": "50.000đ",
+    "usage": "437 lượt dùng",
+    "category": "Ngày Phụ Nữ",
+    "duration": "3 phút tạo",
+    "title": "Món Quà Nhỏ (3D WebGL)",
+    "desc": "Quả cầu ảnh 3D, hiệu ứng tuyết và lá thư tình cảm dành cho 8/3, 20/10 hoặc lời chúc tới người phụ nữ bạn trân trọng.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=7"
+  },
+  {
+    "id": "12",
+    "is_featured": false,
+    "demo_url": "demo.php?id=12",
+    "demo_title": "Kỉ niệm với người thương",
+    "img_url": "https://deargift.love/assets/thumbnails/lovegift.jpg",
+    "price": "50.000đ",
+    "usage": "268 lượt dùng",
+    "category": "Tất cả",
+    "duration": "3 phút tạo",
+    "title": "Kỉ niệm với người thương",
+    "desc": "Trang kỷ niệm với ảnh riêng, lời nhắn và hiệu ứng hạt rơi nhẹ nhàng để lưu lại khoảnh khắc cùng người thương.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=12"
+  },
+  {
+    "id": "22",
+    "is_featured": false,
+    "demo_url": "demo.php?id=22",
+    "demo_title": "Mẫu Giáng Sinh",
+    "img_url": "https://deargift.love/assets/thumbnails/giang-sinh.jpg",
+    "price": "Miễn phí",
+    "usage": "119 lượt dùng",
+    "category": "Lễ hội",
+    "duration": "3 phút tạo",
+    "title": "Mẫu Giáng Sinh",
+    "desc": "Thiệp Giáng sinh cá nhân hóa với lời chúc, hình ảnh và không gian lễ hội ấm áp.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=22"
+  },
+  {
+    "id": "28",
+    "is_featured": false,
+    "demo_url": "demo.php?id=28",
+    "demo_title": "Chúc Mừng Sinh Nhật &amp; Tỏ Tình",
+    "img_url": "https://deargift.love/assets/thumbnails/hpbd-book.jpg",
+    "price": "50.000đ",
+    "usage": "221 lượt dùng",
+    "category": "3D",
+    "duration": "3 phút tạo",
+    "title": "Chúc Mừng Sinh Nhật &amp; Tỏ Tình",
+    "desc": "Mưa chữ và hạt lung linh tạo thành lời chúc sinh nhật hoặc thông điệp tỏ tình, kết hợp nhạc nền tùy chọn.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=28"
+  },
+  {
+    "id": "23",
+    "is_featured": false,
+    "demo_url": "demo.php?id=23",
+    "demo_title": "Gửi Vận May",
+    "img_url": "https://deargift.love/assets/thumbnails/lucky-chance.jpg",
+    "price": "Miễn phí",
+    "usage": "170 lượt dùng",
+    "category": "Tất cả",
+    "duration": "3 phút tạo",
+    "title": "Gửi Vận May",
+    "desc": "Món quà tương tác gồm thẻ cào và vòng quay may mắn, phù hợp để tặng voucher hoặc tạo một bất ngờ vui vẻ.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=23"
+  },
+  {
+    "id": "29",
+    "is_featured": false,
+    "demo_url": "demo.php?id=29",
+    "demo_title": "Valentine Messenger",
+    "img_url": "https://deargift.love/assets/thumbnails/valentine-real.jpg",
+    "price": "Miễn phí",
+    "usage": "140 lượt dùng",
+    "category": "Valentine",
+    "duration": "3 phút tạo",
+    "title": "Valentine Messenger",
+    "desc": "Trải nghiệm Valentine mô phỏng màn hình khóa điện thoại, đoạn chat Messenger, trái tim 3D, ảnh kỷ niệm và thư tình.",
+    "tags": [
+      "#valentine",
+      "#messenger",
+      "#màn hình khóa"
+    ],
+    "builder_url": "gift-builder.php?id=29"
+  },
+  {
+    "id": "30",
+    "is_featured": false,
+    "demo_url": "demo.php?id=30",
+    "demo_title": "Galaxy Love Viewer",
+    "img_url": "https://deargift.love/assets/thumbnails/galaxy-viewer-real.jpg",
+    "price": "Miễn phí",
+    "usage": "47 lượt dùng",
+    "category": "3D",
+    "duration": "3 phút tạo",
+    "title": "Galaxy Love Viewer",
+    "desc": "Galaxy Love Viewer cho chữ và ảnh bay trong không gian 3D, giữ để mở trái tim và nhấp đúp tạo hiệu ứng trái tim hạt.",
+    "tags": [
+      "#galaxy",
+      "#3D",
+      "#ảnh rơi"
+    ],
+    "builder_url": "gift-builder.php?id=30"
+  },
+  {
+    "id": "32",
+    "is_featured": false,
+    "demo_url": "corazon-galactico/index.html",
+    "demo_title": "Trái Tim Thiên Hà",
+    "img_url": "https://deargift.love/assets/thumbnails/corazon-galactico-real.jpg",
+    "price": "Miễn phí",
+    "usage": "249 lượt dùng",
+    "category": "3D",
+    "duration": "3 phút tạo",
+    "title": "Trái Tim Thiên Hà",
+    "desc": "Trái tim hạt phát sáng giữa thiên hà 3D, bao quanh bởi ảnh kỷ niệm và những câu yêu thương chuyển động theo quỹ đạo.",
+    "tags": [
+      "#galaxy",
+      "#trái tim",
+      "#ảnh bay"
+    ],
+    "builder_url": "gift-builder.php?id=32"
+  },
+  {
+    "id": "25",
+    "is_featured": false,
+    "demo_url": "demo.php?id=25",
+    "demo_title": "Thư Tình Sinh Nhật",
+    "img_url": "https://deargift.love/assets/thumbnails/hpbd-letter-real.jpg",
+    "price": "Miễn phí",
+    "usage": "148 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Thư Tình Sinh Nhật",
+    "desc": "Lá thư sinh nhật chuyển động với lời chúc, chữ ký, ảnh kỷ niệm và bài nhạc dành riêng cho người nhận.",
+    "tags": [],
+    "builder_url": "hpbd-letter/builder.php"
+  },
+  {
+    "id": "26",
+    "is_featured": false,
+    "demo_url": "demo.php?id=26",
+    "demo_title": "Thiệp Sinh Nhật Bất Ngờ",
+    "img_url": "https://deargift.love/assets/thumbnails/hpbd-surprise-real.jpg",
+    "price": "Miễn phí",
+    "usage": "123 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Thiệp Sinh Nhật Bất Ngờ",
+    "desc": "Thiệp sinh nhật bất ngờ với hộp thư mở ra, pháo hoa, ảnh tùy chỉnh và lời chúc cá nhân hóa.",
+    "tags": [],
+    "builder_url": "hpbd-surprise/builder.php"
+  },
+  {
+    "id": "27",
+    "is_featured": false,
+    "demo_url": "demo.php?id=27",
+    "demo_title": "Xe Bus Tình Yêu",
+    "img_url": "https://deargift.love/assets/thumbnails/xe-bus-real.jpg",
+    "price": "Miễn phí",
+    "usage": "95 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Xe Bus Tình Yêu",
+    "desc": "Chuyến xe bus tình yêu mang theo tên, thông điệp và hiệu ứng thả tim để gửi tới người bạn thương.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=27"
+  },
+  {
+    "id": "31",
+    "is_featured": false,
+    "demo_url": "demo.php?id=31",
+    "demo_title": "Flores Amarillas Para Ti",
+    "img_url": "https://deargift.love/assets/thumbnails/golden-bloom.svg",
+    "price": "Miễn phí",
+    "usage": "7 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Flores Amarillas Para Ti",
+    "desc": "Thiệp hoa vàng ánh sao: mở lời mời, vòng xoáy kỷ niệm, ảnh xoay quanh đóa hoa và cảnh kết tương tác.",
+    "tags": [
+      "#hoa vàng",
+      "#flores amarillas",
+      "#album"
+    ],
+    "builder_url": "gift-builder.php?id=31"
+  },
+  {
+    "id": "33",
+    "is_featured": false,
+    "demo_url": "demo.php?id=33",
+    "demo_title": "Nguyệt Dạ Đoàn Viên",
+    "img_url": "https://deargift.love/assets/thumbnails/trung-thu-nguyet-da.svg",
+    "price": "Miễn phí",
+    "usage": "2 lượt dùng",
+    "category": "Lễ hội",
+    "duration": "3 phút tạo",
+    "title": "Nguyệt Dạ Đoàn Viên",
+    "desc": "Thiệp Trung Thu tương tác cao cấp: ấn giữ mặt trăng, không gian ảnh 3D, đèn hoa đăng, trái tim ánh trăng và lá thư gõ chữ.",
+    "tags": [
+      "#trung thu",
+      "#đèn lồng",
+      "#album 3d"
+    ],
+    "builder_url": "gift-builder.php?id=33"
+  },
+  {
+    "id": "40",
+    "is_featured": false,
+    "demo_url": "demo.php?id=40",
+    "demo_title": "Thư Kỷ Niệm (Anniversary) 💌",
+    "img_url": "https://deargift.love/templates/anniversary/cover.webp",
+    "price": "Miễn phí",
+    "usage": "33 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Thư Kỷ Niệm (Anniversary) 💌",
+    "desc": "Phong bì đỏ rượu gắn xi vàng, mở ra là ba món quà: bức thư dài, dòng ký ức bằng ảnh, và bó hoa kèm đĩa than phát nhạc.",
+    "tags": [
+      "#Kỷ niệm",
+      "#Thư tay",
+      "#Nhiều màn"
+    ],
+    "builder_url": "gift-builder.php?id=40"
+  },
+  {
+    "id": "41",
+    "is_featured": false,
+    "demo_url": "demo.php?id=41",
+    "demo_title": "Bắt Bánh · Băng Cassette 🧺",
+    "img_url": "https://deargift.love/templates/bakery-mixtape/cover.webp",
+    "price": "Miễn phí",
+    "usage": "31 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Bắt Bánh · Băng Cassette 🧺",
+    "desc": "Ba màn nối nhau: chơi game hứng bánh sáng, mở băng cassette nghe nhạc, rồi tới bảng ghim kỷ niệm đỏ rượu có thư tay và bản đồ nơi chốn.",
+    "tags": [
+      "#Minigame",
+      "#Nhiều màn",
+      "#Màu nước"
+    ],
+    "builder_url": "gift-builder.php?id=41"
+  },
+  {
+    "id": "42",
+    "is_featured": false,
+    "demo_url": "demo.php?id=42",
+    "demo_title": "Bánh Kem Sinh Nhật — Thổi Nến &amp; Ước 🎂",
+    "img_url": "https://deargift.love/templates/banh-kem-sinh-nhat/cover.webp",
+    "price": "Miễn phí",
+    "usage": "44 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Bánh Kem Sinh Nhật — Thổi Nến &amp; Ước 🎂",
+    "desc": "Tờ lịch cuộn tới đúng ngày sinh nhật, chiếc bánh kem hiện ra để người nhận nhấn giữ thổi nến, chọn một điều ước, xem trái tim ảnh kỷ niệm, đọc lá thư và thả điều ước thành sao băng.",
+    "tags": [
+      "#Sinh nhật",
+      "#Bánh kem",
+      "#Thổi nến"
+    ],
+    "builder_url": "gift-builder.php?id=42"
+  },
+  {
+    "id": "43",
+    "is_featured": false,
+    "demo_url": "demo.php?id=43",
+    "demo_title": "Hộp kỷ niệm hoa nở",
+    "img_url": "https://deargift.love/templates/bloom-memory-box/cover.webp",
+    "price": "50.000đ",
+    "usage": "1 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Hộp kỷ niệm hoa nở",
+    "desc": "Phong thư bung ra cả một trời hoa, rồi tới thẻ cào kỷ niệm, bản đồ những nơi hai người từng đi và lá thư cuối có thiên thần nhỏ.",
+    "tags": [
+      "#Nhiều màn",
+      "#Hoa nở",
+      "#Cao cấp"
+    ],
+    "builder_url": "gift-builder.php?id=43"
+  },
+  {
+    "id": "44",
+    "is_featured": false,
+    "demo_url": "demo.php?id=44",
+    "demo_title": "Vườn Hoa Nở &amp; Đom Đóm Đêm 🌸",
+    "img_url": "https://deargift.love/templates/blooming-flowers/cover.webp",
+    "price": "Miễn phí",
+    "usage": "20 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Vườn Hoa Nở &amp; Đom Đóm Đêm 🌸",
+    "desc": "Mẫu thiệp hiệu ứng mầm cây vươn lên nở thành những bông hoa đào lấp lánh đom đóm đêm kỳ diệu.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=44"
+  },
+  {
+    "id": "45",
+    "is_featured": false,
+    "demo_url": "demo.php?id=45",
+    "demo_title": "Bó Hoa Tulip Tặng Em 🌷",
+    "img_url": "https://deargift.love/templates/bo-hoa-tulip/cover.webp",
+    "price": "Miễn phí",
+    "usage": "82 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Bó Hoa Tulip Tặng Em 🌷",
+    "desc": "Tấm thiệp dễ thương &quot;Cốc cốc, có quà cho em&quot;: chạm vào là bó tulip nở giữa trời đêm với lời nhắn tự gõ từng chữ; chạm bó hoa để mở lá thư kèm ảnh người ấy.",
+    "tags": [
+      "#Bó hoa tulip",
+      "#Lời nhắn",
+      "#Lá thư"
+    ],
+    "builder_url": "gift-builder.php?id=45"
+  },
+  {
+    "id": "46",
+    "is_featured": false,
+    "demo_url": "demo.php?id=46",
+    "demo_title": "Chiikawa Giao Thư 🐾",
+    "img_url": "https://deargift.love/templates/chiikawa-delivery/cover.webp",
+    "price": "Miễn phí",
+    "usage": "55 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Chiikawa Giao Thư 🐾",
+    "desc": "Máy trạng thái 10 màn Kawaii scrapbook xanh pastel: chat QR trái tim, Chiikawa cầm phong thư xin phép giao, màn &quot;Excuse Me!&quot; dỗi khi nhấn Decline, sao băng + phong thư bung, băng rôn sinh nhật paper-unfold, và 4 hộp quà — album polaroid, lá thư film strip, đĩa than YouTube, bó hoa lời chúc.",
+    "tags": [
+      "#Kawaii",
+      "#Chiikawa",
+      "#Nhiều màn"
+    ],
+    "builder_url": "gift-builder.php?id=46"
+  },
+  {
+    "id": "47",
+    "is_featured": false,
+    "demo_url": "demo.php?id=47",
+    "demo_title": "Nhận Quà Giáng Sinh (Christmas Gift) 🎄",
+    "img_url": "https://deargift.love/templates/christmas-gift/cover.webp",
+    "price": "Miễn phí",
+    "usage": "1 lượt dùng",
+    "category": "Lễ hội",
+    "duration": "3 phút tạo",
+    "title": "Nhận Quà Giáng Sinh (Christmas Gift) 🎄",
+    "desc": "Trải nghiệm màn mở quà Giáng Sinh từ Ông Già Noel, ghép chữ hạt 3D lung linh (Merry Christmas), nhạc Giáng sinh ấm áp và thư chúc mừng.",
+    "tags": [
+      "#Giáng Sinh",
+      "#Ông già Noel",
+      "#Ghép chữ 3D"
+    ],
+    "builder_url": "gift-builder.php?id=47"
+  },
+  {
+    "id": "48",
+    "is_featured": false,
+    "demo_url": "demo.php?id=48",
+    "demo_title": "Tạp Chí Giáng Sinh 🎄",
+    "img_url": "https://deargift.love/templates/christmas-magazine/cover.webp",
+    "price": "Miễn phí",
+    "usage": "2 lượt dùng",
+    "category": "Lễ hội",
+    "duration": "3 phút tạo",
+    "title": "Tạp Chí Giáng Sinh 🎄",
+    "desc": "Bảy màn kể chuyện cuối năm: mở dấu sáp đỏ, chữ lớn chúc mừng, đồng hồ đếm ngược giao thừa, bảng ảnh kỷ niệm trong TV cổ và máy ảnh chụp lấy liền, playlist nhạc Noel, thư tay kẹp ghim vàng và tấm thiệp kết.",
+    "tags": [
+      "#Bảy màn",
+      "#Tuyết rơi",
+      "#Playlist"
+    ],
+    "builder_url": "gift-builder.php?id=48"
+  },
+  {
+    "id": "49",
+    "is_featured": false,
+    "demo_url": "demo.php?id=49",
+    "demo_title": "Web tỏ tình &quot;Có/Không&quot;",
+    "img_url": "https://deargift.love/templates/confession/cover.webp",
+    "price": "Miễn phí",
+    "usage": "10 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Web tỏ tình &quot;Có/Không&quot;",
+    "desc": "Nút &quot;Không&quot; chạy trốn khi rê chuột, nhấn &quot;Có&quot; là pháo giấy nổ tung.",
+    "tags": [
+      "#Tỏ tình",
+      "#Vui nhộn",
+      "#Valentine"
+    ],
+    "builder_url": "gift-builder.php?id=49"
+  },
+  {
+    "id": "50",
+    "is_featured": false,
+    "demo_url": "demo.php?id=50",
+    "demo_title": "Sinh Nhật Denim Xanh 💙",
+    "img_url": "https://deargift.love/templates/denim-blue-birthday/cover.webp",
+    "price": "Miễn phí",
+    "usage": "12 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Sinh Nhật Denim Xanh 💙",
+    "desc": "Chín màn nối nhau tông xanh navy: khung tim ren, con đường nối hai đứa, bốn con tem quà, thư tay cạnh tờ lịch bóc, bảng ảnh polaroid, bó hoa hộp quà và đĩa than quay.",
+    "tags": [
+      "#Nhiều màn",
+      "#Ren trắng",
+      "#Ảnh kỷ niệm"
+    ],
+    "builder_url": "gift-builder.php?id=50"
+  },
+  {
+    "id": "51",
+    "is_featured": false,
+    "demo_url": "demo.php?id=51",
+    "demo_title": "Galaxy Love (Trái Tim Vũ Trụ 3D) 🌌",
+    "img_url": "https://deargift.love/templates/galaxy-love/cover.webp",
+    "price": "Miễn phí",
+    "usage": "39 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Galaxy Love (Trái Tim Vũ Trụ 3D) 🌌",
+    "desc": "Trái tim vũ trụ 3D lung linh giữa thiên hà, chữ 3D lượn sóng, mưa tim rơi, ảnh lượn đĩa xoay 3D và phong bì lá thư tình lãng mạn.",
+    "tags": [
+      "#3D WebGL",
+      "#Trái tim vũ trụ",
+      "#Hạt 3D"
+    ],
+    "builder_url": "gift-builder.php?id=51"
+  },
+  {
+    "id": "52",
+    "is_featured": false,
+    "demo_url": "demo.php?id=52",
+    "demo_title": "Ngày Của Bạn Gái 💝",
+    "img_url": "https://deargift.love/templates/gf-day/cover.webp",
+    "price": "Miễn phí",
+    "usage": "14 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Ngày Của Bạn Gái 💝",
+    "desc": "Hộp quà trái tim mở ra là hoa nở tràn màn hình, rồi ba món nhỏ: bình hoa gắn lời khen, cuộn phim ảnh kỷ niệm và một lá thư tay.",
+    "tags": [
+      "#Nhiều màn",
+      "#Hoa nở",
+      "#Ảnh kỷ niệm"
+    ],
+    "builder_url": "gift-builder.php?id=52"
+  },
+  {
+    "id": "53",
+    "is_featured": false,
+    "demo_url": "demo.php?id=53",
+    "demo_title": "Happy Birthday VIP 2 🎂",
+    "img_url": "https://deargift.love/templates/happy-birthday-vip2/cover.png",
+    "price": "Miễn phí",
+    "usage": "48 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Happy Birthday VIP 2 🎂",
+    "desc": "Thiệp sinh nhật online nhiều màn: bánh nến thắp sáng, lời chào tên riêng, phong bì mở ra thư tay, album ảnh, video kỷ niệm và mưa lời chúc lung linh.",
+    "tags": [
+      "#Nhiều màn",
+      "#Bánh nến",
+      "#Video kỷ niệm"
+    ],
+    "builder_url": "gift-builder.php?id=53"
+  },
+  {
+    "id": "54",
+    "is_featured": false,
+    "demo_url": "demo.php?id=54",
+    "demo_title": "Thiệp Hoa Hồng Valentine 🌹",
+    "img_url": "https://deargift.love/templates/hoa-hong-valentine/cover.webp",
+    "price": "Miễn phí",
+    "usage": "3 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Thiệp Hoa Hồng Valentine 🌹",
+    "desc": "Đoá hồng đỏ giữa muôn trái tim lấp lánh: chạm vào là cánh hồng bung bay và phong thư hiện ra. Mở thư để lật tấm thiệp lời chúc, rồi ảnh polaroid và ảnh kỷ niệm bay lên.",
+    "tags": [
+      "#Hoa hồng",
+      "#Valentine",
+      "#Phong thư"
+    ],
+    "builder_url": "gift-builder.php?id=54"
+  },
+  {
+    "id": "55",
+    "is_featured": false,
+    "demo_url": "demo.php?id=55",
+    "demo_title": "Khoá Tim Kỷ Niệm 🔐",
+    "img_url": "https://deargift.love/templates/khoa-tim-ky-niem/cover.webp",
+    "price": "Miễn phí",
+    "usage": "28 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Khoá Tim Kỷ Niệm 🔐",
+    "desc": "Ổ khoá trái tim 4 số: người ấy phải nhớ đúng ngày kỷ niệm của hai bạn mới mở được. Mở xong là tấm thiệp chúc mừng, cào lớp phủ để lộ ra những tấm ảnh kỷ niệm.",
+    "tags": [
+      "#Khoá trái tim",
+      "#Ngày kỷ niệm",
+      "#Thiệp cào"
+    ],
+    "builder_url": "gift-builder.php?id=55"
+  },
+  {
+    "id": "56",
+    "is_featured": false,
+    "demo_url": "demo.php?id=56",
+    "demo_title": "Pháo Hoa Tình Yêu 🎆",
+    "img_url": "https://deargift.love/templates/phao-hoa-tinh-yeu/cover.webp",
+    "price": "Miễn phí",
+    "usage": "31 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Pháo Hoa Tình Yêu 🎆",
+    "desc": "Bầu trời đêm bừng pháo hoa: đếm ngược, tên người ấy và lời yêu hiện ra từ những hạt pháo hoa, pháo hoa hình trái tim rồi mở ra lá thư kèm ảnh. Chạm vào trời để bắn thêm.",
+    "tags": [
+      "#Pháo hoa tình yêu",
+      "#Chữ pháo hoa",
+      "#Tỏ tình"
+    ],
+    "builder_url": "gift-builder.php?id=56"
+  },
+  {
+    "id": "57",
+    "is_featured": false,
+    "demo_url": "demo.php?id=57",
+    "demo_title": "Quà Pixel 16-bit 🕹️",
+    "img_url": "https://deargift.love/templates/pixel-gift/cover.webp",
+    "price": "Miễn phí",
+    "usage": "11 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Quà Pixel 16-bit 🕹️",
+    "desc": "Trò chơi pixel art: quét mã QR trong khung chat, bấm mật mã mở khoá, rồi chọn 1 trong 3 rương quà — thư cổ, album ảnh, và máy nghe nhạc Windows 98.",
+    "tags": [
+      "#Pixel art",
+      "#Giải đố",
+      "#Nhiều màn"
+    ],
+    "builder_url": "gift-builder.php?id=57"
+  },
+  {
+    "id": "58",
+    "is_featured": false,
+    "demo_url": "demo.php?id=58",
+    "demo_title": "Quả Cầu Kỷ Niệm 💖",
+    "img_url": "https://deargift.love/templates/qua-cau-ky-niem/cover.webp",
+    "price": "Miễn phí",
+    "usage": "26 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Quả Cầu Kỷ Niệm 💖",
+    "desc": "Giữ để bắt đầu: giữa vũ trụ hạt sáng, từng lời nhắn yêu thương hiện ra, rồi ảnh kỷ niệm kết thành quả cầu xoay 3D. Chạm vào phong thư để mở lá thư gõ chữ kèm ảnh.",
+    "tags": [
+      "#Quả cầu ảnh 3D",
+      "#Lời nhắn",
+      "#Lá thư"
+    ],
+    "builder_url": "gift-builder.php?id=58"
+  },
+  {
+    "id": "59",
+    "is_featured": false,
+    "demo_url": "demo.php?id=59",
+    "demo_title": "Sinh Nhật Bất Ngờ — Bật Đèn Lên 🎈",
+    "img_url": "https://deargift.love/templates/sinh-nhat-bat-den/cover.webp",
+    "price": "Miễn phí",
+    "usage": "14 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Sinh Nhật Bất Ngờ — Bật Đèn Lên 🎈",
+    "desc": "Căn phòng tối om: gạt công tắc là bừng lên bữa tiệc bất ngờ với bóng bay, bánh kem và số tuổi. Thổi nến, ước một điều, mở lá thư cuộn và ngắm lại ảnh kỷ niệm.",
+    "tags": [
+      "#Sinh nhật",
+      "#Tiệc bất ngờ",
+      "#Thổi nến"
+    ],
+    "builder_url": "gift-builder.php?id=59"
+  },
+  {
+    "id": "60",
+    "is_featured": false,
+    "demo_url": "demo.php?id=60",
+    "demo_title": "Sinh Nhật Người Nhện 🕷️",
+    "img_url": "https://deargift.love/templates/spidey-birthday/cover.webp",
+    "price": "Miễn phí",
+    "usage": "1 lượt dùng",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Sinh Nhật Người Nhện 🕷️",
+    "desc": "Tám màn nối nhau kiểu truyện tranh: chibi thổi nến, câu hỏi có/không, kho quà ba món, thư hai trang, bảng ảnh polaroid, đĩa than quay và màn kết trên đồi cỏ.",
+    "tags": [
+      "#Nhiều màn",
+      "#Truyện tranh",
+      "#Ảnh kỷ niệm"
+    ],
+    "builder_url": "gift-builder.php?id=60"
+  },
+  {
+    "id": "61",
+    "is_featured": false,
+    "demo_url": "demo.php?id=61",
+    "demo_title": "Tinh Cầu Tình Yêu 🪐",
+    "img_url": "https://deargift.love/templates/tinh-cau-tinh-yeu/cover.webp",
+    "price": "Miễn phí",
+    "usage": "1 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Tinh Cầu Tình Yêu 🪐",
+    "desc": "Một thiên hà 3D lung linh quanh hành tinh tình yêu, những vòng chữ mang tên hai bạn và ngày kỷ niệm xoay quanh; chạm vào tinh cầu để bung ra dải ảnh kỷ niệm giữa vũ trụ.",
+    "tags": [
+      "#Thiên hà 3D",
+      "#Tinh cầu",
+      "#Vòng chữ"
+    ],
+    "builder_url": "gift-builder.php?id=61"
+  },
+  {
+    "id": "62",
+    "is_featured": false,
+    "demo_url": "demo.php?id=62",
+    "demo_title": "Trái Tim 3D Lời Yêu 💗",
+    "img_url": "https://deargift.love/templates/trai-tim-3d/cover.webp",
+    "price": "Miễn phí",
+    "usage": "49 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Trái Tim 3D Lời Yêu 💗",
+    "desc": "Trái tim 3D kết từ hàng nghìn hạt sáng đập theo nhịp, những vòng lời yêu xoay quanh bên dưới. Chạm vào trái tim để mở phong thư với lá thư và ảnh polaroid.",
+    "tags": [
+      "#Trái tim 3D",
+      "#Heart TikTok",
+      "#Lời yêu"
+    ],
+    "builder_url": "gift-builder.php?id=62"
+  },
+  {
+    "id": "63",
+    "is_featured": false,
+    "demo_url": "demo.php?id=63",
+    "demo_title": "Trái Tim Nhịp Đập Cupid 💘",
+    "img_url": "https://deargift.love/templates/trai-tim-nhip-dap/cover.webp",
+    "price": "Miễn phí",
+    "usage": "21 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Trái Tim Nhịp Đập Cupid 💘",
+    "desc": "Trái tim 3D kết từ hàng nghìn hạt sáng đập theo nhịp, lời yêu hiện dần từng chữ. Chạm chú Cupid bắn mũi tên trúng tim, tim nổ tung thành phong thư chứa lá thư và ảnh.",
+    "tags": [
+      "#Trái tim 3D",
+      "#Cupid",
+      "#Nhịp tim"
+    ],
+    "builder_url": "gift-builder.php?id=63"
+  },
+  {
+    "id": "64",
+    "is_featured": false,
+    "demo_url": "demo.php?id=64",
+    "demo_title": "Trung Thu — Đèn Ông Sao &amp; Hoa 🏮",
+    "img_url": "https://deargift.love/templates/trung-thu-den-ong-sao/cover.webp",
+    "price": "Miễn phí",
+    "usage": "",
+    "category": "Lễ hội",
+    "duration": "3 phút tạo",
+    "title": "Trung Thu — Đèn Ông Sao &amp; Hoa 🏮",
+    "desc": "Đêm rằm lung linh đom đóm: chạm để thắp chiếc đèn ông sao kết bằng hoa, đọc lá thư Trung thu kèm ảnh kỷ niệm rồi gửi một điều ước lên trăng.",
+    "tags": [
+      "#Trung thu",
+      "#Đèn ông sao",
+      "#Đèn hoa"
+    ],
+    "builder_url": "gift-builder.php?id=64"
+  },
+  {
+    "id": "65",
+    "is_featured": false,
+    "demo_url": "demo.php?id=65",
+    "demo_title": "Valentine VIP (Thư Tình &amp; Vũ Trụ Heart 3D) 💖",
+    "img_url": "https://deargift.love/templates/valentine-deargift/cover.webp",
+    "price": "Miễn phí",
+    "usage": "2 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Valentine VIP (Thư Tình &amp; Vũ Trụ Heart 3D) 💖",
+    "desc": "Trải nghiệm màn nhắn tin Messenger chuẩn iOS iPhone, khóa passcode gấu đáng yêu, đĩa xoay vũ trụ hạt 3D và thần Cupid trao thư tình Valentine.",
+    "tags": [
+      "#Valentine",
+      "#Messenger",
+      "#Lock Screen"
+    ],
+    "builder_url": "gift-builder.php?id=65"
+  },
+  {
+    "id": "66",
+    "is_featured": false,
+    "demo_url": "demo.php?id=66",
+    "demo_title": "Đêm Tím Kỷ Niệm 💜",
+    "img_url": "https://deargift.love/templates/violet-memory-hub/cover.webp",
+    "price": "Miễn phí",
+    "usage": "",
+    "category": "Sinh nhật",
+    "duration": "3 phút tạo",
+    "title": "Đêm Tím Kỷ Niệm 💜",
+    "desc": "Trang cuộn dài tông tím than: mở hộp quà neon, đồng hồ đếm số tuổi tới từng giây, sáu tấm thẻ lật mở &quot;điều anh thích ở em&quot;, bốn mùa kỷ niệm, lưới ảnh và một đoạn băng VHS giấu ở cuối.",
+    "tags": [
+      "#Trang cuộn",
+      "#Đếm số tuổi",
+      "#Thẻ lật"
+    ],
+    "builder_url": "gift-builder.php?id=66"
+  },
+  {
+    "id": "67",
+    "is_featured": false,
+    "demo_url": "demo.php?id=67",
+    "demo_title": "Vườn Hoa Mật Mã 🌸",
+    "img_url": "https://deargift.love/templates/vuon-hoa-ma-pin/cover.webp",
+    "price": "Miễn phí",
+    "usage": "4 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Vườn Hoa Mật Mã 🌸",
+    "desc": "Món quà khoá bằng mã PIN 4 số chỉ hai bạn biết. Nhập đúng mã là tấm thiệp mở ra, hoa rơi ngập màn hình, rồi cả khu vườn hoa nở cùng lá thư và ảnh kỷ niệm.",
+    "tags": [
+      "#Mã PIN",
+      "#Vườn hoa",
+      "#Thiệp mở"
+    ],
+    "builder_url": "gift-builder.php?id=67"
+  },
+  {
+    "id": "8",
+    "is_featured": false,
+    "demo_url": "demo.php?id=8",
+    "demo_title": "Troll Người Yêu",
+    "img_url": "https://deargift.love/uploads/templates/tpl_8_1780310809.png",
+    "price": "Miễn phí",
+    "usage": "100 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Troll Người Yêu",
+    "desc": "Trang tương tác vui nhộn để trêu người yêu hoặc bạn bè bằng một đường link bất ngờ.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=8"
+  },
+  {
+    "id": "9",
+    "is_featured": false,
+    "demo_url": "demo.php?id=9",
+    "demo_title": "Giáng Sinh 🎄",
+    "img_url": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&amp;fit=crop&amp;q=80",
+    "price": "Miễn phí",
+    "usage": "101 lượt dùng",
+    "category": "Lễ hội",
+    "duration": "3 phút tạo",
+    "title": "Giáng Sinh 🎄",
+    "desc": "Thiệp Giáng sinh lung linh với cây thông 3D, tuyết rơi, lời chúc và nhạc nền lễ hội.",
+    "tags": [],
+    "builder_url": "gift-builder.php?id=9"
+  },
+  {
+    "id": "34",
+    "is_featured": false,
+    "demo_url": "demo.php?id=34",
+    "demo_title": "Tri Ân Thầy Cô 20/11",
+    "img_url": "https://deargift.love/assets/thumbnails/nha-giao-2011.jpg",
+    "price": "Miễn phí",
+    "usage": "54 lượt dùng",
+    "category": "Ngày Nhà Giáo",
+    "duration": "3 phút tạo",
+    "title": "Tri Ân Thầy Cô 20/11",
+    "desc": "Thiệp 20/11 tri ân thầy cô: bảng hồng với bút tự viết lời chúc, bó hoa tulip nở rộ, ảnh thầy cô hai bên và lá thư gõ chữ kèm nhạc nền.",
+    "tags": [
+      "#20/11",
+      "#thầy cô",
+      "#tri ân"
+    ],
+    "builder_url": "gift-builder.php?id=34"
+  },
+  {
+    "id": "35",
+    "is_featured": false,
+    "demo_url": "demo.php?id=35",
+    "demo_title": "Sweet Valentine – Sổ Kỷ Niệm",
+    "img_url": "https://deargift.love/assets/thumbnails/valentine-sweet.jpg",
+    "price": "Miễn phí",
+    "usage": "101 lượt dùng",
+    "category": "Valentine",
+    "duration": "3 phút tạo",
+    "title": "Sweet Valentine – Sổ Kỷ Niệm",
+    "desc": "Món quà Valentine ngọt ngào: thần Cupid bắn tim, cuốn sổ kỷ niệm lật từng trang với ảnh và lời nhắn, kết thúc bằng hộp quà 3D trái tim ảnh và lời chúc bay.",
+    "tags": [
+      "#valentine",
+      "#cupid",
+      "#sổ kỷ niệm"
+    ],
+    "builder_url": "gift-builder.php?id=35"
+  },
+  {
+    "id": "36",
+    "is_featured": false,
+    "demo_url": "demo.php?id=36",
+    "demo_title": "Bó Hoa 8/3 Ngọt Ngào",
+    "img_url": "https://deargift.love/assets/thumbnails/bo-hoa-8-3.jpg",
+    "price": "Miễn phí",
+    "usage": "64 lượt dùng",
+    "category": "Ngày Phụ Nữ",
+    "duration": "3 phút tạo",
+    "title": "Bó Hoa 8/3 Ngọt Ngào",
+    "desc": "Thiệp 8/3 tặng người thương: chữ chúc mừng bằng hạt sáng, hoa tulip nở dưới trời sao, bó hoa cùng thỏ con, lá thư gõ chữ và ảnh kỷ niệm bay lên.",
+    "tags": [
+      "#8/3",
+      "#bó hoa",
+      "#tulip"
+    ],
+    "builder_url": "gift-builder.php?id=36"
+  },
+  {
+    "id": "37",
+    "is_featured": false,
+    "demo_url": "demo.php?id=37",
+    "demo_title": "Pháo Hoa Đón Năm Mới",
+    "img_url": "https://deargift.love/assets/thumbnails/phao-hoa-nam-moi.jpg",
+    "price": "Miễn phí",
+    "usage": "7 lượt dùng",
+    "category": "Tết",
+    "duration": "3 phút tạo",
+    "title": "Pháo Hoa Đón Năm Mới",
+    "desc": "Đếm ngược 23:59:55 → 00:00:00 rồi bùng nổ pháo hoa: trái tim, ngôi sao vàng, quạt pháo mặt đất, hàng pháo finale, lời chúc năm mới lần lượt hiện lên cùng nhạc và tiếng pháo.",
+    "tags": [
+      "#năm mới",
+      "#pháo hoa",
+      "#đếm ngược"
+    ],
+    "builder_url": "gift-builder.php?id=37"
+  },
+  {
+    "id": "38",
+    "is_featured": false,
+    "demo_url": "demo.php?id=38",
+    "demo_title": "Cơn Mưa Tình Yêu 3D",
+    "img_url": "https://deargift.love/assets/thumbnails/mua-tinh-yeu-3d.jpg",
+    "price": "50.000đ",
+    "usage": "186 lượt dùng",
+    "category": "Tình yêu",
+    "duration": "3 phút tạo",
+    "title": "Cơn Mưa Tình Yêu 3D",
+    "desc": "Chạm vào trái tim để bay xuyên qua cơn mưa lời yêu thương 3D: câu chữ phát sáng, trái tim đỏ, ảnh kỷ niệm và bụi sao; kéo để xoay 360°, zoom thoải mái.",
+    "tags": [
+      "#mưa tình yêu",
+      "#3D",
+      "#tỏ tình"
+    ],
+    "builder_url": "gift-builder.php?id=38"
+  },
+  {
+    "id": "39",
+    "is_featured": false,
+    "demo_url": "demo.php?id=39",
+    "demo_title": "Gửi Bố Mẹ – Sổ Kỷ Niệm",
+    "img_url": "https://deargift.love/assets/thumbnails/ky-niem-bo-me.svg",
+    "price": "Miễn phí",
+    "usage": "3 lượt dùng",
+    "category": "Mãi xanh",
+    "duration": "3 phút tạo",
+    "title": "Gửi Bố Mẹ – Sổ Kỷ Niệm",
+    "desc": "Món quà tri ân Bố Mẹ: những đốm sáng ấm áp viết lời gửi, cuốn sổ kỷ niệm gia đình lật từng trang với ảnh và lời nhắn, kết thúc bằng trái tim ánh vàng 3D cùng lời chúc.",
+    "tags": [
+      "#bố mẹ",
+      "#gia đình",
+      "#sổ kỷ niệm"
+    ],
+    "builder_url": "gift-builder.php?id=39"
+  },
+  {
+    "id": "68",
+    "is_featured": false,
+    "demo_url": "demo.php?id=68",
+    "demo_title": "Bó Hoa Ảnh 📸",
+    "img_url": "https://deargift.love/assets/thumbnails/photo-bouquet-thumb.jpg",
+    "price": "Miễn phí",
+    "usage": "52 lượt dùng",
+    "category": "Ngày Phụ Nữ",
+    "duration": "3 phút tạo",
+    "title": "Bó Hoa Ảnh 📸",
+    "desc": "Bó hoa ghép từ ảnh kỷ niệm · Mưa chữ &amp; ảnh 3D · Phong thư &amp; lá thư tay. Dành tặng người bạn yêu thương.",
+    "tags": [
+      "#20/10",
+      "#bó hoa",
+      "#ảnh"
+    ],
+    "builder_url": "gift-builder.php?id=68"
+  }
+]

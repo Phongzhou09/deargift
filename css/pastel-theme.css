@@ -1,0 +1,333 @@
+/* DearGift — Cute Pastel theme
+   Loaded last on every page; overrides the pink-premium tokens and key components. */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root,
+html body {
+    --pa-cream: #fffaf3;
+    --pa-cream-2: #fff3e6;
+    --pa-ink: #3d3551;
+    --pa-ink-soft: #7a7090;
+    --pa-pink: #ff9ec4;
+    --pa-pink-deep: #e8589a;
+    --pa-lavender: #cdbdff;
+    --pa-lavender-deep: #8a6fe8;
+    --pa-mint: #b5ecdc;
+    --pa-mint-deep: #3fae8e;
+    --pa-peach: #ffd3bd;
+    --pa-butter: #fff0a8;
+    --pa-sky: #bfe3ff;
+    --pa-line: #3d3551;
+    --pa-pop: 3px 3px 0 var(--pa-line);
+    --pa-pop-lg: 5px 5px 0 var(--pa-line);
+
+    /* remap shared tokens */
+    --primary: var(--pa-pink-deep);
+    --primary-hover: #d4428a;
+    --primary-dark: #b0306f;
+    --primary-light: #ffeef6;
+    --primary-lighter: #fff7fb;
+    --primary-border: var(--pa-pink);
+    --accent-gold: #f5c542;
+    --accent-gold-light: var(--pa-butter);
+    --success: var(--pa-mint-deep);
+    --bg-main: var(--pa-cream);
+    --bg-soft: var(--pa-cream-2);
+    --bg-deep: #fdeee0;
+    --text-main: var(--pa-ink);
+    --text-muted: var(--pa-ink-soft);
+    --text-soft: #a79fb8;
+    --font: 'Nunito', 'Be Vietnam Pro', sans-serif;
+    --font-display: 'Baloo 2', 'Nunito', sans-serif;
+    --grad-primary: linear-gradient(135deg, #ffb3d1 0%, #ff9ec4 45%, #cdbdff 100%);
+    --grad-soft: linear-gradient(135deg, #fff3e6 0%, #ffeef6 50%, #f1ecff 100%);
+    --grad-gold: linear-gradient(135deg, #fff0a8 0%, #ffd3bd 100%);
+    --shadow-sm: 2px 2px 0 rgba(61, 53, 81, .9);
+    --shadow-md: var(--pa-pop);
+    --shadow-lg: var(--pa-pop-lg);
+    --shadow-xl: 7px 7px 0 var(--pa-line);
+    --shadow-glow: var(--pa-pop-lg);
+    --radius-sm: 14px;
+    --radius-md: 20px;
+    --radius-lg: 26px;
+    --radius-xl: 34px;
+
+    /* page-scoped palettes */
+    --home-ink: var(--pa-ink);
+    --home-wine: var(--pa-ink);
+    --home-berry: var(--pa-lavender-deep);
+    --home-pink: var(--pa-pink-deep);
+    --home-rose: var(--pa-pink);
+    --home-blush: #ffeef6;
+    --home-paper: var(--pa-cream);
+    --tm-ink: var(--pa-ink); --tm-pink: var(--pa-pink-deep); --tm-pink-dark: #b0306f;
+    --tm-muted: var(--pa-ink-soft); --tm-line: #eadff5; --tm-cream: var(--pa-cream);
+    --mg-ink: var(--pa-ink); --mg-primary: var(--pa-pink-deep); --mg-primary-dark: #b0306f;
+    --mg-muted: var(--pa-ink-soft); --mg-line: #eadff5; --mg-surface: #fff;
+    --sp-ink: var(--pa-ink); --sp-pink: var(--pa-pink-deep); --sp-violet: var(--pa-lavender-deep);
+    --sp-plum: var(--pa-ink); --sp-muted: var(--pa-ink-soft); --sp-line: #eadff5;
+    --gb-ink: var(--pa-ink); --gb-coral: var(--pa-pink-deep); --gb-coral-dark: #b0306f;
+    --gb-violet: var(--pa-lavender-deep); --gb-mint: var(--pa-mint-deep); --gb-yellow: #f5c542;
+    --gb-paper: var(--pa-cream); --gb-canvas: var(--pa-cream-2); --gb-muted: var(--pa-ink-soft);
+    --gb-line: #eadff5;
+    --ws-ink: var(--pa-ink); --ws-pink: var(--pa-pink-deep); --ws-muted: var(--pa-ink-soft);
+    --ws-soft: #ffeef6; --ws-line: #eadff5;
+}
+
+/* page-scoped selectors (.home-page etc.) redefine vars — beat them with higher specificity */
+html .home-page, html .templates-page, html .my-gifts-page, html .support-page, html .gift-builder-page {
+    --home-ink: var(--pa-ink); --home-wine: var(--pa-ink); --home-berry: var(--pa-lavender-deep);
+    --home-pink: var(--pa-pink-deep); --home-rose: var(--pa-pink); --home-blush: #ffeef6; --home-paper: var(--pa-cream);
+    --tm-ink: var(--pa-ink); --tm-pink: var(--pa-pink-deep); --tm-cream: var(--pa-cream);
+    --mg-ink: var(--pa-ink); --mg-primary: var(--pa-pink-deep);
+    --sp-ink: var(--pa-ink); --sp-pink: var(--pa-pink-deep); --sp-violet: var(--pa-lavender-deep);
+    --gb-ink: var(--pa-ink); --gb-coral: var(--pa-pink-deep); --gb-paper: var(--pa-cream);
+}
+
+/* ---------- Base ---------- */
+html body {
+    font-family: var(--font) !important;
+    color: var(--pa-ink);
+    background-color: var(--pa-cream) !important;
+    background-image:
+        radial-gradient(circle at 1px 1px, rgba(138, 111, 232, .13) 1.5px, transparent 0) !important;
+    background-size: 22px 22px !important;
+}
+html body h1, html body h2, html body h3, html body h4,
+html body .font-display, html body .section-title, html body .hero-h1 {
+    font-family: var(--font-display) !important;
+    color: var(--pa-ink);
+    letter-spacing: -0.3px !important;
+}
+html body .grad, html body .hero-h1 .grad {
+    background: linear-gradient(90deg, #e8589a, #8a6fe8 60%, #3fae8e) !important;
+    -webkit-background-clip: text !important; background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+::selection { background: var(--pa-butter); color: var(--pa-ink); }
+
+/* ---------- Header ---------- */
+html body .site-header {
+    background: rgba(255, 250, 243, .92) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 2px dashed #e6d9f5 !important;
+    box-shadow: none !important;
+}
+html body .brand-name { font-family: var(--font-display) !important; color: var(--pa-ink) !important; font-weight: 800 !important; }
+html body .brand-mark { background: var(--pa-pink) !important; border: 2px solid var(--pa-line) !important; border-radius: 14px !important; box-shadow: 2px 2px 0 var(--pa-line) !important; }
+html body .main-nav a {
+    border-radius: 999px !important; font-weight: 700 !important; color: var(--pa-ink) !important;
+    transition: background .2s, transform .2s;
+}
+html body .main-nav a:hover { background: var(--pa-butter) !important; transform: rotate(-2deg); }
+
+/* ---------- Buttons ---------- */
+html body .btn, html body .btn-signup, html body .btn-login,
+html body .btn-hero-main, html body .btn-hero-sec, html body .gc-btn,
+html body button[type="submit"], html body .submit-star-btn {
+    font-family: var(--font-display) !important;
+    font-weight: 700 !important;
+    border-radius: 999px !important;
+    border: 2px solid var(--pa-line) !important;
+    box-shadow: var(--pa-pop) !important;
+    transition: transform .15s ease, box-shadow .15s ease, background .2s !important;
+}
+html body .btn:hover, html body .btn-signup:hover, html body .btn-login:hover,
+html body .btn-hero-main:hover, html body .btn-hero-sec:hover, html body .gc-btn:hover,
+html body button[type="submit"]:hover, html body .submit-star-btn:hover {
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 5px 5px 0 var(--pa-line) !important;
+}
+html body .btn:active, html body .btn-hero-main:active, html body button[type="submit"]:active {
+    transform: translate(2px, 2px) !important; box-shadow: 0 0 0 var(--pa-line) !important;
+}
+html body .btn-primary, html body .btn-signup, html body .btn-hero-main, html body button[type="submit"] {
+    background: var(--pa-pink) !important; color: var(--pa-ink) !important;
+}
+html body .btn-secondary, html body .btn-hero-sec, html body .btn-login {
+    background: #fff !important; color: var(--pa-ink) !important;
+}
+html body .btn-outline-primary { background: var(--pa-lavender) !important; color: var(--pa-ink) !important; }
+html body .btn-hero-main *, html body .btn-primary *, html body .btn-signup * { color: inherit !important; }
+
+/* ---------- Cards & surfaces ---------- */
+html body .card, html body .card-premium, html body .guide-card, html body .love-note-card,
+html body .contrib-cta-box, html body .template-card, html body .gift-card,
+html body .stat-card, html body .dashboard-card, html body .panel {
+    background: #fff !important;
+    border: 2px solid var(--pa-line) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--pa-pop-lg) !important;
+    transition: transform .2s ease, box-shadow .2s ease !important;
+}
+html body .card:hover, html body .card-premium:hover, html body .guide-card:hover,
+html body .template-card:hover, html body .gift-card:hover {
+    transform: translate(-3px, -3px) rotate(-.4deg) !important;
+    box-shadow: 8px 8px 0 var(--pa-line) !important;
+}
+/* rotate pastel fills across grids */
+html body .grid-3 > :nth-child(4n+1) .card, html body .guide-card-pink { background: #ffeef6 !important; }
+html body .grid-3 > :nth-child(4n+2) .card, html body .guide-card-purple { background: #f1ecff !important; }
+html body .grid-3 > :nth-child(4n+3) .card, html body .guide-card-orange { background: #fff1e8 !important; }
+html body .grid-3 > :nth-child(4n+4) .card { background: #eafaf4 !important; }
+
+/* pills / badges / eyebrow */
+html body .pill-item, html body .hero-badge-new, html body .eyebrow, html body .about-badge,
+html body .badge, html body .cat-link-item {
+    border: 2px solid var(--pa-line) !important;
+    border-radius: 999px !important;
+    background: var(--pa-butter) !important;
+    color: var(--pa-ink) !important;
+    font-weight: 800 !important;
+    box-shadow: 2px 2px 0 var(--pa-line) !important;
+}
+html body .pill-row > :nth-child(3n+2) { background: var(--pa-mint) !important; }
+html body .pill-row > :nth-child(3n+3) { background: var(--pa-lavender) !important; }
+
+/* ---------- Home sections ---------- */
+html body .dg-story-hero {
+    background:
+        radial-gradient(circle at 12% 20%, rgba(255, 158, 196, .45) 0 120px, transparent 121px),
+        radial-gradient(circle at 88% 30%, rgba(205, 189, 255, .55) 0 150px, transparent 151px),
+        radial-gradient(circle at 70% 90%, rgba(181, 236, 220, .6) 0 110px, transparent 111px),
+        var(--pa-cream) !important;
+}
+html body .home-page .home-steps { background: #ffeef6 !important; }
+html body .home-page .home-featured { background: var(--pa-cream) !important; }
+html body .home-page .home-occasions { background: #f1ecff !important; }
+html body .home-page .home-pricing { background: #eafaf4 !important; }
+html body .home-page .home-ideas { background: #fff7d6 !important; }
+html body .home-page .home-reviews { background: #fff1e8 !important; }
+html body .home-page .home-about { background: #eaf5ff !important; }
+html body .home-page section { border-top: 2px dashed rgba(61, 53, 81, .15); }
+html body .home-page section::before { color: var(--pa-lavender-deep) !important; }
+
+/* ---------- Forms ---------- */
+html body input[type="text"], html body input[type="email"], html body input[type="password"],
+html body input[type="tel"], html body input[type="number"], html body input[type="search"],
+html body textarea, html body select, html body .form-input {
+    border: 2px solid #d9cdea !important;
+    border-radius: 16px !important;
+    background: #fff !important;
+    font-family: var(--font) !important;
+    color: var(--pa-ink) !important;
+}
+html body input:focus, html body textarea:focus, html body select:focus, html body .form-input:focus {
+    border-color: var(--pa-lavender-deep) !important;
+    box-shadow: 0 0 0 4px rgba(205, 189, 255, .5) !important;
+    outline: none !important;
+}
+html body .form-label { font-weight: 800 !important; color: var(--pa-ink) !important; }
+
+/* ---------- Dashboard shell ---------- */
+html body.user-app .sidebar, html body .dashboard-sidebar {
+    background: #fff !important;
+    border-right: 2px dashed #e6d9f5 !important;
+}
+html body.user-app .sidebar a.active, html body.user-app .sidebar .active > a,
+html body.user-app .sidebar-link.active {
+    background: var(--pa-butter) !important; color: var(--pa-ink) !important;
+    border: 2px solid var(--pa-line) !important; border-radius: 16px !important;
+    box-shadow: 2px 2px 0 var(--pa-line) !important;
+}
+html body.user-app .top-header { background: rgba(255, 250, 243, .92) !important; border-bottom: 2px dashed #e6d9f5 !important; }
+html body table th { background: #f1ecff !important; color: var(--pa-ink) !important; font-family: var(--font-display) !important; }
+html body table td { border-color: #efe6f7 !important; }
+
+/* ---------- Footer ---------- */
+html body .site-footer {
+    background: #f1ecff !important;
+    color: var(--pa-ink) !important;
+    border-top: 3px solid var(--pa-line) !important;
+    position: relative;
+}
+html body .site-footer::before {
+    content: ''; position: absolute; left: 0; right: 0; top: -18px; height: 18px;
+    background: radial-gradient(circle at 12px 18px, #f1ecff 11px, transparent 12px) repeat-x;
+    background-size: 24px 18px;
+}
+html body .site-footer a, html body .footer-heading, html body .footer-link-list a { color: var(--pa-ink) !important; }
+html body .site-footer a:hover { color: var(--pa-pink-deep) !important; }
+html body .footer-bottom { border-top: 2px dashed rgba(61, 53, 81, .2) !important; color: var(--pa-ink-soft) !important; }
+
+/* ---------- Mobile nav ---------- */
+html body .mobile-nav-panel__shell { background: var(--pa-cream) !important; border-left: 3px solid var(--pa-line) !important; }
+html body .mnav-item { border-radius: 18px !important; }
+
+/* gentle wiggle on emoji/icons in hover state */
+@keyframes pa-wiggle { 0%,100% { transform: rotate(0) } 25% { transform: rotate(-8deg) } 75% { transform: rotate(8deg) } }
+html body .card:hover .gc-icon, html body .guide-card:hover .gc-icon { animation: pa-wiggle .5s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+    html body * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- High-specificity fixes for the home hero ---------- */
+html body.home-page .dg-story-shell .btn-hero-main {
+    color: var(--pa-ink) !important; background: var(--pa-pink) !important;
+    border: 2px solid var(--pa-line) !important; box-shadow: var(--pa-pop) !important;
+}
+html body.home-page .dg-story-shell .btn-hero-main:hover { background: #ffb3d1 !important; box-shadow: 5px 5px 0 var(--pa-line) !important; }
+html body.home-page .dg-story-shell .btn-hero-sec {
+    color: var(--pa-ink) !important; background: #fff !important;
+    border: 2px solid var(--pa-line) !important; box-shadow: var(--pa-pop) !important;
+}
+html body.home-page .dg-story-shell .pill-item {
+    color: var(--pa-ink) !important; background: var(--pa-butter) !important;
+    border: 2px solid var(--pa-line) !important;
+}
+html body.home-page .dg-story-shell .pill-row > :nth-child(3n+2) { background: var(--pa-mint) !important; }
+html body.home-page .dg-story-shell .pill-row > :nth-child(3n+3) { background: var(--pa-lavender) !important; }
+html body.home-page .dg-story-shell .hero-sub strong { color: var(--pa-lavender-deep) !important; }
+html body .brand-name { -webkit-text-fill-color: var(--pa-ink) !important; background: none !important; }
+
+/* ---------- Auth pages (login / register / reset) ---------- */
+html body .auth-left, html body .mobile-header {
+    background:
+        radial-gradient(circle at 20% 25%, rgba(255, 255, 255, .55) 0 60px, transparent 61px),
+        radial-gradient(circle at 85% 75%, rgba(181, 236, 220, .8) 0 90px, transparent 91px),
+        linear-gradient(145deg, #ffd3e6 0%, #e4d9ff 55%, #cff3e8 100%) !important;
+    color: var(--pa-ink) !important;
+}
+html body .auth-left h2, html body .auth-left p, html body .mobile-header,
+html body .mobile-header * { color: var(--pa-ink) !important; }
+html body .auth-left h2 span { background: none !important; -webkit-text-fill-color: var(--pa-pink-deep) !important; }
+
+/* ---------- Former dark panels, now pastel: switch text to ink ---------- */
+html body .gb-studio-intro, html body .gb-studio-intro *,
+html body.home-page .home-pricing > .container, html body.home-page .home-pricing > .container *,
+html body.home-page .home-reviews, html body.home-page .home-reviews *,
+html body .action-card:first-child, html body .action-card:first-child *,
+html body .mg-command-hero, html body .mg-command-hero *,
+html body .action-card--discover, html body .action-card--discover *,
+html body .main-content > .top-header, html body .main-content > .top-header *,
+html body .support-hero, html body .support-hero *, html body .support-promise, html body .support-promise *,
+html body .tm-hero__inner, html body .tm-hero__inner *,
+html body .about-trust, html body .about-trust *, html body .contact-public [style*="gradient"],
+html body .progress-circle-container, html body .progress-circle-container * {
+    color: var(--pa-ink) !important;
+    -webkit-text-fill-color: currentColor;
+    text-shadow: none !important;
+}
+html body .tm-hero__inner h1 span,
+html body .support-hero h1 span, html body .mg-command-hero h1 span { color: var(--pa-pink-deep) !important; }
+html body .tm-hero__inner, html body .support-hero, html body .gb-studio-intro,
+html body .mg-command-hero, html body .about-trust, html body .home-pricing > .container {
+    border: 2px solid var(--pa-line) !important; box-shadow: var(--pa-pop-lg) !important;
+}
+
+/* ---------- Generic page buttons (about-btn, tm-btn, sp-btn, mg-btn…) ---------- */
+html body a[class*="-btn"], html body button[class*="-btn"],
+html body a[class*="btn--"], html body button[class*="btn--"] {
+    font-family: var(--font-display) !important; font-weight: 700 !important;
+    border-radius: 999px !important; border: 2px solid var(--pa-line) !important;
+    box-shadow: var(--pa-pop) !important; color: var(--pa-ink) !important;
+    transition: transform .15s ease, box-shadow .15s ease !important;
+}
+html body a[class*="-btn"]:hover, html body button[class*="-btn"]:hover,
+html body a[class*="btn--"]:hover, html body button[class*="btn--"]:hover {
+    transform: translate(-2px, -2px) !important; box-shadow: 5px 5px 0 var(--pa-line) !important;
+}
+html body [class*="btn--primary"] { background: var(--pa-pink) !important; }
+html body [class*="btn--soft"], html body [class*="btn--ghost"], html body [class*="btn--secondary"] { background: #fff !important; }
+html body [class*="btn--primary"] *, html body [class*="btn--soft"] * { color: inherit !important; }

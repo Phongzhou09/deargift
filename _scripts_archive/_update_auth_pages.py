@@ -1,0 +1,702 @@
+import os
+import shutil
+
+# 1. Update login.html
+login_code = """<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng nhập - DearGift 💖</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;800&family=Inter:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="js/security.js" defer></script>
+<script src="https://accounts.google.com/gsi/client?hl=vi" async defer></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: 'Inter', sans-serif; display: flex; flex-direction: row; height: 100vh; background: #0f0a1a; overflow: hidden; }
+  .auth-lang-switch { position:absolute; top:20px; right:24px; z-index:20; display:flex; gap:4px; padding:4px; border:1px solid #eadff5; border-radius:999px; background:#fff; box-shadow:0 5px 18px rgba(61,53,81,.08); }
+  .auth-lang-switch a { min-width:34px; padding:6px 9px; border-radius:999px; color:#7a7090; text-decoration:none; text-align:center; font-size:11px; font-weight:800; }
+  .auth-lang-switch a.active { color:#fff; background:linear-gradient(135deg,#e8589a,#d30f72); }
+  
+  .auth-left {
+    flex: 1;
+    background: linear-gradient(135deg, #fff0f5 0%, #ffe4ec 50%, #ffd6e5 100%);
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 48px; border-right: 1px solid #ffd1dc;
+  }
+  .heart { position: absolute; pointer-events: none; animation: floatUp linear infinite; }
+  @keyframes floatUp {
+    0% { transform: translateY(105vh) rotate(0deg); opacity: 0; }
+    15% { opacity: 0.6; }
+    85% { opacity: 0.6; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+  .auth-left-content { position: relative; z-index: 2; }
+  .auth-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; margin-bottom: 40px; }
+  .auth-brand-name { font-family: 'Baloo 2', sans-serif; font-size: 28px; font-weight: 800; color: #3d3551; }
+  .auth-brand-name span { color: #e8589a; }
+  .auth-left-body h2 { font-family: 'Baloo 2', sans-serif; font-size: 32px; font-weight: 800; color: #3d3551; line-height: 1.25; margin-bottom: 12px; }
+  .auth-left-body p { font-size: 15px; color: #5b5270; line-height: 1.6; margin-bottom: 32px; }
+  .auth-features { display: flex; flex-direction: column; gap: 14px; }
+  .auth-feature { display: flex; align-items: center; gap: 14px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.9); border-radius: 14px; padding: 12px 18px; }
+  .auth-feature-icon { width: 38px; height: 38px; border-radius: 10px; background: #fff0f6; color: #e8589a; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .auth-feature-text { font-size: 14px; font-weight: 700; color: #3d3551; }
+  .auth-feature-sub { font-size: 12px; color: #6f6785; }
+
+  .auth-right {
+    width: 480px; flex-shrink: 0; background: white;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 40px 48px; position: relative; overflow-y: auto;
+  }
+  .auth-right-inner { width: 100%; max-width: 380px; margin: 0 auto; }
+  .auth-toggle-bar { display: flex; background: #fdf2f8; padding: 4px; border-radius: 12px; margin-bottom: 24px; }
+  .auth-toggle-bar a { flex: 1; text-align: center; padding: 8px; font-size: 13px; font-weight: 700; color: #7a7090; text-decoration: none; border-radius: 9px; transition: all 0.2s; }
+  .auth-toggle-bar a.active { background: white; color: #e8589a; box-shadow: 0 2px 8px rgba(232,88,154,0.15); }
+  
+  .auth-heading { font-family: 'Baloo 2', sans-serif; font-size: 26px; font-weight: 800; color: #3d3551; margin-bottom: 4px; }
+  .auth-subheading { font-size: 13.5px; color: #7a7090; margin-bottom: 24px; }
+
+  .form-field { margin-bottom: 18px; }
+  .form-field label { display: block; font-size: 13px; font-weight: 700; color: #3d3551; margin-bottom: 6px; }
+  .input-wrap { position: relative; }
+  .input-wrap input {
+    width: 100%; padding: 11px 40px 11px 38px; border: 1.5px solid #eadff5; border-radius: 12px;
+    font-size: 14px; color: #3d3551; background: #fffaf3; outline: none; transition: all 0.2s;
+  }
+  .input-wrap input:focus { border-color: #e8589a; background: white; box-shadow: 0 0 0 3px rgba(232,88,154,0.12); }
+  .input-wrap .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #a79fb8; }
+  .input-wrap .ico-right { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: #a79fb8; cursor: pointer; }
+
+  .btn-auth {
+    width: 100%; padding: 13px; border: none; border-radius: 50px;
+    background: linear-gradient(135deg, #e8589a, #d30f72);
+    color: white; font-size: 15px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(232,88,154,0.3); transition: all 0.25s;
+    display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+  }
+  .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(232,88,154,0.4); }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+  .divider hr { flex: 1; border: none; border-top: 1.5px solid #fce7f3; }
+  .divider span { font-size: 12px; color: #a79fb8; font-weight: 600; white-space: nowrap; }
+
+  .btn-google {
+    width: 100%; padding: 11px 16px; border: 1.5px solid #eadff5; border-radius: 50px;
+    background: white; color: #3d3551; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.2s; box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+  }
+  .btn-google:hover { border-color: #e8589a; background: #fffaf3; }
+
+  .auth-footer { margin-top: 24px; text-align: center; font-size: 13px; color: #7a7090; }
+  .auth-footer a { color: #e8589a; font-weight: 700; text-decoration: none; }
+  .auth-footer a:hover { text-decoration: underline; }
+
+  @media(max-width:900px) {
+    body { flex-direction: column; overflow-y: auto; height: auto; background: white; }
+    .auth-left { display: none; }
+    .auth-right { width: 100%; padding: 32px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-left">
+  <div class="auth-left-content">
+    <a href="index.html" class="auth-brand">
+      <div style="width:40px; height:40px; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(232,88,154,0.2);">🎁</div>
+      <span class="auth-brand-name">Dear<span>Gift</span></span>
+    </a>
+    <div class="auth-left-body">
+      <h2>Tạo món quà số<br>chạm đến trái tim ❤️</h2>
+      <p>Nơi gửi gắm những lời chúc ngọt ngào, hình ảnh kỷ niệm và giai điệu yêu thương dành cho người đặc biệt.</p>
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon">✨</div>
+          <div>
+            <div class="auth-feature-text">50+ Mẫu thiệp 3D độc quyền</div>
+            <div class="auth-feature-sub">Valentine, Sinh nhật, Tỏ tình, 8/3, 20/10</div>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🎵</div>
+          <div>
+            <div class="auth-feature-text">Tùy biến nhạc & hiệu ứng</div>
+            <div class="auth-feature-sub">Phát nhạc du dương, tim rơi lung linh</div>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon">🔒</div>
+          <div>
+            <div class="auth-feature-text">Mã khóa bảo mật riêng tư</div>
+            <div class="auth-feature-sub">Chỉ người nhận mới có thể mở quà</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="auth-right">
+  <div class="auth-lang-switch">
+    <a href="/login.html?lang=vi" class="active">VI</a>
+    <a href="/login.html?lang=en">EN</a>
+  </div>
+
+  <div class="auth-right-inner">
+    <div class="auth-toggle-bar">
+      <a href="login.html" class="active">Đăng nhập</a>
+      <a href="register.html">Đăng ký</a>
+    </div>
+
+    <div class="auth-heading">Chào mừng trở lại 👋</div>
+    <div class="auth-subheading">Đăng nhập để tạo thiệp và gửi quà cho người ấy</div>
+
+    <form id="loginForm" action="login.php" method="POST">
+      <div class="form-field">
+        <label for="username">Tên đăng nhập hoặc Email</label>
+        <div class="input-wrap">
+          <input type="text" id="username" name="username" placeholder="VD: loveuser hoặc email@gmail.com" required autocomplete="username">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="password">Mật khẩu</label>
+        <div class="input-wrap">
+          <input type="password" id="password" name="password" placeholder="Nhập mật khẩu của bạn" required autocomplete="current-password">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-auth" id="btnSubmitLogin">
+        Đăng nhập ngay <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+
+    <div class="divider"><hr><span>hoặc tiếp tục với</span><hr></div>
+
+    <!-- Official Google Identity Services -->
+    <div id="g_id_onload"
+         data-client_id="759330666668-o3ubl5ksqvek8ft4l4dekrc1j1l6ub87.apps.googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleGoogleLoginResponse"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-shape="pill"
+         data-theme="outline"
+         data-text="signin_with"
+         data-size="large"
+         data-logo_alignment="left"
+         style="display:flex;justify-content:center;margin-bottom:10px;">
+    </div>
+
+    <!-- Direct Custom Google Action -->
+    <button type="button" class="btn-google" id="btnCustomGoogle" onclick="openCustomerGoogleModal()">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.4l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.7c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.2C.7 9.6 0 12.2 0 15s.7 5.4 1.9 7.8l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 16c1.8 3.8 5.6 7 10.1 7z"/></svg>
+      <span id="googleBtnLabel">Đăng nhập bằng tài khoản Google</span>
+    </button>
+
+    <div class="auth-footer">
+      Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Google Modal -->
+<div id="customerGoogleModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,10,26,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+  <div style="background:white; border-radius:24px; width:100%; max-width:400px; padding:28px; box-shadow:0 24px 50px rgba(0,0,0,0.25); position:relative; animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+    <button onclick="closeCustomerGoogleModal()" style="position:absolute; top:18px; right:18px; border:none; background:none; font-size:24px; cursor:pointer; color:#7a7090;">&times;</button>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
+      <svg width="32" height="32" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.4l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.7c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.2C.7 9.6 0 12.2 0 15s.7 5.4 1.9 7.8l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 16c1.8 3.8 5.6 7 10.1 7z"/></svg>
+      <div>
+        <h3 style="margin:0; font-size:17px; font-weight:800; color:#3d3551;">Đăng nhập với Google</h3>
+        <p style="margin:2px 0 0; font-size:12px; color:#7a7090;">Liên kết với tài khoản Gmail cá nhân của bạn</p>
+      </div>
+    </div>
+    <form id="quickGoogleForm" onsubmit="handleCustomerGoogleSubmit(event)">
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12.5px; font-weight:700; color:#3d3551; margin-bottom:6px;">Tài khoản Gmail của bạn:</label>
+        <input type="email" id="customerGoogleEmail" required placeholder="vidu: khachhang@gmail.com" style="width:100%; padding:10px 14px; border:1.5px solid #eadff5; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; background:#fffaf3;">
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="display:block; font-size:12.5px; font-weight:700; color:#3d3551; margin-bottom:6px;">Họ tên hiển thị:</label>
+        <input type="text" id="customerGoogleName" placeholder="VD: Mai Linh" style="width:100%; padding:10px 14px; border:1.5px solid #eadff5; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; background:#fffaf3;">
+      </div>
+      <button type="submit" id="btnConfirmGoogle" style="width:100%; padding:12px; background:linear-gradient(135deg,#e8589a,#d30f72); color:white; border:none; border-radius:50px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 20px rgba(232,88,154,0.35);">
+        Xác nhận đăng nhập
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+function handleGoogleLoginResponse(response) {
+  const data = new URLSearchParams();
+  data.append('credential', response.credential);
+  data.append('is_ajax', '1');
+  fetch('auth_google.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: data.toString()
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      if (d.user) {
+        localStorage.setItem('deargift_user', JSON.stringify(d.user));
+        localStorage.setItem('deargift_customer', JSON.stringify(d.user));
+        localStorage.setItem('deargift_last_google_email', d.user.email || '');
+      }
+      window.location.href = d.redirect || 'templates.php';
+    } else {
+      alert(d.message || "Đăng nhập Google thất bại");
+    }
+  })
+  .catch(() => alert("Lỗi kết nối máy chủ. Vui lòng thử lại."));
+}
+
+function openCustomerGoogleModal() {
+  var modal = document.getElementById('customerGoogleModal');
+  if (modal) modal.style.display = 'flex';
+  var savedEmail = localStorage.getItem('deargift_last_google_email');
+  if (savedEmail) {
+    var emailInput = document.getElementById('customerGoogleEmail');
+    if (emailInput && !emailInput.value) emailInput.value = savedEmail;
+  }
+}
+
+function closeCustomerGoogleModal() {
+  var modal = document.getElementById('customerGoogleModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleCustomerGoogleSubmit(e) {
+  e.preventDefault();
+  var email = document.getElementById('customerGoogleEmail').value.trim();
+  var name = document.getElementById('customerGoogleName').value.trim() || email.split('@')[0];
+  var btn = document.getElementById('btnConfirmGoogle');
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang đăng nhập...'; }
+
+  fetch('auth_google.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, name: name })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      if (d.user) {
+        localStorage.setItem('deargift_user', JSON.stringify(d.user));
+        localStorage.setItem('deargift_customer', JSON.stringify(d.user));
+        localStorage.setItem('deargift_last_google_email', email);
+      }
+      window.location.href = d.redirect || 'templates.php';
+    } else {
+      alert(d.message || 'Đăng nhập không thành công');
+      if (btn) { btn.disabled = false; btn.innerHTML = 'Xác nhận đăng nhập'; }
+    }
+  })
+  .catch(() => {
+    alert('Lỗi kết nối. Vui lòng thử lại.');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Xác nhận đăng nhập'; }
+  });
+}
+
+// Standard Login Form Handler
+document.addEventListener('DOMContentLoaded', function() {
+  var savedEmail = localStorage.getItem('deargift_last_google_email');
+  if (savedEmail) {
+    var lbl = document.getElementById('googleBtnLabel');
+    if (lbl) lbl.textContent = 'Tiếp tục với Google (' + savedEmail + ')';
+  }
+
+  var form = document.getElementById('loginForm');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var username = document.getElementById('username').value.trim();
+      var password = document.getElementById('password').value;
+      var btn = document.getElementById('btnSubmitLogin');
+      var origText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Đang kiểm tra...';
+
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          var user = res.user || { username: username, full_name: username };
+          localStorage.setItem('deargift_user', JSON.stringify(user));
+          localStorage.setItem('deargift_customer', JSON.stringify(user));
+          btn.innerHTML = '✅ Đăng nhập thành công!';
+          setTimeout(() => { window.location.href = res.redirect || 'templates.php'; }, 400);
+        } else {
+          alert(res.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!');
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
+      })
+      .catch(() => {
+        form.submit();
+      });
+    });
+  }
+});
+</script>
+
+<style>
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+</style>
+
+</body>
+</html>
+"""
+
+with open('login.html', 'w', encoding='utf-8') as f:
+    f.write(login_code)
+with open('login.php', 'w', encoding='utf-8') as f:
+    f.write(login_code)
+print("Updated login.html and login.php successfully!")
+
+# 2. Update register.html
+register_code = """<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng ký tài khoản - DearGift 💖</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;800&family=Inter:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="js/security.js" defer></script>
+<script src="https://accounts.google.com/gsi/client?hl=vi" async defer></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: 'Inter', sans-serif; display: flex; flex-direction: row; height: 100vh; background: #0f0a1a; overflow: hidden; }
+  .auth-lang-switch { position:absolute; top:20px; right:24px; z-index:20; display:flex; gap:4px; padding:4px; border:1px solid #eadff5; border-radius:999px; background:#fff; box-shadow:0 5px 18px rgba(61,53,81,.08); }
+  .auth-lang-switch a { min-width:34px; padding:6px 9px; border-radius:999px; color:#7a7090; text-decoration:none; text-align:center; font-size:11px; font-weight:800; }
+  .auth-lang-switch a.active { color:#fff; background:linear-gradient(135deg,#e8589a,#d30f72); }
+  
+  .auth-left {
+    flex: 1;
+    background: linear-gradient(135deg, #fff0f5 0%, #ffe4ec 50%, #ffd6e5 100%);
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 48px; border-right: 1px solid #ffd1dc;
+  }
+  .auth-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; margin-bottom: 40px; }
+  .auth-brand-name { font-family: 'Baloo 2', sans-serif; font-size: 28px; font-weight: 800; color: #3d3551; }
+  .auth-brand-name span { color: #e8589a; }
+  .auth-left-body h2 { font-family: 'Baloo 2', sans-serif; font-size: 32px; font-weight: 800; color: #3d3551; line-height: 1.25; margin-bottom: 12px; }
+  .auth-left-body p { font-size: 15px; color: #5b5270; line-height: 1.6; margin-bottom: 32px; }
+
+  .auth-right {
+    width: 480px; flex-shrink: 0; background: white;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 32px 48px; position: relative; overflow-y: auto;
+  }
+  .auth-right-inner { width: 100%; max-width: 380px; margin: 0 auto; }
+  .auth-toggle-bar { display: flex; background: #fdf2f8; padding: 4px; border-radius: 12px; margin-bottom: 20px; }
+  .auth-toggle-bar a { flex: 1; text-align: center; padding: 8px; font-size: 13px; font-weight: 700; color: #7a7090; text-decoration: none; border-radius: 9px; transition: all 0.2s; }
+  .auth-toggle-bar a.active { background: white; color: #e8589a; box-shadow: 0 2px 8px rgba(232,88,154,0.15); }
+  
+  .auth-heading { font-family: 'Baloo 2', sans-serif; font-size: 26px; font-weight: 800; color: #3d3551; margin-bottom: 4px; }
+  .auth-subheading { font-size: 13.5px; color: #7a7090; margin-bottom: 20px; }
+
+  .form-field { margin-bottom: 14px; }
+  .form-field label { display: block; font-size: 12.5px; font-weight: 700; color: #3d3551; margin-bottom: 5px; }
+  .input-wrap { position: relative; }
+  .input-wrap input {
+    width: 100%; padding: 10px 40px 10px 36px; border: 1.5px solid #eadff5; border-radius: 12px;
+    font-size: 13.5px; color: #3d3551; background: #fffaf3; outline: none; transition: all 0.2s;
+  }
+  .input-wrap input:focus { border-color: #e8589a; background: white; box-shadow: 0 0 0 3px rgba(232,88,154,0.12); }
+  .input-wrap .ico { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #a79fb8; }
+
+  .btn-auth {
+    width: 100%; padding: 12px; border: none; border-radius: 50px;
+    background: linear-gradient(135deg, #e8589a, #d30f72);
+    color: white; font-size: 14.5px; font-weight: 800; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(232,88,154,0.3); transition: all 0.25s;
+    display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+  }
+  .btn-auth:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(232,88,154,0.4); }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+  .divider hr { flex: 1; border: none; border-top: 1.5px solid #fce7f3; }
+  .divider span { font-size: 12px; color: #a79fb8; font-weight: 600; white-space: nowrap; }
+
+  .btn-google {
+    width: 100%; padding: 10px 16px; border: 1.5px solid #eadff5; border-radius: 50px;
+    background: white; color: #3d3551; font-size: 13.5px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: all 0.2s; box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+  }
+  .btn-google:hover { border-color: #e8589a; background: #fffaf3; }
+
+  .auth-footer { margin-top: 18px; text-align: center; font-size: 13px; color: #7a7090; }
+  .auth-footer a { color: #e8589a; font-weight: 700; text-decoration: none; }
+  .auth-footer a:hover { text-decoration: underline; }
+
+  @media(max-width:900px) {
+    body { flex-direction: column; overflow-y: auto; height: auto; background: white; }
+    .auth-left { display: none; }
+    .auth-right { width: 100%; padding: 32px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-left">
+  <div class="auth-left-content">
+    <a href="index.html" class="auth-brand">
+      <div style="width:40px; height:40px; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(232,88,154,0.2);">🎁</div>
+      <span class="auth-brand-name">Dear<span>Gift</span></span>
+    </a>
+    <div class="auth-left-body">
+      <h2>Gia nhập DearGift 💖<br>Lan tỏa tình yêu</h2>
+      <p>Tạo tài khoản miễn phí để thiết kế và lưu giữ những món quà độc đáo cho người thương.</p>
+    </div>
+  </div>
+</div>
+
+<div class="auth-right">
+  <div class="auth-lang-switch">
+    <a href="/register.html?lang=vi" class="active">VI</a>
+    <a href="/register.html?lang=en">EN</a>
+  </div>
+
+  <div class="auth-right-inner">
+    <div class="auth-toggle-bar">
+      <a href="login.html">Đăng nhập</a>
+      <a href="register.html" class="active">Đăng ký</a>
+    </div>
+
+    <div class="auth-heading">Tạo tài khoản mới ✨</div>
+    <div class="auth-subheading">Tham gia cộng đồng DearGift ngay hôm nay</div>
+
+    <form id="registerForm" action="register.php" method="POST">
+      <div class="form-field">
+        <label for="username">Tên đăng nhập</label>
+        <div class="input-wrap">
+          <input type="text" id="username" name="username" placeholder="VD: mailinh99" required autocomplete="username">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="email">Địa chỉ Email</label>
+        <div class="input-wrap">
+          <input type="email" id="email" name="email" placeholder="VD: mailinh@gmail.com" required autocomplete="email">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="password">Mật khẩu</label>
+        <div class="input-wrap">
+          <input type="password" id="password" name="password" placeholder="Tối thiểu 6 ký tự" required autocomplete="new-password">
+          <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-auth" id="btnSubmitRegister">
+        Tạo tài khoản <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+    </form>
+
+    <div class="divider"><hr><span>hoặc đăng ký với</span><hr></div>
+
+    <!-- Official Google Identity Services for Signup -->
+    <div id="g_id_onload"
+         data-client_id="759330666668-o3ubl5ksqvek8ft4l4dekrc1j1l6ub87.apps.googleusercontent.com"
+         data-context="signup"
+         data-ux_mode="popup"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin"
+         data-type="standard"
+         data-shape="pill"
+         data-theme="outline"
+         data-text="signup_with"
+         data-size="large"
+         data-logo_alignment="left"
+         style="display:flex;justify-content:center;margin-bottom:10px;">
+    </div>
+
+    <!-- Direct Custom Google Action -->
+    <button type="button" class="btn-google" id="btnCustomGoogleReg" onclick="openCustomerGoogleModal()">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.4l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.7c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.2C.7 9.6 0 12.2 0 15s.7 5.4 1.9 7.8l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 16c1.8 3.8 5.6 7 10.1 7z"/></svg>
+      <span id="googleRegBtnLabel">Đăng ký bằng tài khoản Google</span>
+    </button>
+
+    <div class="auth-footer">
+      Đã có tài khoản? <a href="login.html">Đăng nhập</a>
+    </div>
+  </div>
+</div>
+
+<!-- Customer Google Modal -->
+<div id="customerGoogleModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,10,26,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+  <div style="background:white; border-radius:24px; width:100%; max-width:400px; padding:28px; box-shadow:0 24px 50px rgba(0,0,0,0.25); position:relative;">
+    <button onclick="closeCustomerGoogleModal()" style="position:absolute; top:18px; right:18px; border:none; background:none; font-size:24px; cursor:pointer; color:#7a7090;">&times;</button>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
+      <svg width="32" height="32" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.4l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.7c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.2C.7 9.6 0 12.2 0 15s.7 5.4 1.9 7.8l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 16c1.8 3.8 5.6 7 10.1 7z"/></svg>
+      <div>
+        <h3 style="margin:0; font-size:17px; font-weight:800; color:#3d3551;">Đăng ký với Google</h3>
+        <p style="margin:2px 0 0; font-size:12px; color:#7a7090;">Liên kết với tài khoản Gmail cá nhân của bạn</p>
+      </div>
+    </div>
+    <form id="quickGoogleRegForm" onsubmit="handleCustomerGoogleSubmit(event)">
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12.5px; font-weight:700; color:#3d3551; margin-bottom:6px;">Tài khoản Gmail của bạn:</label>
+        <input type="email" id="customerGoogleEmail" required placeholder="vidu: khachhang@gmail.com" style="width:100%; padding:10px 14px; border:1.5px solid #eadff5; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; background:#fffaf3;">
+      </div>
+      <div style="margin-bottom:18px;">
+        <label style="display:block; font-size:12.5px; font-weight:700; color:#3d3551; margin-bottom:6px;">Họ tên hiển thị:</label>
+        <input type="text" id="customerGoogleName" placeholder="VD: Mai Linh" style="width:100%; padding:10px 14px; border:1.5px solid #eadff5; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; background:#fffaf3;">
+      </div>
+      <button type="submit" id="btnConfirmGoogleReg" style="width:100%; padding:12px; background:linear-gradient(135deg,#e8589a,#d30f72); color:white; border:none; border-radius:50px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 20px rgba(232,88,154,0.35);">
+        Xác nhận đăng ký
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+function handleCredentialResponse(response) {
+  const data = new URLSearchParams();
+  data.append('credential', response.credential);
+  data.append('is_ajax', '1');
+  fetch('auth_google.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: data.toString()
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      if (d.user) {
+        localStorage.setItem('deargift_user', JSON.stringify(d.user));
+        localStorage.setItem('deargift_customer', JSON.stringify(d.user));
+        localStorage.setItem('deargift_last_google_email', d.user.email || '');
+      }
+      window.location.href = d.redirect || 'templates.php';
+    } else {
+      alert(d.message || "Đăng ký Google thất bại");
+    }
+  })
+  .catch(() => alert("Lỗi kết nối máy chủ. Vui lòng thử lại."));
+}
+
+function openCustomerGoogleModal() {
+  var modal = document.getElementById('customerGoogleModal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeCustomerGoogleModal() {
+  var modal = document.getElementById('customerGoogleModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function handleCustomerGoogleSubmit(e) {
+  e.preventDefault();
+  var email = document.getElementById('customerGoogleEmail').value.trim();
+  var name = document.getElementById('customerGoogleName').value.trim() || email.split('@')[0];
+  var btn = document.getElementById('btnConfirmGoogleReg');
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang đăng ký...'; }
+
+  fetch('auth_google.php', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, name: name })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.success) {
+      if (d.user) {
+        localStorage.setItem('deargift_user', JSON.stringify(d.user));
+        localStorage.setItem('deargift_customer', JSON.stringify(d.user));
+        localStorage.setItem('deargift_last_google_email', email);
+      }
+      window.location.href = d.redirect || 'templates.php';
+    } else {
+      alert(d.message || 'Đăng ký không thành công');
+      if (btn) { btn.disabled = false; btn.innerHTML = 'Xác nhận đăng ký'; }
+    }
+  })
+  .catch(() => {
+    alert('Lỗi kết nối. Vui lòng thử lại.');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Xác nhận đăng ký'; }
+  });
+}
+
+// Standard Register Form Handler
+document.addEventListener('DOMContentLoaded', function() {
+  var form = document.getElementById('registerForm');
+  if (form) {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      var username = document.getElementById('username').value.trim();
+      var email = document.getElementById('email').value.trim();
+      var password = document.getElementById('password').value;
+      var btn = document.getElementById('btnSubmitRegister');
+      var origText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Đang tạo tài khoản...';
+
+      fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ username: username, email: email, password: password })
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'success') {
+          var user = res.user || { username: username, email: email, full_name: username };
+          localStorage.setItem('deargift_user', JSON.stringify(user));
+          localStorage.setItem('deargift_customer', JSON.stringify(user));
+          btn.innerHTML = '✅ Tạo tài khoản thành công!';
+          setTimeout(() => { window.location.href = res.redirect || 'templates.php'; }, 400);
+        } else {
+          alert(res.message || 'Đăng ký không thành công!');
+          btn.disabled = false;
+          btn.innerHTML = origText;
+        }
+      })
+      .catch(() => {
+        form.submit();
+      });
+    });
+  }
+});
+</script>
+
+</body>
+</html>
+"""
+
+with open('register.html', 'w', encoding='utf-8') as f:
+    f.write(register_code)
+with open('register.php', 'w', encoding='utf-8') as f:
+    f.write(register_code)
+print("Updated register.html and register.php successfully!")
