@@ -12,7 +12,13 @@ import urllib.parse
 import json
 import os
 import uuid
-import cgi
+try:
+    import cgi
+except ImportError:
+    try:
+        import legacy_cgi as cgi
+    except ImportError:
+        cgi = None
 import re
 import base64
 from datetime import datetime

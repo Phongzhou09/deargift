@@ -2,6 +2,9 @@ services:
   - type: web
     name: deargift
     env: python
-    buildCommand: ""
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "python server.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
     plan: free
