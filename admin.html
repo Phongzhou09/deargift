@@ -454,6 +454,64 @@
       </div>
     </section>
 
+  
+    <!-- ── TAB: Đơn Hàng & Khách Hàng (Tủ Quà) ── -->
+    <section id="tab-orders" class="tab-pane">
+      <div class="panel-header">
+        <div>
+          <h2 class="panel-title">Quản Lý Đơn Quà & Khách Hàng</h2>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px;">
+            Theo dõi danh sách các món quà khách hàng đã tạo, đã thanh toán và link mở quà trực tiếp
+          </div>
+        </div>
+        <button class="btn-primary" onclick="loadAdminOrders()" style="border-radius: 12px; padding: 10px 18px;">
+          <i data-lucide="refresh-cw" style="width: 16px; height: 16px;"></i>
+          <span>Làm Mới</span>
+        </button>
+      </div>
+
+      <!-- Stats Cards -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <div class="stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px;">
+          <div style="font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Tổng Đơn Quà</div>
+          <div id="statTotalOrders" style="font-size: 28px; font-weight: 800; color: #e8589a; margin-top: 6px;">0</div>
+        </div>
+        <div class="stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px;">
+          <div style="font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Đã Kích Hoạt / Mở Quà</div>
+          <div id="statPaidOrders" style="font-size: 28px; font-weight: 800; color: #10b981; margin-top: 6px;">0</div>
+        </div>
+        <div class="stat-card" style="background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px;">
+          <div style="font-size: 12px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Tổng Doanh Thu</div>
+          <div id="statTotalRevenue" style="font-size: 28px; font-weight: 800; color: #f59e0b; margin-top: 6px;">0đ</div>
+        </div>
+      </div>
+
+      <!-- Table Orders -->
+      <div class="table-container" style="background: var(--surface); border: 1px solid var(--border); border-radius: 20px; overflow-x: auto;">
+        <table class="data-table" style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="padding: 14px 18px; text-align: left;">Mã Đơn / Quà</th>
+              <th style="padding: 14px 18px; text-align: left;">Người Nhận</th>
+              <th style="padding: 14px 18px; text-align: left;">Người Gửi</th>
+              <th style="padding: 14px 18px; text-align: left;">Mẫu Quà</th>
+              <th style="padding: 14px 18px; text-align: left;">Số Tiền</th>
+              <th style="padding: 14px 18px; text-align: left;">Trạng Thái</th>
+              <th style="padding: 14px 18px; text-align: left;">Ngày Tạo</th>
+              <th style="padding: 14px 18px; text-align: center;">Hành Động</th>
+            </tr>
+          </thead>
+          <tbody id="ordersTableBody">
+            <tr>
+              <td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                Đang tải dữ liệu đơn quà...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
   </main>
 
   <!-- ── MODAL: Thêm Sản Phẩm / Mẫu Quà Mới ── -->
@@ -622,6 +680,7 @@
 
     // Load Data
     async function loadAdminData() {
+      loadAdminOrders();
       // Always render immediately with embedded templates (52 items) so offline/file mode is never blank
       if (templatesData && templatesData.length > 0) {
         document.getElementById('statTotalTemplates').innerText = templatesData.length;
@@ -900,6 +959,96 @@
         alert('Lỗi khi đổi mật khẩu.');
       }
     }
+  
+    // Load Orders / Customer Gifts
+    async function loadAdminOrders() {
+      try {
+        const res = await fetch(API_BASE + '/api/gifts');
+        const data = await res.json();
+        const gifts = (data && data.gifts) ? data.gifts : [];
+        
+        let total = gifts.length;
+        let paid = 0;
+        let rev = 0;
+
+        const tbody = document.getElementById('ordersTableBody');
+        if (!gifts.length) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">Chưa có đơn quà nào được tạo.</td></tr>';
+          document.getElementById('statTotalOrders').textContent = '0';
+          document.getElementById('statPaidOrders').textContent = '0';
+          document.getElementById('statTotalRevenue').textContent = '0đ';
+          return;
+        }
+
+        let html = '';
+        gifts.slice().reverse().forEach(g => {
+          const isPaid = g.status === 'active' || g.paid;
+          if (isPaid) {
+            paid++;
+            rev += (g.amount || 20000);
+          }
+          const code = g.share_code || g.id;
+          const giftUrl = `/gift.php?code=${code}`;
+          const badge = isPaid 
+            ? '<span style="background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 12px; border-radius: 50px; font-weight: 700; font-size: 12px;">Đã thanh toán</span>'
+            : '<span style="background: rgba(245,158,11,0.15); color: #f59e0b; padding: 4px 12px; border-radius: 50px; font-weight: 700; font-size: 12px;">Chờ duyệt / thanh toán</span>';
+
+          html += `
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: 14px 18px; font-weight: 800; color: #e8589a;">${code}</td>
+              <td style="padding: 14px 18px; font-weight: 600;">${g.recipient_name || 'Người thương'}</td>
+              <td style="padding: 14px 18px; color: var(--text-muted);">${g.sender_name || 'Khách hàng'}</td>
+              <td style="padding: 14px 18px;">ID ${g.template_id || '69'} (${g.template_slug || 'mon-qua-nho'})</td>
+              <td style="padding: 14px 18px; font-weight: 700;">${(g.amount || 20000).toLocaleString('vi-VN')}đ</td>
+              <td style="padding: 14px 18px;">${badge}</td>
+              <td style="padding: 14px 18px; font-size: 12.5px; color: var(--text-muted);">${g.created_at || 'Mới'}</td>
+              <td style="padding: 14px 18px; text-align: center;">
+                <div style="display: flex; gap: 8px; justify-content: center;">
+                  <a href="${giftUrl}" target="_blank" class="btn-primary" style="padding: 6px 12px; border-radius: 8px; font-size: 12px; text-decoration: none;">
+                    Mở Quà
+                  </a>
+                  ${!isPaid ? `
+                    <button onclick="handleApproveGift('${code}')" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 700;">
+                      Duyệt Tiền
+                    </button>
+                  ` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+
+        tbody.innerHTML = html;
+        document.getElementById('statTotalOrders').textContent = total;
+        document.getElementById('statPaidOrders').textContent = paid;
+        document.getElementById('statTotalRevenue').textContent = rev.toLocaleString('vi-VN') + 'đ';
+        lucide.createIcons();
+      } catch (err) {
+        console.error('Error loading orders:', err);
+      }
+    }
+
+    // Approve Gift Payment
+    async function handleApproveGift(code) {
+      if (!confirm(`Kích hoạt và xác nhận thanh toán cho món quà ${code}?`)) return;
+      try {
+        const res = await fetch(API_BASE + '/api/gifts/confirm_payment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: code })
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert(`Đã kích hoạt món quà ${code} thành công!`);
+          loadAdminOrders();
+        } else {
+          alert('Lỗi: ' + data.message);
+        }
+      } catch (e) {
+        alert('Lỗi kết nối khi duyệt món quà.');
+      }
+    }
+
   </script>
 </body>
 </html>
