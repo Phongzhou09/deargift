@@ -25,6 +25,15 @@ from datetime import datetime
 
 PORT = int(os.environ.get('PORT', 8000))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+
+BUILDER_CONFIGS = {}
+try:
+    cfg_file = os.path.join(DIRECTORY, 'js', 'all_builder_configs.json')
+    if os.path.exists(cfg_file):
+        with open(cfg_file, 'r', encoding='utf-8') as f:
+            BUILDER_CONFIGS = json.load(f)
+except Exception as e:
+    pass
 TEMPLATES_DATA_FILE = os.path.join(DIRECTORY, 'templates_data.json')
 SETTINGS_FILE = os.path.join(DIRECTORY, 'settings.json')
 GIFTS_FILE = os.path.join(DIRECTORY, 'gifts.json')
@@ -1512,30 +1521,65 @@ setInterval(pollStatus, 2500);
             content = f.read()
 
         tpl_id = query.get('id', ['69'])[0].strip()
-        expected_src = 'templates/_v3/live.php?slug=mon-qua-nho-2010' if tpl_id == '69' else f'demo.php?id={tpl_id}'
+        cfg = BUILDER_CONFIGS.get(str(tpl_id), {})
+        title = cfg.get('title', 'Tạo Món Quà Trực Tuyến')
+        price = cfg.get('price', 'Miễn phí')
+        tabs = cfg.get('tabs', [])
 
-        content = content.replace(
-            'src="templates/_v3/live.php?slug=mon-qua-nho-2010"',
-            f'src="{expected_src}"'
-        )
-        content = content.replace(
-            'action="gift-builder.php?id=69"',
-            f'action="gift-builder.php?id={tpl_id}"'
-        )
-        content = content.replace(
-            'value="69" id="hidden_template_id"',
-            f'value="{tpl_id}" id="hidden_template_id"'
-        )
-        content = content.replace(
-            'id="hidden_template_id" value="69"',
-            f'id="hidden_template_id" value="{tpl_id}"'
-        )
+        # Title & Header
+        content = re.sub(r'<h1 id="gb-studio-title">.*?</h1>', f'<h1 id="gb-studio-title">{title}</h1>', content)
+        content = re.sub(r'<span class="gb-live-preview-title">.*?</span>', f'<span class="gb-live-preview-title">👀 Xem trước: {title}</span>', content)
+        content = re.sub(r'<title>.*?</title>', f'<title>Tạo {title} | DearGift</title>', content)
+
+        # Price
+        content = re.sub(r'<span[^>]*id="pr-template"[^>]*>.*?</span>', f'<span class="price-val " id="pr-template" style="color: #e8589a; font-weight:700">{price}</span>', content, flags=re.DOTALL)
+
+        # Iframe & Form action
+        expected_src = 'templates/_v3/live.php?slug=mon-qua-nho-2010' if str(tpl_id) == '69' else f'preview-gift.php?id={tpl_id}'
+        content = content.replace('src="templates/_v3/live.php?slug=mon-qua-nho-2010"', f'src="{expected_src}"')
+        content = content.replace('action="gift-builder.php?id=69"', f'action="gift-builder.php?id={tpl_id}"')
+        content = content.replace('value="69" id="hidden_template_id"', f'value="{tpl_id}" id="hidden_template_id"')
+        content = content.replace('id="hidden_template_id" value="69"', f'id="hidden_template_id" value="{tpl_id}"')
+
+        # Photo and letter tab labels
+        photo_tab_label = "Album ảnh"
+        letter_tab_label = "Lời chúc & Thư"
+        for t in tabs:
+            if t.get('section') == 'sec-photos':
+                photo_tab_label = t.get('label', photo_tab_label)
+            if t.get('section') == 'sec-letter':
+                letter_tab_label = t.get('label', letter_tab_label)
+
+        content = content.replace('<span class="tab-label">Album Quả cầu</span>', f'<span class="tab-label">{photo_tab_label}</span>')
+        content = content.replace('<span class="tab-label">Lời chúc & Thư</span>', f'<span class="tab-label">{letter_tab_label}</span>')
+
+        # Dynamic tabs and section isolation
+        if str(tpl_id) != '69':
+            content = content.replace('id="tab-sec-v3"', 'id="tab-sec-v3" style="display:none;"')
+            content = content.replace('class="icon-tab active" id="tab-sec-v3"', 'class="icon-tab" id="tab-sec-v3" style="display:none;"')
+            content = content.replace('id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)" style="display:none;"', 'id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)"')
+
+            active_sec = 'sec-photos'
+            for t in tabs:
+                if t.get('active'):
+                    active_sec = t.get('section', active_sec)
+                    break
+
+            if active_sec == 'sec-photos':
+                content = content.replace('class="icon-tab " data-section="sec-photos"', 'class="icon-tab active" data-section="sec-photos"')
+                content = content.replace('class="gb-section active" id="sec-v3"', 'class="gb-section" id="sec-v3" style="display:none;"')
+                content = content.replace('class="gb-section " id="sec-photos"', 'class="gb-section active" id="sec-photos"')
+            elif active_sec == 'sec-letter':
+                content = content.replace('id="tab-sec-letter"', 'id="tab-sec-letter" class="icon-tab active"')
+                content = content.replace('class="gb-section active" id="sec-v3"', 'class="gb-section" id="sec-v3" style="display:none;"')
+                content = content.replace('class="gb-section " id="sec-letter"', 'class="gb-section active" id="sec-letter"')
 
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         self.wfile.write(content.encode('utf-8'))
+
 
 def run():
     socketserver.TCPServer.allow_reuse_address = True
