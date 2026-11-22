@@ -20,9 +20,23 @@
     // Không có cài đặt → success:false → app dùng nội dung mặc định của nó.
     if (window.fetch) {
         var origFetch = window.fetch;
-        var body = JSON.stringify(cfg && cfg.settings
-            ? { success: true, data: { settings: cfg.settings } }
-            : { success: false });
+        var defaultSettings = {
+            senderName: "DearGift",
+            receiverName: "Người thương",
+            letterMessage: "Có một chiếc đèn và vài lời nhắn gửi người thương trong đêm trăng rằm. Chạm để thắp sáng và mở thư.",
+            frameId: "star",
+            paletteId: "pink",
+            music: "bg-music.mp3",
+            images: [
+                "people/em-den-ong-sao.webp",
+                "people/em-hang-den.webp",
+                "people/pho-long-den.webp",
+                "people/em-pho-co.webp",
+                "people/den-long-dem.webp"
+            ]
+        };
+        var currentSettings = (cfg && cfg.settings) ? Object.assign({}, defaultSettings, cfg.settings) : defaultSettings;
+        var body = JSON.stringify({ success: true, data: { settings: currentSettings } });
         // Trả dữ liệu khi trang đã đọc xong HTML: vài trang fetch ngay trong <head> rồi ghi
         // vào phần tử nằm cuối trang — API thật chậm nên kịp, trả tức thì thì phần tử chưa có.
         // Chờ readyState rời 'loading' (trước khi chạy script defer/module), KHÔNG chờ

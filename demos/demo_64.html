@@ -48,7 +48,45 @@ body.tpl-body-trung-thu-den-ong-sao .gift-stage { padding: 0; }
 body.tpl-body-trung-thu-den-ong-sao .gift-brand { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; }
 .gift-app-frame { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; z-index: 1; background: #0b0a12; }
 </style>
-<script>window.__GIFTTO_APP = {"settings":{"senderName":"DearGift","letterMessage":"Chạm để khám phá hiệu ứng của mẫu quà này.","frameId":"star","paletteId":"pink"}};</script>
+<script>
+window.__GIFTTO_APP = {
+    settings: {
+        senderName: "DearGift",
+        receiverName: "Người thương",
+        letterMessage: "Có một chiếc đèn và vài lời nhắn gửi người thương trong đêm trăng rằm. Chạm để thắp sáng và mở thư.",
+        frameId: "star",
+        paletteId: "pink",
+        music: "bg-music.mp3",
+        images: [
+            "people/em-den-ong-sao.webp",
+            "people/em-hang-den.webp",
+            "people/pho-long-den.webp",
+            "people/em-pho-co.webp",
+            "people/den-long-dem.webp"
+        ]
+    }
+};
+window.addEventListener('message', function(event) {
+    if (!event.data) return;
+    var isDG = event.data.type === 'DG_LIVE_PREVIEW_UPDATE' || event.data.type === 'LIVE_PREVIEW_UPDATE';
+    if (!isDG) return;
+    var data = event.data.payload || event.data.data || {};
+    var rName = data.recipient_name || 'Người thương';
+    var sName = data.sender_name || 'DearGift';
+    var msg = data.message || 'Có một chiếc đèn và vài lời nhắn gửi người thương trong đêm trăng rằm.';
+    if (window.__GIFTTO_APP && window.__GIFTTO_APP.settings) {
+        window.__GIFTTO_APP.settings.receiverName = rName;
+        window.__GIFTTO_APP.settings.senderName = sName;
+        window.__GIFTTO_APP.settings.letterMessage = msg;
+    }
+    var iframe = document.querySelector('iframe.gift-app-frame');
+    if (iframe && iframe.contentWindow) {
+        try {
+            iframe.contentWindow.postMessage(event.data, '*');
+        } catch(e) {}
+    }
+});
+</script>
 <iframe class="gift-app-frame" src="/templates/trung-thu-den-ong-sao/app/index.html?id=deargift&amp;v=5380261082" title="Trung Thu — Đèn Ông Sao &amp; Hoa 🏮"
         allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>
 </main>

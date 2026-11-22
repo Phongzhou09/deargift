@@ -234,6 +234,34 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if self.path.startswith('/api/gift-settings') or self.path.startswith('/api/settings'):
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            import json
+            resp_data = {
+                "success": True,
+                "data": {
+                    "settings": {
+                        "senderName": "DearGift",
+                        "receiverName": "Người thương",
+                        "letterMessage": "Có một chiếc đèn và vài lời nhắn gửi người thương trong đêm trăng rằm. Chạm để thắp sáng và mở thư.",
+                        "frameId": "star",
+                        "paletteId": "pink",
+                        "music": "bg-music.mp3",
+                        "images": [
+                            "people/em-den-ong-sao.webp",
+                            "people/em-hang-den.webp",
+                            "people/pho-long-den.webp",
+                            "people/em-pho-co.webp",
+                            "people/den-long-dem.webp"
+                        ]
+                    }
+                }
+            }
+            self.wfile.write(json.dumps(resp_data).encode('utf-8'))
+            return
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
