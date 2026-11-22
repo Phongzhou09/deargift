@@ -364,7 +364,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         # Route /demo.php
-        if path == '/demo.php':
+        if path in ['/demo.php', '/preview-gift.php', '/preview-gift']:
             tpl_id = query.get('id', ['69'])[0].strip()
             return self.serve_demo_template(tpl_id)
 
@@ -925,6 +925,53 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 var prefAudio = "{pref_audio}";
                 var fullAudioUrl = new URL(prefAudio, window.location.origin).href;
 
+                // Strict single-audio enforcement: only 1 audio element can play at a time anywhere
+                window.__dg_audios = window.__dg_audios || new Set();
+                var origPlay = HTMLMediaElement.prototype.play;
+                HTMLMediaElement.prototype.play = function() {{
+                    var self = this;
+                    document.querySelectorAll('audio').forEach(function(a) {{
+                        if (a !== self && !a.paused) {{
+                            try {{ a.pause(); }} catch(e) {{}}
+                        }}
+                    }});
+                    window.__dg_audios.forEach(function(a) {{
+                        if (a !== self && !a.paused) {{
+                            try {{ a.pause(); }} catch(e) {{}}
+                        }}
+                    }});
+                    window.__dg_audios.add(self);
+                    return origPlay.apply(this, arguments);
+                }};
+
+                function stopAllAudios() {{
+                    document.querySelectorAll('audio').forEach(function(a) {{
+                        try {{ a.pause(); }} catch(e) {{}}
+                    }});
+                    window.__dg_audios.forEach(function(a) {{
+                        try {{ a.pause(); }} catch(e) {{}}
+                    }});
+                }}
+
+                // Stop previous audio completely when message received from parent
+                window.addEventListener('message', function(evt) {{
+                    if (!evt.data) return;
+                    if (evt.data.type === 'DG_STOP_AUDIO' || evt.data.type === 'DG_PAUSE_AUDIO') {{
+                        stopAllAudios();
+                    }}
+                    if (evt.data.type === 'DG_CHANGE_MUSIC' || (evt.data.payload && evt.data.payload.music_url)) {{
+                        var newMusic = evt.data.music_url || evt.data.payload.music_url;
+                        if (newMusic) {{
+                            stopAllAudios();
+                            var targetAudio = document.querySelector('audio#dg-bg-music') || document.querySelector('audio');
+                            if (targetAudio) {{
+                                targetAudio.src = newMusic;
+                                targetAudio.load();
+                            }}
+                        }}
+                    }}
+                }});
+
                 function initAudio() {{
                     var audio = document.querySelector('audio');
                     if (!audio) {{
@@ -937,49 +984,25 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     if (!audio.src || audio.src === window.location.href || audio.src === 'about:blank' || audio.error) {{
                         audio.src = fullAudioUrl;
                     }}
-                    audio.addEventListener('error', function() {{
-                        if (audio.src !== fullAudioUrl) {{
-                            audio.src = fullAudioUrl;
-                            audio.play().catch(function(){{}});
-                        }}
-                    }});
-                    function tryPlay() {{
-                        if (audio.paused) {{
-                            var p = audio.play();
-                            if (p && p.catch) p.catch(function(){{}});
-                        }}
-                    }}
-                    tryPlay();
-                    ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(function(evt) {{
-                        window.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
-                        document.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
-                    }});
+                    window.__dg_audios.add(audio);
 
-                    // Stop previous audio completely when a new song is selected
-                    window.addEventListener('message', function(evt) {{
-                        if (!evt.data) return;
-                        if (evt.data.type === 'DG_STOP_AUDIO') {{
-                            document.querySelectorAll('audio').forEach(function(a) {{
-                                a.pause();
-                            }});
-                        }}
-                        if (evt.data.type === 'DG_CHANGE_MUSIC' || (evt.data.payload && evt.data.payload.music_url)) {{
-                            var newMusic = evt.data.music_url || evt.data.payload.music_url;
-                            if (newMusic) {{
-                                document.querySelectorAll('audio').forEach(function(a) {{
-                                    a.pause();
-                                    a.currentTime = 0;
-                                    a.src = '';
-                                }});
-                                var targetAudio = document.querySelector('audio#dg-bg-music') || document.querySelector('audio');
-                                if (targetAudio) {{
-                                    targetAudio.src = newMusic;
-                                    targetAudio.load();
-                                    targetAudio.play().catch(function(){{}});
-                                }}
+                    // Only autoplay if NOT in an iframe (standalone demo mode)
+                    var isInIframe = false;
+                    try {{ isInIframe = window.self !== window.top; }} catch(e) {{ isInIframe = true; }}
+                    
+                    if (!isInIframe) {{
+                        function tryPlay() {{
+                            if (audio.paused) {{
+                                var p = audio.play();
+                                if (p && p.catch) p.catch(function(){{}});
                             }}
                         }}
-                    }});
+                        tryPlay();
+                        ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(function(evt) {{
+                            window.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
+                            document.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
+                        }});
+                    }}
                 }}
 
                 if (document.readyState === 'loading') {{
@@ -1514,4 +1537,19 @@ setInterval(pollStatus, 2500);
         self.end_headers()
         self.wfile.write(content.encode('utf-8'))
 
+def run():
+    socketserver.TCPServer.allow_reuse_address = True
+    with socketserver.ThreadingTCPServer(("", PORT), DearGiftHandler) as httpd:
+        print(f"=======================================================")
+        print(f"🚀 DearGift Full Production Server is running on port {PORT}!")
+        print(f"👉 Client Home:    http://localhost:{PORT}/")
+        print(f"👉 Template Store: http://localhost:{PORT}/templates.php")
+        print(f"👉 Admin CMS:      http://localhost:{PORT}/admin")
+        print(f"=======================================================")
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\nShutting down server...")
 
+if __name__ == '__main__':
+    run()

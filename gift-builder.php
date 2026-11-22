@@ -3391,6 +3391,15 @@ function previewMusic(e, src, btn) {
     e.stopPropagation();
     var card = btn.closest('.music-card');
     if (card) selectMusicCard(card);
+    
+    // Stop all audio in preview iframe while playing builder preview
+    var frame = document.getElementById('gift-live-preview');
+    if (frame && frame.contentWindow) {
+        try {
+            frame.contentWindow.postMessage({ type: 'DG_STOP_AUDIO' }, '*');
+            frame.contentWindow.postMessage({ type: 'DG_PAUSE_AUDIO' }, '*');
+        } catch(err) {}
+    }
     if (!_previewAudio) _previewAudio = document.getElementById('music-preview-player');
     if (_activePreviewBtn && _activePreviewBtn !== btn) {
         _activePreviewBtn.textContent='▶';
