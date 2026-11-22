@@ -31,6 +31,13 @@
     <link rel="stylesheet" href="style.css?v=1791559366">
 
 <script>
+    window.__XMAS_BASE = "/christmas-gift";
+    window.__XMAS_VER = "1791559678";
+    window.__xv = function(u) { return u + (u.indexOf('?') < 0 ? '?' : '&') + 'v=' + window.__XMAS_VER; };
+    window.__xmasFix = function(html) {
+        var b = window.__XMAS_BASE || '/christmas-gift';
+        return String(html).replace(/(src|href)=(["'])(?:\.\/)?((?:assets|gift|final_gift)\/)/g, '$1=$2' + b + '/$3');
+    };
     // Injected by gift.php
     window.giftChristmasData = {"id":"PV12566B","recipientName":"Người thương","musicType":"file","musicFile":"assets/musics/hoanhipgiangsinh.mp3","letter":{"greeting":"Gửi Người thương thân mến,","content":"Chạm để khám phá hiệu ứng của mẫu quà này.","signature":"DearGift"},"photos":[],"vipGift":{"type":"photos","images":[]}};
     window.giftAssetVersion = 1791559678;

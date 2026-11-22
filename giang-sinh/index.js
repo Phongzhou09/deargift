@@ -1242,8 +1242,32 @@ function loadGiftPage() {
         }
     
     // Load nội dung từ gift.html
-    fetch(window.__xv((window.__XMAS_BASE||'')+'/gift/gift.html'))
-        .then(response => response.text())
+    var xmasBase = (window.__XMAS_BASE || '/christmas-gift').replace(/\/$/, '');
+    var giftUrl = window.__xv ? window.__xv(xmasBase + '/gift/gift.html') : (xmasBase + '/gift/gift.html');
+
+    if (typeof window.__xmasFix !== 'function') {
+        window.__xmasFix = function(h) {
+            return String(h).replace(/(src|href)=(["'])(?:\.\/)?((?:assets|gift|final_gift)\/)/g, '$1=$2' + xmasBase + '/$3');
+        };
+    }
+
+    // Safety timeout: Đảm bảo không bao giờ để overlay đen kẹt trên màn hình
+    setTimeout(function() {
+        if (transitionOverlay && transitionOverlay.parentNode) {
+            transitionOverlay.style.opacity = '0';
+            setTimeout(function() {
+                if (transitionOverlay.parentNode) transitionOverlay.parentNode.removeChild(transitionOverlay);
+            }, 600);
+        }
+    }, 3500);
+
+    fetch(giftUrl)
+        .then(response => {
+            if (!response.ok) {
+                return fetch('/gift/gift.html').then(r => r.text());
+            }
+            return response.text();
+        })
         .then(html => {
             // Parse HTML và lấy phần body
             const parser = new DOMParser();

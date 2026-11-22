@@ -1066,6 +1066,91 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                             }});
                         }}
                     }}
+
+                    // Universal Letter & Text Synchronization for all 52 templates
+                    if (isDG) {{
+                        var rName = payload.recipient_name || '';
+                        var sName = payload.sender_name || '';
+                        var msgText = payload.message || payload.val_letter_content || '';
+
+                        // 1. Christmas Gift letter & recipient sync
+                        if (window.giftChristmasData) {{
+                            if (rName) window.giftChristmasData.recipientName = rName;
+                            window.giftChristmasData.letter = window.giftChristmasData.letter || {{}};
+                            if (rName) window.giftChristmasData.letter.greeting = 'Gửi ' + rName + ' thân mến,';
+                            if (msgText) window.giftChristmasData.letter.content = msgText;
+                            if (sName) window.giftChristmasData.letter.signature = sName;
+                            if (window.giftManager && typeof window.giftManager.updateLetterContent === 'function') {{
+                                if (rName) window.giftManager.recipientName = rName;
+                                try {{ window.giftManager.updateLetterContent(); }} catch(e) {{}}
+                            }}
+                        }}
+                        if (window.settings && rName) {{
+                            window.settings.recipientName = rName;
+                        }}
+
+                        // 2. Lucky Chance (Gửi Vận May - ID 23) sync
+                        if (window.luckyChanceData) {{
+                            if (rName) window.luckyChanceData.recipientName = rName;
+                            if (msgText) {{
+                                var lcs = msgText.split('\\n').map(function(s){{return s.trim();}}).filter(Boolean);
+                                if (lcs.length > 0) window.luckyChanceData.messages = lcs;
+                            }}
+                            if (payload.photos && payload.photos.length > 0) {{
+                                window.luckyChanceData.images = payload.photos;
+                            }}
+                            if (window.LuckyChance && typeof window.LuckyChance.applyServerData === 'function') {{
+                                try {{
+                                    window.LuckyChance.applyServerData(window.luckyChanceData);
+                                    if (typeof window.LuckyChance.resetFallingSystem === 'function') {{
+                                        window.LuckyChance.resetFallingSystem();
+                                    }}
+                                }} catch(e) {{}}
+                            }}
+                        }}
+
+                        // 3. Universal DOM Letter & Recipient sync across templates
+                        if (rName) {{
+                            var rSelectors = [
+                                '.recipient-name', '.receiver-name', '#letterRecipientName',
+                                '.letter-greeting', '.name-receiver', '#name-receiver',
+                                '.receiver', '[data-recipient]'
+                            ];
+                            document.querySelectorAll(rSelectors.join(',')).forEach(function(el) {{
+                                if (el.classList.contains('letter-greeting')) {{
+                                    el.textContent = 'Gửi ' + rName + ' thân mến,';
+                                }} else {{
+                                    el.textContent = rName;
+                                }}
+                            }});
+                        }}
+
+                        if (msgText) {{
+                            var mSelectors = [
+                                '.letter-content', '.letter-body', '.letter-text',
+                                '#letter-content', '#letterContent', '#letterText',
+                                '#letter-body', '#letterBody', '.wishes-text',
+                                '.message-content', '.gift-message', '[data-message]'
+                            ];
+                            document.querySelectorAll(mSelectors.join(',')).forEach(function(el) {{
+                                if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {{
+                                    el.value = msgText;
+                                }} else {{
+                                    el.textContent = msgText;
+                                }}
+                            }});
+                        }}
+
+                        if (sName) {{
+                            var sSelectors = [
+                                '.signature-name', '.letter-signature', '.sender-name',
+                                '#signature', '#sender_name', '[data-sender]'
+                            ];
+                            document.querySelectorAll(sSelectors.join(',')).forEach(function(el) {{
+                                el.textContent = sName;
+                            }});
+                        }}
+                    }}
                 }});
 
                 function initAudio() {{

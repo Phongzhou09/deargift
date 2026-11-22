@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhận Quà Giáng Sinh</title>
+    <link rel="preload" as="image" href="assets/images/background1.jpg">
+    <link rel="stylesheet" href="gift/gift.css">
+</head>
+<body>
+    <img src="assets/images/background1.jpg" alt="Background" class="gift-background" loading="eager" fetchpriority="high" decoding="async">
+    
+    <!-- Santa Flying Across -->
+    <div class="santa-flying-container">
+        <img src="assets/images/santa_fly.gif" alt="Santa Flying" class="santa-flying-image">
+    </div>
+    
+    <!-- Gift Box Falling -->
+    <div class="gift-falling-container">
+        <img src="assets/images/gift.png" alt="Gift Box" class="gift-box-image">
+    </div>
+    
+    <!-- Santa Rising (Nâng hộp quà) -->
+    <div class="santa-rise-container">
+        <img src="assets/images/santa_rise.png" alt="Santa Rising" class="santa-rise-image">
+    </div>
+    
+    <!-- Christmas Letter Modal -->
+    <div id="christmasLetterModal" class="letter-modal">
+        <button id="letterCloseButton" class="letter-close-button" title="Đóng">×</button>
+        <div class="letter-container">
+            <div class="letter-paper">
+                <div class="letter-content">
+                    <div class="letter-header">
+                        <h2 class="letter-title">🎄 MERRY CHRISTMAS 🎄</h2>
+                    </div>
+                    <div class="letter-body">
+                        <p class="letter-greeting">Gửi <span id="letterRecipientName">bạn</span> thân mến,</p>
+                        <p class="letter-text">
+                            Giáng sinh đã về! Mùa đông lạnh giá nhưng trái tim chúng ta vẫn ấm áp với những lời chúc tốt đẹp nhất.
+                        </p>
+                        <p class="letter-text">
+                            Chúc bạn có một mùa Giáng sinh thật vui vẻ, hạnh phúc và đầy ắp yêu thương. Mong rằng những điều ước của bạn sẽ thành hiện thực và năm mới sẽ mang đến nhiều niềm vui, thành công.
+                        </p>
+                        <p class="letter-text">
+                            Hãy mở món quà đặc biệt này và tận hưởng những khoảnh khắc tuyệt vời nhé!
+                        </p>
+                        <p class="letter-signature">
+                            Với tình yêu thương,<br>
+                            <span class="signature-name">🎅 Ông già Noel</span>
+                        </p>
+                    </div>
+                    <div class="letter-footer">
+                        <button id="letterNextButton" class="letter-next-button" title="Tiếp tục">
+                            <span class="arrow-icon">→</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="gift/gift.js"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

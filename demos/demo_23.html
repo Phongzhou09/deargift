@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="vi">
   <head>
-<base href="https://deargift.love/lucky-chance/">
+<base href="/lucky-chance/">
 <!--
   © DearGift (deargift.love) — Bản quyền thiết kế & mã nguồn thuộc Nguyễn Văn Phong. All rights reserved.
   NGHIÊM CẤM sao chép, clone, dịch ngược hoặc tái sử dụng mã nguồn, giao diện, hiệu ứng.
@@ -30,7 +30,6 @@
     // Injected by gift.php
     window.luckyChanceData = {"recipientName":"Người thương","messages":["Chạm để khám phá hiệu ứng của mẫu quà này."],"images":[],"music":"/assets/music/givemeyourforever.mp3"};
     window.addEventListener('message', function(event) {
-        if (event.origin !== window.location.origin || event.source !== window.parent) return;
         if (!event.data) return;
         var isDG = event.data.type === 'DG_LIVE_PREVIEW_UPDATE' || event.data.type === 'LIVE_PREVIEW_UPDATE';
         if (!isDG) return;
@@ -48,20 +47,23 @@
         window.luckyChanceData.messages = lines;
         window.luckyChanceData.images = photos;
         
-        if (data.music_url) {
+        if (data.music_url && !data.preserve_demo_audio) {
             window.luckyChanceData.music = data.music_url;
-            var audio = document.getElementById('bg-music') || document.querySelector('audio');
-            if (audio && audio.src !== data.music_url) {
-                audio.src = data.music_url;
+            if (window.LuckyChance && typeof window.LuckyChance.setMusicUrl === 'function') {
+                window.LuckyChance.setMusicUrl(data.music_url);
             }
         }
         
-        if (typeof window.renderApp === 'function') {
-            window.renderApp();
+        // Cập nhật ngay lập tức vào ứng dụng Vận May
+        if (window.LuckyChance && typeof window.LuckyChance.applyServerData === 'function') {
+            window.LuckyChance.applyServerData(window.luckyChanceData);
+            if (typeof window.LuckyChance.resetFallingSystem === 'function') {
+                window.LuckyChance.resetFallingSystem();
+            }
         }
     });
     if (window.parent && window.parent !== window) {
-        window.parent.postMessage({ type: 'DG_PREVIEW_READY' }, window.location.origin);
+        window.parent.postMessage({ type: 'DG_PREVIEW_READY' }, '*');
     }
 </script>
 </head>
