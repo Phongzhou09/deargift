@@ -43,6 +43,61 @@ REVIEWS_FILE = os.path.join(DIRECTORY, 'reviews.json')
 UPLOADS_DIR = os.path.join(DIRECTORY, 'uploads')
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
+SLUG_TO_ID = {
+    'mon-qua-nho-2010': '69',
+    'hpbd-vip': '21',
+    'lovegift': '12',
+    'giang-sinh': '22',
+    'christmas-gift': '47',
+    'christmas': '9',
+    'hpbd-book': '28',
+    'lucky-chance': '23',
+    'valentine-real': '29',
+    'valentine': '29',
+    'galaxy-viewer': '30',
+    'corazon-galactico': '32',
+    'hpbd-letter': '25',
+    'hpbd-surprise': '26',
+    'xe-bus': '27',
+    'golden-bloom': '31',
+    'trung-thu-nguyet-da': '33',
+    'anniversary': '40',
+    'bakery-mixtape': '41',
+    'banh-kem-sinh-nhat': '42',
+    'bloom-memory-box': '43',
+    'blooming-flowers': '44',
+    'bo-hoa-tulip': '45',
+    'chiikawa-delivery': '46',
+    'christmas-magazine': '48',
+    'confession': '49',
+    'denim-blue-birthday': '50',
+    'galaxy-love': '51',
+    'gf-day': '52',
+    'happy-birthday-vip2': '53',
+    'hoa-hong-valentine': '54',
+    'khoa-tim-ky-niem': '55',
+    'phao-hoa-tinh-yeu': '56',
+    'pixel-gift': '57',
+    'qua-cau-ky-niem': '58',
+    'sinh-nhat-bat-den': '59',
+    'spidey-birthday': '60',
+    'tinh-cau-tinh-yeu': '61',
+    'trai-tim-3d': '62',
+    'trai-tim-nhip-dap': '63',
+    'trung-thu-den-ong-sao': '64',
+    'valentine-deargift': '65',
+    'violet-memory-hub': '66',
+    'vuon-hoa-ma-pin': '67',
+    'troll-ny': '8',
+    'nha-giao-2011': '34',
+    'valentine-sweet': '35',
+    'bo-hoa-8-3': '36',
+    'phao-hoa-nam-moi': '37',
+    'mua-tinh-yeu-3d': '38',
+    'ky-niem-bo-me': '39',
+    'photo-bouquet': '68'
+}
+
 # ----------------- JWT & GOOGLE HELPER -----------------
 def decode_jwt_payload(token):
     try:
@@ -403,15 +458,20 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_response({"status": "success", "gifts": gifts})
             return
 
-        # Route /demo.php
-        if path in ['/demo.php', '/preview-gift.php', '/preview-gift']:
-            tpl_id = query.get('id', ['69'])[0].strip()
+        # Route /demo.php, /<template_slug>/demo.php
+        if path.endswith('/demo.php') or path.endswith('/preview-gift.php') or path in ['/demo.php', '/preview-gift.php', '/preview-gift']:
+            parts = [p for p in path.strip('/').split('/') if p]
+            slug = parts[0] if (len(parts) >= 2 and parts[-1] in ['demo.php', 'preview-gift.php']) else None
+            default_id = SLUG_TO_ID.get(slug, '69') if slug else '69'
+            tpl_id = query.get('id', [default_id])[0].strip()
             return self.serve_demo_template(tpl_id)
 
-        # Route /gift.php, /gift, /openbao.php, /openbao, /view-gift.php
-        if path in ['/gift.php', '/gift', '/openbao.php', '/openbao', '/view-gift.php']:
+        # Route /gift.php, /<template_slug>/gift.php, /gift, /openbao.php, /view-gift.php
+        if path.endswith('/gift.php') or path.endswith('/gift') or path in ['/openbao.php', '/openbao', '/view-gift.php']:
             uid = query.get('uid', query.get('id', query.get('code', [''])))[0].strip()
-            return self.serve_custom_gift(uid)
+            parts = [p for p in path.strip('/').split('/') if p]
+            slug = parts[0] if (len(parts) >= 2 and parts[-1] in ['gift.php', 'gift', 'view-gift.php']) else None
+            return self.serve_custom_gift(uid, slug=slug)
 
         return super().do_GET()
 
@@ -1394,9 +1454,15 @@ try {{
         self.end_headers()
         self.wfile.write(html.encode('utf-8'))
 
-    def serve_custom_gift(self, uid):
-        gift = get_gift(uid)
+    def serve_custom_gift(self, uid, slug=None):
+        gift = get_gift(uid) if uid else None
         if not gift:
+            if slug and slug in SLUG_TO_ID:
+                return self.serve_demo_template(SLUG_TO_ID[slug])
+            if uid and uid in SLUG_TO_ID:
+                return self.serve_demo_template(SLUG_TO_ID[uid])
+            if slug:
+                return self.serve_demo_template('64' if 'trung-thu' in slug else '69')
             self.send_response(404)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.end_headers()
