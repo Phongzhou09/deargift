@@ -10,3 +10,7 @@ check_*.py
 find_*.py
 inspect_*.py
 search_*.py
+
+crawled_templates_raw.html
+audit_*.py
+download_*.py

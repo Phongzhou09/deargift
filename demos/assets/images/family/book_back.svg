@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1350" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf1df"/><stop offset="1" stop-color="#f1dcb9"/></linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="45%"><stop offset="0" stop-color="#fff8e8"/><stop offset="1" stop-color="#fff8e8" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1080" height="1350" fill="url(#bg)"/>
+  <rect width="1080" height="1350" fill="url(#glow)"/>
+  <rect x="60" y="60" width="960" height="1230" rx="30" fill="none" stroke="#c9a46b" stroke-width="6"/>
+  <rect x="85" y="85" width="910" height="1180" rx="22" fill="none" stroke="#c9a46b" stroke-width="2" opacity=".6"/>
+  <g transform="translate(540 610)">
+    <path d="M0 -40 c-40 -70 -150 -40 -130 40 c15 50 130 110 130 110 s115 -60 130 -110 c20 -80 -90 -110 -130 -40z" fill="#e3957b" opacity=".85"/>
+    <path d="M-300 260 q150 -60 300 0 q150 60 300 0" stroke="#b98a52" stroke-width="5" fill="none"/>
+  </g>
+  <g fill="#8fae78" opacity=".8">
+    <ellipse cx="200" cy="1120" rx="60" ry="22" transform="rotate(-25 200 1120)"/>
+    <ellipse cx="290" cy="1160" rx="55" ry="20" transform="rotate(15 290 1160)"/>
+    <ellipse cx="880" cy="1120" rx="60" ry="22" transform="rotate(25 880 1120)"/>
+    <ellipse cx="790" cy="1160" rx="55" ry="20" transform="rotate(-15 790 1160)"/>
+    <ellipse cx="200" cy="230" rx="50" ry="18" transform="rotate(30 200 230)"/>
+    <ellipse cx="880" cy="230" rx="50" ry="18" transform="rotate(-30 880 230)"/>
+  </g>
+  <g fill="#f0c46a"><circle cx="245" cy="1125" r="12"/><circle cx="835" cy="1125" r="12"/><circle cx="240" cy="215" r="9"/><circle cx="840" cy="215" r="9"/></g>
+  <text x="540" y="1020" text-anchor="middle" font-family="Pacifico, cursive" font-size="80" fill="#a0603d">Con yêu Bố Mẹ</text>
+</svg>
