@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<base href="https://deargift.love/nha-giao-2011/">
+<base href="/nha-giao-2011/">
 <!--
   © DearGift (deargift.love) — Bản quyền thiết kế & mã nguồn thuộc Nguyễn Văn Phong. All rights reserved.
   NGHIÊM CẤM sao chép, clone, dịch ngược hoặc tái sử dụng mã nguồn, giao diện, hiệu ứng.
@@ -26,7 +26,7 @@
     <link rel="icon" type="image/png" href="assets/images/teacherday.png">
     <link rel="apple-touch-icon" href="assets/images/teacherday.png">
     <script>
-        window.GIFT2011_DATA = {"letterTitle":"Gửi thầy cô – nhân ngày 20/11 🎉💕","letterContent":["Kính gửi thầy cô,","Nhân ngày Nhà giáo Việt Nam 20/11, em xin gửi đến thầy cô lời cảm ơn chân thành nhất. Cảm ơn thầy cô vì những giờ học đầy nhiệt huyết và sự kiên nhẫn mà thầy cô luôn dành cho tụi em.","Dù đôi lúc tụi em còn thiếu sót, thầy cô vẫn luôn nhẹ nhàng hướng dẫn và đồng hành cùng tụi em. Em thật sự trân trọng và biết ơn điều đó.","Chúc thầy cô luôn mạnh khỏe, nhiều niềm vui và thật nhiều năng lượng để tiếp tục truyền cảm hứng cho tụi em."],"letterSignature":"Em cảm ơn thầy cô rất nhiều! ❤","teacherPhoto1":"https://deargift.love/nha-giao-2011/assets/images/og-image.jpg","teacherPhoto2":"https://deargift.love/nha-giao-2011/assets/images/teacherday.png","musicType":"Sample","musicPath":"assets/musics/nguoigieomamxanh.mp3","customMusic":null};
+        window.GIFT2011_DATA = {"letterTitle":"Gửi thầy cô – nhân ngày 20/11 🎉💕","letterContent":["Kính gửi thầy cô,","Nhân ngày Nhà giáo Việt Nam 20/11, em xin gửi đến thầy cô lời cảm ơn chân thành nhất. Cảm ơn thầy cô vì những giờ học đầy nhiệt huyết và sự kiên nhẫn mà thầy cô luôn dành cho tụi em.","Dù đôi lúc tụi em còn thiếu sót, thầy cô vẫn luôn nhẹ nhàng hướng dẫn và đồng hành cùng tụi em. Em thật sự trân trọng và biết ơn điều đó.","Chúc thầy cô luôn mạnh khỏe, nhiều niềm vui và thật nhiều năng lượng để tiếp tục truyền cảm hứng cho tụi em."],"letterSignature":"Em cảm ơn thầy cô rất nhiều! ❤","teacherPhoto1":"assets/images/og-image.jpg","teacherPhoto2":"assets/images/teacherday.png","musicType":"Sample","musicPath":"assets/musics/nguoigieomamxanh.mp3","customMusic":null};
         window.GIFT2011_BOARD = ["Chúc mừng ngày","Nhà Giáo Việt Nam","20/11"];
         window.GIFT2011_PREVIEW = true;
     </script>
@@ -1394,8 +1394,26 @@
 
             // Đợi một chút để đảm bảo animation đã dừng hoàn toàn
             setTimeout(() => {
-                fetch('tulipanes.html?v=1790399898')
-                    .then(response => response.text())
+                const fetchTulip = () => {
+                    return fetch('tulipanes.html?v=1790399898')
+                        .then(response => {
+                            if (!response.ok) throw new Error('HTTP ' + response.status);
+                            return response.text();
+                        })
+                        .catch(() => {
+                            return fetch('/nha-giao-2011/tulipanes.html')
+                                .then(r => {
+                                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                                    return r.text();
+                                });
+                        })
+                        .catch(() => {
+                            return fetch('/demos/tulipanes.html')
+                                .then(r => r.text());
+                        });
+                };
+
+                fetchTulip()
                     .then(html => {
                         // Parse HTML để lấy phần head và body content
                         const parser = new DOMParser();
