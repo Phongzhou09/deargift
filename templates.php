@@ -962,7 +962,7 @@ document.addEventListener('keydown', function (event) {
 <p>Lá thư sinh nhật chuyển động với lời chúc, chữ ký, ảnh kỷ niệm và bài nhạc dành riêng cho người nhận.</p>
 <div class="tm-card__actions">
 <a class="tm-btn tm-btn--ghost" data-demo-preview="" data-demo-title="Thư Tình Sinh Nhật" href="demo.php?id=25" rel="nofollow noopener noreferrer" target="_blank"><i data-lucide="eye"></i> Xem demo</a>
-<a class="tm-btn tm-btn--primary" href="hpbd-letter/builder.php" rel="nofollow">Tạo quà <i data-lucide="arrow-up-right"></i></a>
+<a class="tm-btn tm-btn--primary" href="gift-builder.php?id=25" rel="nofollow">Tạo quà <i data-lucide="arrow-up-right"></i></a>
 </div>
 </div>
 </article>
@@ -982,7 +982,7 @@ document.addEventListener('keydown', function (event) {
 <p>Thiệp sinh nhật bất ngờ với hộp thư mở ra, pháo hoa, ảnh tùy chỉnh và lời chúc cá nhân hóa.</p>
 <div class="tm-card__actions">
 <a class="tm-btn tm-btn--ghost" data-demo-preview="" data-demo-title="Thiệp Sinh Nhật Bất Ngờ" href="demo.php?id=26" rel="nofollow noopener noreferrer" target="_blank"><i data-lucide="eye"></i> Xem demo</a>
-<a class="tm-btn tm-btn--primary" href="hpbd-surprise/builder.php" rel="nofollow">Tạo quà <i data-lucide="arrow-up-right"></i></a>
+<a class="tm-btn tm-btn--primary" href="gift-builder.php?id=26" rel="nofollow">Tạo quà <i data-lucide="arrow-up-right"></i></a>
 </div>
 </div>
 </article>

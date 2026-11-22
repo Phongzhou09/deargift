@@ -175,6 +175,8 @@
         window.parent.postMessage({ type: 'DG_PREVIEW_READY' }, window.location.origin);
     }
     </script>
+    <audio id="bgMusic" src="/assets/music/happybirtday_uia.mp3" loop preload="auto"></audio>
+    <div class="music-btn" id="musicBtn" title="Bật/Tắt âm nhạc"><i class="fa-solid fa-music"></i></div>
 <script src="../js/security.js?v=1790434588" defer></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' crossorigin="anonymous"></script>
 </body>
@@ -201,16 +203,43 @@
             },1000)
         })
 
-        let mailBox = document.querySelector('.mail')
-        let boxmail = document.querySelector('.boxMail')
-        var close = document.querySelector('.fa-xmark')
-        mailBox.onclick = function(){
-            mailBox.classList.toggle('active')
-            boxmail.classList.add('active')
+        let mailBox = document.querySelector('.mail');
+        let boxmail = document.querySelector('.boxMail');
+        var close = document.querySelector('.fa-xmark');
+        var bgMusic = document.getElementById('bgMusic');
+        var musicBtn = document.getElementById('musicBtn');
+
+        function toggleMusic() {
+            if (!bgMusic) return;
+            if (bgMusic.paused) {
+                bgMusic.play().then(() => {
+                    if (musicBtn) musicBtn.classList.add('playing');
+                }).catch(err => console.log('Audio error:', err));
+            } else {
+                bgMusic.pause();
+                if (musicBtn) musicBtn.classList.remove('playing');
+            }
         }
 
+        if (musicBtn) {
+            musicBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleMusic();
+            });
+        }
+
+        mailBox.onclick = function(){
+            mailBox.classList.toggle('active');
+            boxmail.classList.add('active');
+            if (bgMusic && bgMusic.paused) {
+                bgMusic.play().then(() => {
+                    if (musicBtn) musicBtn.classList.add('playing');
+                }).catch(err => console.log('Audio error:', err));
+            }
+        };
+
         close.addEventListener('click', function(){
-            boxmail.classList.remove('active')
-        })
+            boxmail.classList.remove('active');
+        });
     </script>
 </html>

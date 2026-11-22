@@ -44,6 +44,61 @@ UPLOADS_DIR = os.path.join(DIRECTORY, 'uploads')
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 ADMIN_SESSIONS = set()
+ADMIN_FAILED_LOGINS = {}  # ip -> {'count': int, 'lockout_until': float}
+
+PROTECTED_SYSTEM_EXTENSIONS = ('.py', '.pyc', '.sh', '.yaml', '.yml', '.env', '.json', '.bak', '.log')
+PROTECTED_SYSTEM_FILES = {
+    'server.py', 'cloudflared.exe', 'settings.json', 'users.json',
+    'gifts.json', 'ideas.json', 'reviews.json', 'templates_data.json',
+    'start.sh', 'render.yaml', 'requirements.txt', '.gitignore', '.python-version'
+}
+
+def is_protected_system_file(path_str):
+    clean = path_str.strip('/').split('?')[0].lower()
+    fname = os.path.basename(clean)
+    if fname in PROTECTED_SYSTEM_FILES:
+        return True
+    if fname.startswith('.'):
+        return True
+    if clean.startswith('.git'):
+        return True
+    if fname.endswith(PROTECTED_SYSTEM_EXTENSIONS):
+        return True
+    return False
+
+def is_local_request(handler):
+    forwarded = handler.headers.get('CF-Connecting-IP') or handler.headers.get('X-Forwarded-For') or handler.headers.get('X-Real-IP')
+    if forwarded:
+        return False
+    client_ip = handler.client_address[0] if handler.client_address else ''
+    host = handler.headers.get('Host', '')
+    if (client_ip in ['127.0.0.1', '::1', 'localhost']) and ('localhost' in host or '127.0.0.1' in host):
+        return True
+    return False
+
+def can_access_admin_portal(handler, query):
+    # 1. Direct local connection
+    if is_local_request(handler):
+        return True
+    
+    settings = get_settings()
+    secret_pass = str(settings.get('admin_password', 'Phongzhouok')).strip()
+    
+    # 2. Check query secret key: ?key=... or ?secret=... or ?admin_key=...
+    q_key = query.get('key', [''])[0] or query.get('secret', [''])[0] or query.get('admin_key', [''])[0]
+    if q_key and q_key == secret_pass:
+        return True
+        
+    # 3. Check Cookie: admin_portal_access
+    cookie_header = handler.headers.get('Cookie', '')
+    if 'admin_portal_access=' in cookie_header:
+        for piece in cookie_header.split(';'):
+            piece = piece.strip()
+            if piece.startswith('admin_portal_access='):
+                val = piece.split('=', 1)[1]
+                if val == secret_pass:
+                    return True
+    return False
 
 def verify_admin_request(handler):
     auth = handler.headers.get('Authorization', '')
@@ -327,6 +382,11 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
+        # Block access to internal/sensitive system files
+        if is_protected_system_file(path):
+            self.send_error(404, "File not found")
+            return
+
         # Media file handling (Video and Audio with full HTTP 206 Range support)
         if path.lower().endswith(('.mp4', '.webm', '.mp3', '.m4a', '.wav', '.ogg')):
             fname = os.path.basename(path)
@@ -373,7 +433,17 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             return self.serve_file('contact.php')
 
         if path in ['/admin', '/admin.html', '/admin.php']:
-            return self.serve_file('admin.html')
+            if can_access_admin_portal(self, query):
+                settings = get_settings()
+                secret_pass = str(settings.get('admin_password', 'Phongzhouok')).strip()
+                cookie_val = f"admin_portal_access={secret_pass}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800"
+                return self.serve_file('admin.html', cookie=cookie_val)
+            else:
+                self.send_response(404)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(b"<!DOCTYPE html><html lang='vi'><head><meta charset='utf-8'><title>404 Not Found</title></head><body style='font-family:sans-serif;text-align:center;padding:50px;'><h1>404 Not Found</h1><p>Kh\xc3\xb4ng t\xc3\xacm th\xe1\xba\xa5y trang y\xc3\xaau c\xe1\xba\xa7u.</p><p><a href='/' style='color:#e8589a;'>V\xe1\xbb\x81 trang ch\xe1\xbb\xa7</a></p></body></html>")
+                return
 
         if path in ['/login', '/login.php', '/login.html']:
             return self.serve_file('login.html')
@@ -386,6 +456,38 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         if path in ['/gift-builder.php', '/gift-builder.html', '/gift-builder']:
             return self.serve_gift_builder(query)
+
+        # Catch any /<slug>/builder.php or /<slug>/builder.html and route to gift-builder
+        if path.endswith('/builder.php') or path.endswith('/builder.html'):
+            slug_match = re.match(r'^/([^/]+)/builder(?:\.php|\.html)?$', path)
+            if slug_match:
+                slug = slug_match.group(1)
+                tpl_id = SLUG_TO_ID.get(slug, slug)
+                query['id'] = [tpl_id]
+                return self.serve_gift_builder(query)
+
+        # Catch SEO landing routes and footer policy links
+        seo_redirects = {
+            '/qua-tang-19-11.php': '/gift-builder.php?id=69',
+            '/qua-tang-19-11': '/gift-builder.php?id=69',
+            '/thiet-lap-qr-tinh-yeu.php': '/gift-builder.php?id=69',
+            '/thiet-lap-qr-tinh-yeu': '/gift-builder.php?id=69',
+            '/tao-link-to-tinh.php': '/gift-builder.php?id=12',
+            '/tao-link-to-tinh': '/gift-builder.php?id=12',
+            '/thiep-sinh-nhat-3d.php': '/gift-builder.php?id=21',
+            '/thiep-sinh-nhat-3d': '/gift-builder.php?id=21',
+            '/privacy.php': '/about.php',
+            '/privacy': '/about.php',
+            '/refund.php': '/about.php',
+            '/refund': '/about.php',
+            '/terms.php': '/about.php',
+            '/terms': '/about.php',
+            '/guide.php': '/templates.php',
+            '/guide': '/templates.php',
+        }
+        if path in seo_redirects:
+            self.send_redirect(seo_redirects[path])
+            return
 
         # Route Live Preview (GET)
         if path in ['/templates/_v3/live.php', '/templates/_v3/live.html']:
@@ -489,6 +591,11 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
+
+        # Block access to internal/sensitive system files
+        if is_protected_system_file(path):
+            self.send_error(404, "File not found")
+            return
 
         # Route Live Preview (POST - from v3LivePreview)
         if path in ['/templates/_v3/live.php', '/templates/_v3/live.html']:
@@ -875,17 +982,37 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 11. API: Admin Login
         if path == '/api/admin/login':
+            client_ip = self.headers.get('CF-Connecting-IP') or self.headers.get('X-Forwarded-For') or (self.client_address[0] if self.client_address else 'unknown')
+            client_ip = client_ip.split(',')[0].strip()
+            now = datetime.now().timestamp()
+            
+            # Anti Brute-Force Check
+            rec = ADMIN_FAILED_LOGINS.get(client_ip, {'count': 0, 'lockout_until': 0})
+            if rec.get('lockout_until', 0) > now:
+                wait_sec = int(rec['lockout_until'] - now)
+                self.send_json_response({"status": "error", "message": f"Nhập sai quá nhiều lần. IP của bạn tạm thời bị khóa trong {wait_sec} giây!"}, status=429)
+                return
+
             data = self.read_request_data()
             settings = get_settings()
             entered = str(data.get('password', '')).strip() if data else ''
             admin_pwd = settings.get('admin_password', 'Phongzhouok')
             
             if entered and entered == admin_pwd:
+                ADMIN_FAILED_LOGINS.pop(client_ip, None)
                 token = uuid.uuid4().hex
                 ADMIN_SESSIONS.add(token)
                 self.send_json_response({"status": "success", "token": token, "message": "Đăng nhập CMS quản trị thành công!"})
             else:
-                self.send_json_response({"status": "error", "message": "Mật khẩu quản trị không chính xác!"}, status=401)
+                rec['count'] = rec.get('count', 0) + 1
+                if rec['count'] >= 5:
+                    rec['lockout_until'] = now + 900  # Lock 15 minutes
+                    ADMIN_FAILED_LOGINS[client_ip] = rec
+                    self.send_json_response({"status": "error", "message": "Nhập sai quá 5 lần. Địa chỉ IP của bạn bị khóa tạm thời 15 phút!"}, status=429)
+                else:
+                    ADMIN_FAILED_LOGINS[client_ip] = rec
+                    remaining = 5 - rec['count']
+                    self.send_json_response({"status": "error", "message": f"Mật khẩu quản trị không chính xác! Còn {remaining} lần thử."}, status=401)
             return
 
         # API: Admin Verify Session
@@ -898,6 +1025,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 12. API: Admin Add Template
         if path == '/api/admin/templates/add':
+            if not verify_admin_request(self):
+                self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
+                return
             new_item = self.read_request_data()
             if not new_item or not new_item.get('title'):
                 self.send_json_response({"status": "error", "message": "Tiêu đề không được để trống"}, status=400)
@@ -915,6 +1045,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 13. API: Admin Delete Template
         if path == '/api/admin/templates/delete':
+            if not verify_admin_request(self):
+                self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
+                return
             data = self.read_request_data()
             tpl_id = data.get('id')
             templates = get_templates()
@@ -925,6 +1058,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 14. API: Admin Update Settings
         if path == '/api/admin/settings':
+            if not verify_admin_request(self):
+                self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
+                return
             data = self.read_request_data()
             if not data:
                 self.send_json_response({"status": "error", "message": "Dữ liệu không hợp lệ"}, status=400)
@@ -940,6 +1076,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 15. API: Admin Change Password
         if path == '/api/admin/change-password':
+            if not verify_admin_request(self):
+                self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
+                return
             data = self.read_request_data()
             settings = get_settings()
             cur_pwd = data.get('current_password')
@@ -955,6 +1094,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 16. API: Upload File
         if path == '/api/admin/upload':
+            if not verify_admin_request(self):
+                self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
+                return
             try:
                 environ = {'REQUEST_METHOD': 'POST', 'CONTENT_TYPE': self.headers.get('Content-Type', '')}
                 form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ=environ)
@@ -1738,12 +1880,14 @@ setInterval(pollStatus, 2500);
         self.end_headers()
         self.wfile.write(body)
 
-    def serve_file(self, filename):
+    def serve_file(self, filename, cookie=None):
         file_path = os.path.join(DIRECTORY, filename)
         if os.path.exists(file_path):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
+            if cookie:
+                self.send_header('Set-Cookie', cookie)
             self.end_headers()
             with open(file_path, 'rb') as f:
                 self.wfile.write(f.read())

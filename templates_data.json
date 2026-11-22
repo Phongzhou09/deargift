@@ -178,7 +178,7 @@
     "title": "Thư Tình Sinh Nhật",
     "desc": "Lá thư sinh nhật chuyển động với lời chúc, chữ ký, ảnh kỷ niệm và bài nhạc dành riêng cho người nhận.",
     "tags": [],
-    "builder_url": "hpbd-letter/builder.php"
+    "builder_url": "gift-builder.php?id=25"
   },
   {
     "id": "26",
@@ -193,7 +193,7 @@
     "title": "Thiệp Sinh Nhật Bất Ngờ",
     "desc": "Thiệp sinh nhật bất ngờ với hộp thư mở ra, pháo hoa, ảnh tùy chỉnh và lời chúc cá nhân hóa.",
     "tags": [],
-    "builder_url": "hpbd-surprise/builder.php"
+    "builder_url": "gift-builder.php?id=26"
   },
   {
     "id": "27",
