@@ -144,9 +144,20 @@
             // Kiểm tra và gán vipGift data từ GiftChristmas
             // Phải chạy TRƯỚC khi module script chạy để override data mặc định
             (function() {
-                // Nếu là demo mode, sử dụng data mẫu đã được set
-                if (window.isDemoMode && window.dataChristmasTree) {
-                    return; // Không fetch từ URL, dùng data mẫu
+                // Nếu là demo mode nhưng có ảnh tải lên từ Gift Builder, áp dụng ngay
+                const giftData = window.giftChristmasData;
+                const userPhotos = (giftData && Array.isArray(giftData.photos) && giftData.photos.length > 0)
+                    ? giftData.photos
+                    : ((giftData && giftData.vipGift && Array.isArray(giftData.vipGift.images) && giftData.vipGift.images.length > 0)
+                        ? giftData.vipGift.images
+                        : []);
+                if (userPhotos.length > 0) {
+                    window.dataChristmasTree = window.dataChristmasTree || { template: "christmas-tree", data: {} };
+                    window.dataChristmasTree.data = window.dataChristmasTree.data || {};
+                    window.dataChristmasTree.data.images = userPhotos;
+                }
+                if (window.isDemoMode && window.dataChristmasTree && userPhotos.length === 0) {
+                    return;
                 }
                 
                 
@@ -267,8 +278,15 @@
         let caughtTextObject = null;
         let mousePos = new THREE.Vector2();
 
-        // Lấy images từ vipGift hoặc data mặc định
-        const imageUrls = serverData && serverData.images ? serverData.images : [];
+        // Lấy images từ vipGift hoặc data mặc định hoặc giftChristmasData
+        const initialPhotos = (serverData && Array.isArray(serverData.images) && serverData.images.length > 0)
+            ? serverData.images
+            : ((window.giftChristmasData && Array.isArray(window.giftChristmasData.photos) && window.giftChristmasData.photos.length > 0)
+                ? window.giftChristmasData.photos
+                : ((window.giftChristmasData && window.giftChristmasData.vipGift && Array.isArray(window.giftChristmasData.vipGift.images))
+                    ? window.giftChristmasData.vipGift.images
+                    : []));
+        const imageUrls = [...initialPhotos];
 
         // Đồng bộ ảnh thời gian thực khi người dùng tải ảnh từ Gift Builder
         window.__updateChristmasPhotos = function(photos) {
@@ -1420,6 +1438,11 @@
                         innerParticles.visible = true;
                     }
                     isTreeDrawn = true;
+                setTimeout(() => {
+                    if (typeof triggerSmartBurst === 'function' && imageUrls.length > 0) {
+                        try { triggerSmartBurst(); } catch(e) {}
+                    }
+                }, 1200);
                 }
             });
 

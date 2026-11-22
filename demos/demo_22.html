@@ -88,8 +88,20 @@
             }
         }
         
-        if (window.giftManager && typeof window.giftManager.updateLetterContent === 'function') {
-            window.giftManager.updateLetterContent();
+        var mgr = window.giftManager || window.giftOpenManager;
+        if (mgr && typeof mgr.updateLetterContent === 'function') {
+            try { mgr.updateLetterContent(); } catch(e) {}
+        }
+        // Hiển thị badge xem trước ảnh tức thì trên màn hình intro
+        if (photos.length > 0) {
+            var badge = document.getElementById('dg-xmas-photo-badge');
+            if (!badge) {
+                badge = document.createElement('div');
+                badge.id = 'dg-xmas-photo-badge';
+                badge.style.cssText = 'position:fixed; bottom:20px; right:20px; z-index:999999; background:rgba(0,0,0,0.75); color:#fff; padding:8px 14px; border-radius:20px; font-size:12px; font-family:sans-serif; backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,0.2); display:flex; align-items:center; gap:8px; pointer-events:none; box-shadow:0 4px 15px rgba(0,0,0,0.4);';
+                document.body.appendChild(badge);
+            }
+            badge.innerHTML = '<span style="font-size:16px;">📸</span> Đã đồng bộ ' + photos.length + ' ảnh vào cây thông';
         }
     });
     if (window.parent && window.parent !== window) {

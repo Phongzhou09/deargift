@@ -43,7 +43,7 @@
         const recipientName = (window.settings && window.settings.recipientName) || 'bạn';
         
         // ===== QUẢN LÝ SỰ KIỆN MỞ QUÀ =====
-        const giftOpenManager = {
+        const giftOpenManager = window.giftOpenManager = window.giftManager = {
             giftBox: null,
             giftContainer: null,
             letterModal: null,
@@ -1087,7 +1087,13 @@
                     }, 100);
                 }
                 
-                // Set data cho final gift (có thể lấy từ settings hoặc dùng default)
+                // Set data cho final gift từ window.giftChristmasData nếu có
+                var userPhotos = (window.giftChristmasData && Array.isArray(window.giftChristmasData.photos) && window.giftChristmasData.photos.length > 0)
+                    ? window.giftChristmasData.photos
+                    : ((window.giftChristmasData && window.giftChristmasData.vipGift && Array.isArray(window.giftChristmasData.vipGift.images) && window.giftChristmasData.vipGift.images.length > 0)
+                        ? window.giftChristmasData.vipGift.images
+                        : []);
+                
                 if (!window.dataChristmasTree) {
                     window.dataChristmasTree = {
                         template: "christmas-tree",
@@ -1097,9 +1103,12 @@
                             music_id: "",
                             backgroundMusic: "",
                             messages: ["Giáng sinh vui vẻ", "Chúc em giáng sinh an lành", "Merry Christmas", "Noel vui vẻ", "Giáng sinh hạnh phúc", "Noel ấm áp"],
-                            images: []
+                            images: userPhotos
                         }
                     };
+                } else if (userPhotos.length > 0) {
+                    window.dataChristmasTree.data = window.dataChristmasTree.data || {};
+                    window.dataChristmasTree.data.images = userPhotos;
                 }
             },
             

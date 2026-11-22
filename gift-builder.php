@@ -3074,6 +3074,14 @@ function toggleDefaultPhotos(checked) {
 }
 
 function updatePhotoPricing() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var tplId = urlParams.get('id') || '69';
+    var NO_PHOTO_TEMPLATES = ['8', '9', '27', '28', '37', '44', '45', '49', '54', '62', '63', '64', '67'];
+    if (NO_PHOTO_TEMPLATES.indexOf(String(tplId)) !== -1) {
+        var pr0 = document.getElementById('pr-images') || document.getElementById('pr-photos');
+        if (pr0) { pr0.textContent = '0đ'; pr0.style.color = '#7a7090'; }
+        return;
+    }
     var count = _selectedPhotoCount;
     var useDefault = document.getElementById('use_default_photos') && document.getElementById('use_default_photos').checked;
     var pr = document.getElementById('pr-images') || document.getElementById('pr-photos');
@@ -4718,6 +4726,29 @@ window.DG_BUILDER_LANGUAGE = "vi";
             // Update photo tab label
             var photoLabel = document.querySelector('[data-section="sec-photos"] .tab-label');
             if (photoLabel) photoLabel.textContent = 'Ảnh kỷ niệm';
+        }
+
+        // 5. Kiểm tra mẫu có hỗ trợ/thích hợp dùng ảnh hay không
+        var NO_PHOTO_TEMPLATES = ['8', '9', '27', '28', '37', '44', '45', '49', '54', '62', '63', '64', '67'];
+        var photoTab = document.querySelector('[data-section="sec-photos"]');
+        var photoSec = document.getElementById('sec-photos');
+        var allowsPhoto = NO_PHOTO_TEMPLATES.indexOf(String(tplId)) === -1;
+
+        if (!allowsPhoto) {
+            if (photoTab) photoTab.style.display = 'none';
+            if (photoSec) photoSec.style.display = 'none';
+            if (photoTab && photoTab.classList.contains('active')) {
+                photoTab.classList.remove('active');
+                if (tplId === '69' && tabV3) {
+                    tabV3.classList.add('active');
+                    if (secV3) secV3.style.display = '';
+                } else if (tabLetter) {
+                    tabLetter.classList.add('active');
+                    if (secLetter) secLetter.style.display = '';
+                }
+            }
+        } else {
+            if (photoTab) photoTab.style.display = '';
         }
 
         // Always recalculate pricing when template is bound

@@ -73,6 +73,8 @@ window.addEventListener('message', function(event) {
     window.giftChristmasData.recipientName = rName;
     window.giftChristmasData.photos = photos;
     window.giftChristmasData.vipGift = { type: 'photos', images: photos };
+    var mgr = window.giftManager || window.giftOpenManager;
+    if (mgr && typeof mgr.updateLetterContent === 'function') { try { mgr.updateLetterContent(); } catch(e) {} }
     if (photos.length > 0) {
         if (window.dataChristmasTree && window.dataChristmasTree.data) {
             window.dataChristmasTree.data.images = photos;
