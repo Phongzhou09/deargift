@@ -949,6 +949,32 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                         window.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
                         document.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
                     }});
+
+                    // Stop previous audio completely when a new song is selected
+                    window.addEventListener('message', function(evt) {{
+                        if (!evt.data) return;
+                        if (evt.data.type === 'DG_STOP_AUDIO') {{
+                            document.querySelectorAll('audio').forEach(function(a) {{
+                                a.pause();
+                            }});
+                        }}
+                        if (evt.data.type === 'DG_CHANGE_MUSIC' || (evt.data.payload && evt.data.payload.music_url)) {{
+                            var newMusic = evt.data.music_url || evt.data.payload.music_url;
+                            if (newMusic) {{
+                                document.querySelectorAll('audio').forEach(function(a) {{
+                                    a.pause();
+                                    a.currentTime = 0;
+                                    a.src = '';
+                                }});
+                                var targetAudio = document.querySelector('audio#dg-bg-music') || document.querySelector('audio');
+                                if (targetAudio) {{
+                                    targetAudio.src = newMusic;
+                                    targetAudio.load();
+                                    targetAudio.play().catch(function(){{}});
+                                }}
+                            }}
+                        }}
+                    }});
                 }}
 
                 if (document.readyState === 'loading') {{
@@ -1430,6 +1456,33 @@ setInterval(pollStatus, 2500);
         tpl_id = query.get('id', ['69'])[0].strip()
         expected_src = 'templates/_v3/live.php?slug=mon-qua-nho-2010' if tpl_id == '69' else f'demo.php?id={tpl_id}'
 
+        # Load metadata
+        tpl_title = 'Món Quà Nhỏ 3D · 19/11 (Quốc Tế Nam Giới)' if tpl_id == '69' else 'Món Quà Ý Nghĩa'
+        tpl_price = '50.000đ' if tpl_id == '69' else 'Miễn phí'
+        
+        try:
+            map_path = os.path.join(DIRECTORY, 'js', 'templates_map.js')
+            if os.path.exists(map_path):
+                with open(map_path, 'r', encoding='utf-8', errors='ignore') as mf:
+                    mtext = mf.read()
+                    mstart = mtext.find('{')
+                    mend = mtext.rfind('}') + 1
+                    tmap = json.loads(mtext[mstart:mend])
+                    if tpl_id in tmap:
+                        tpl_title = tmap[tpl_id].get('title', tpl_title).replace('&amp;', '&')
+                        tpl_price = tmap[tpl_id].get('price', tpl_price)
+        except Exception as e:
+            pass
+
+        # Replace Title & Header
+        content = re.sub(r'<h1 id="gb-studio-title">.*?</h1>', f'<h1 id="gb-studio-title">{tpl_title} 🎁</h1>', content)
+        content = re.sub(r'<span class="gb-live-preview-title">.*?</span>', f'<span class="gb-live-preview-title">👀 Xem trước: {tpl_title}</span>', content)
+        content = re.sub(r'<title>.*?</title>', f'<title>Tạo {tpl_title} | DearGift</title>', content)
+
+        # Replace Price
+        content = content.replace('<span id="pr-template" style="font-weight:700; color:#e8589a;">50.000đ</span>', f'<span id="pr-template" style="font-weight:700; color:#e8589a;">{tpl_price}</span>')
+
+        # Iframe and Form Actions
         content = content.replace(
             'src="templates/_v3/live.php?slug=mon-qua-nho-2010"',
             f'src="{expected_src}"'
@@ -1446,6 +1499,16 @@ setInterval(pollStatus, 2500);
             'id="hidden_template_id" value="69"',
             f'id="hidden_template_id" value="{tpl_id}"'
         )
+
+        # Strict isolation: if non-69, show letter and hide v3 scenes on initial render
+        if tpl_id != '69':
+            content = content.replace('id="tab-sec-v3"', 'id="tab-sec-v3" style="display:none;"')
+            content = content.replace('class="icon-tab active" id="tab-sec-v3"', 'class="icon-tab" id="tab-sec-v3" style="display:none;"')
+            content = content.replace('id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)" style="display:none;"', 'id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)"')
+            content = content.replace('class="icon-tab" id="tab-sec-letter"', 'class="icon-tab active" id="tab-sec-letter"')
+            content = content.replace('class="gb-section active" id="sec-v3"', 'class="gb-section" id="sec-v3" style="display:none;"')
+            content = content.replace('class="gb-section " id="sec-letter"', 'class="gb-section active" id="sec-letter"')
+            content = content.replace('Album Quả cầu', 'Album ảnh')
 
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')

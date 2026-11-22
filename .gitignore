@@ -4,3 +4,9 @@ cloudflared.exe
 __pycache__/
 *.pyc
 .gemini/
+scratch/
+test_*.py
+check_*.py
+find_*.py
+inspect_*.py
+search_*.py

@@ -1,0 +1,2140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc Mừng 20/11</title>
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::after,
+        *::before {
+          padding: 0;
+          margin: 0;
+          box-sizing: border-box;
+        }
+
+        :root {
+          --dark-color: #000;
+          --fl-speed: 0.8s;
+          --speed-leaf: 2s;
+        }
+
+        body {
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          min-height: 100vh;
+          width: 100vw;
+          max-width: 100vw;
+          background-color: var(--dark-color);
+          overflow: hidden;
+          perspective: 1000px;
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        .night {
+          position: fixed;
+          left: 50%;
+          top: 0;
+          transform: translateX(-50%);
+          width: 100%;
+          height: 100%;
+          filter: blur(0.1vmin);
+          background: url('./assets/images/bg-pin.jpg') center center / cover no-repeat;
+          z-index: 0;
+        }
+        /* Partículas blancas que suben desde abajo */
+        .particles {
+          position: fixed;
+          left: 0;
+          bottom: 0;
+          width: 100vw;
+          height: 100vh;
+          pointer-events: none;
+          z-index: 3;
+        }
+        .particle {
+          position: absolute;
+          bottom: 0;
+          width: 0.7vmin;
+          height: 0.7vmin;
+          background: white;
+          border-radius: 50%;
+          opacity: 0.7;
+          animation: particle-up linear infinite;
+        }
+        @keyframes particle-up {
+          0% {
+            transform: translateY(0) scale(1);
+            opacity: 0.7;
+          }
+          80% {
+            opacity: 0.7;
+          }
+          100% {
+            transform: translateY(-100vh) scale(0.7);
+            opacity: 0;
+          }
+        }
+
+        .shooting-stars {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          pointer-events: none;
+          z-index: 1;
+        }
+
+        .shooting-star {
+          position: absolute;
+          width: 4px;
+          height: 4px;
+          background: #fff;
+          border-radius: 50%;
+          box-shadow: 0 0 6px 2px rgba(255, 255, 255, 0.8);
+          opacity: 0;
+          animation: shootingStar 3s linear infinite;
+        }
+
+        .shooting-star::before {
+          content: '';
+          position: absolute;
+          top: 50%;
+          right: 0;
+          transform: translateY(-50%);
+          width: 0;
+          height: 2px;
+          background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 100%);
+          animation: shootingStarTail 3s linear infinite;
+        }
+
+        .shooting-star:nth-child(1) {
+          top: 5%;
+          left: -10%;
+          animation-delay: 0s;
+          animation-duration: 2.5s;
+        }
+
+        .shooting-star:nth-child(2) {
+          top: 15%;
+          left: -10%;
+          animation-delay: 2s;
+          animation-duration: 3s;
+        }
+
+        .shooting-star:nth-child(3) {
+          top: 25%;
+          left: -10%;
+          animation-delay: 4s;
+          animation-duration: 2.8s;
+        }
+
+        .shooting-star:nth-child(4) {
+          top: 0%;
+          left: -10%;
+          animation-delay: 6s;
+          animation-duration: 3.2s;
+        }
+
+        .shooting-star:nth-child(5) {
+          top: 35%;
+          left: -10%;
+          animation-delay: 8s;
+          animation-duration: 2.7s;
+        }
+
+        .shooting-star:nth-child(6) {
+          top: 8%;
+          left: -10%;
+          animation-delay: 10s;
+          animation-duration: 3.1s;
+        }
+
+        .shooting-star:nth-child(7) {
+          top: 45%;
+          left: -10%;
+          animation-delay: 12s;
+          animation-duration: 2.9s;
+        }
+
+        .shooting-star:nth-child(8) {
+          top: 3%;
+          left: -10%;
+          animation-delay: 14s;
+          animation-duration: 3.3s;
+        }
+
+        @keyframes shootingStar {
+          0% {
+            opacity: 0;
+            transform: translateX(0) translateY(0) rotate(45deg);
+          }
+          10% {
+            opacity: 1;
+          }
+          90% {
+            opacity: 1;
+          }
+          100% {
+            opacity: 0;
+            transform: translateX(120vw) translateY(50vh) rotate(10deg);
+          }
+        }
+
+        @keyframes shootingStarTail {
+          0% {
+            width: 0;
+          }
+          30% {
+            width: 100px;
+          }
+          100% {
+            width: 0;
+          }
+        }
+
+        .flowers {
+          position: relative;
+          transform: scale(0.7) translateY(-7vmin);
+          z-index: 2;
+        }
+
+        .flower {
+          position: absolute;
+          bottom: 22vmin;
+          transform-origin: bottom center;
+          z-index: 50;
+        }
+
+        .flower--1 {
+          animation: moving-flower-1 4s linear infinite;
+        }
+
+        .flower--1 .flower__line {
+          height: 70vmin;
+          animation-delay: 0.3s;
+        }
+
+        .flower--1 .flower__line__leaf--1 {
+          animation: blooming-leaf-right var(--fl-speed) 1.6s backwards;
+        }
+
+        .flower--1 .flower__line__leaf--2 {
+          animation: blooming-leaf-right var(--fl-speed) 1.4s backwards;
+        }
+
+        .flower--1 .flower__line__leaf--3 {
+          animation: blooming-leaf-left var(--fl-speed) 1.2s backwards;
+        }
+
+        .flower--1 .flower__line__leaf--4 {
+          animation: blooming-leaf-left var(--fl-speed) 1s backwards;
+        }
+
+        .flower--2 {
+          left: 50%;
+          transform: rotate(20deg);
+          animation: moving-flower-2 4s linear infinite;
+        }
+
+        .flower--2 .flower__line {
+          height: 60vmin;
+          animation-delay: 0.6s;
+        }
+
+        .flower--2 .flower__line__leaf--1 {
+          animation: blooming-leaf-right var(--fl-speed) 1.9s backwards;
+        }
+
+        .flower--2 .flower__line__leaf--2 {
+          animation: blooming-leaf-right var(--fl-speed) 1.7s backwards;
+        }
+
+        .flower--2 .flower__line__leaf--3 {
+          animation: blooming-leaf-left var(--fl-speed) 1.5s backwards;
+        }
+
+        .flower--2 .flower__line__leaf--4 {
+          animation: blooming-leaf-left var(--fl-speed) 1.3s backwards;
+        }
+
+        .flower--3 {
+          left: 50%;
+          transform: rotate(-15deg);
+          animation: moving-flower-3 4s linear infinite;
+        }
+
+        .flower--3 .flower__line {
+          animation-delay: 0.9s;
+        }
+
+        .flower--3 .flower__line__leaf--1 {
+          animation: blooming-leaf-right var(--fl-speed) 2.5s backwards;
+        }
+
+        .flower--3 .flower__line__leaf--2 {
+          animation: blooming-leaf-right var(--fl-speed) 2.3s backwards;
+        }
+
+        .flower--3 .flower__line__leaf--3 {
+          animation: blooming-leaf-left var(--fl-speed) 2.1s backwards;
+        }
+
+        .flower--3 .flower__line__leaf--4 {
+          animation: blooming-leaf-left var(--fl-speed) 1.9s backwards;
+        }
+
+        .flower--4 {
+          left: -25%;
+          z-index: -6;
+          transform: rotate(10deg);
+          animation: moving-flower-4 3.5s linear infinite;
+        }
+
+        .flower--4 .flower__line {
+          height: 90vmin;
+          animation-delay: 1.2s;
+        }
+
+        .flower--4 .flower__line__leaf--1 {
+          animation: blooming-leaf-right var(--fl-speed) 2.8s backwards;
+        }
+
+        .flower--4 .flower__line__leaf--2 {
+          animation: blooming-leaf-right var(--fl-speed) 2.6s backwards;
+        }
+
+        .flower--4 .flower__line__leaf--3 {
+          animation: blooming-leaf-left var(--fl-speed) 2.4s backwards;
+        }
+
+        .flower--4 .flower__line__leaf--4 {
+          animation: blooming-leaf-left var(--fl-speed) 2.2s backwards;
+        }
+
+        .flower--5 {
+          left: 75%;
+          z-index: -7;
+          transform: rotate(-25deg);
+          animation: moving-flower-5 4.5s linear infinite;
+        }
+
+        .flower--5 .flower__line {
+          height: 85vmin;
+          animation-delay: 1.9s;
+        }
+
+        .flower--5 .flower__line__leaf--1 {
+          animation: blooming-leaf-right var(--fl-speed) 2.7s backwards;
+        }
+
+        .flower--5 .flower__line__leaf--2 {
+          animation: blooming-leaf-right var(--fl-speed) 2.5s backwards;
+        }
+
+        .flower--5 .flower__line__leaf--3 {
+          animation: blooming-leaf-left var(--fl-speed) 2.3s backwards;
+        }
+
+        .flower--5 .flower__line__leaf--4 {
+          animation: blooming-leaf-left var(--fl-speed) 2.1s backwards;
+        }
+
+        .flower__leafs {
+          position: relative;
+          animation: blooming-flower 2s backwards;
+        }
+
+        .flower__leafs--1 {
+          animation-delay: 1.1s;
+        }
+
+        .flower__leafs--2 {
+          animation-delay: 1.4s;
+        }
+
+        .flower__leafs--3 {
+          animation-delay: 1.7s;
+        }
+
+        .flower__leafs--4 {
+          animation-delay: 2.0s;
+        }
+
+        .flower__leafs--5 {
+          animation-delay: 2.0s;
+        }
+
+        .flower__leafs::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 0;
+          transform: translate(-50%, -100%);
+          width: 8vmin;
+          height: 8vmin;
+          background-color: #ffdd00;
+          filter: blur(10vmin);
+        }
+
+        /* --- PÉTALOS DE TULIPÁN (MEJORADOS) --- */
+        .flower__leaf {
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          width: 9vmin;
+          height: 15vmin;
+          background: radial-gradient(circle at 50% 20%, #ffe0f0 0%, #ff8fcf 30%, #e75480 60%, #c2185b 80%, #880e4f 100%);
+          border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%;
+          transform-origin: bottom center;
+          opacity: 0.97;
+          z-index: 2;
+          border: 1.5px solid #c2185b;
+          box-shadow:
+            0 0 1vmin #ffb3de,
+            0 0 0.5vmin #ffe0f0,
+            inset 0 0 1.5vmin #c2185b;
+        }
+
+        /* Pétalos externos */
+        .flower__leaf--1 { transform: translate(-50%, -5%) rotate(-22deg); z-index: 1; }
+        .flower__leaf--2 { transform: translate(-50%, -5%) rotate(22deg);  z-index: 1; }
+        .flower__leaf--3 { transform: translate(-50%, -10%) rotate(0deg);  z-index: 2; }
+
+        /* Pétalos internos (más pequeños, para dar volumen) */
+        .flower__leaf--4,
+        .flower__leaf--5,
+        .flower__leaf--6 {
+          width: 7vmin;
+          height: 12vmin;
+          background: radial-gradient(circle at 50% 20%, #fff0fa 0%, #ffb3de 30%, #ff8fcf 55%, #e75480 80%, #c2185b 100%);
+          opacity: 0.96;
+          border: 1px solid #c2185b;
+          border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%;
+          box-shadow:
+            0 0 0.8vmin #ffb3de,
+            inset 0 0 1vmin #ff8fcf;
+          z-index: 3;
+        }
+
+        .flower__leaf--4 { transform: translate(-50%, -8%) rotate(-10deg); }
+        .flower__leaf--5 { transform: translate(-50%, -8%) rotate(10deg); }
+        .flower__leaf--6 { transform: translate(-50%, -12%) rotate(0deg); }
+
+        /* Centro del tulipán */
+        .flower__center {
+          position: absolute;
+          left: -2vmin;
+          top: -2vmin;
+          width: 4vmin;
+          height: 4vmin;
+          border-radius: 50%;
+          background:
+            radial-gradient(circle at 30% 30%, #e0b3ff 0%, #a259e6 80%, #4b0066 100%);
+          border: 2px solid #a259e6;
+          box-shadow:
+            0 0 1vmin #e0b3ff,
+            0 0 0.5vmin #a259e6,
+            inset 0 0 1vmin #4b0066;
+        }
+
+        .flower__line {
+          height: 55vmin;
+          width: 2vmin;
+          background-image: linear-gradient(
+              to left,
+              rgb(0, 0, 0, 0.3),
+              transparent,
+              rgba(255, 255, 255, 0.2)
+            ),
+            linear-gradient(to top, transparent 10%, #2d5016, #4a7c23, #6b8e23);
+          box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.7);
+          animation: grow-flower-tree 4s backwards;
+        }
+
+        .flower__line__leaf {
+          --w: 8vmin;
+          --h: calc(var(--w) + 3vmin);
+          position: absolute;
+          top: 20%;
+          left: 90%;
+          width: var(--w);
+          height: var(--h);
+          border-top-right-radius: var(--h);
+          border-bottom-left-radius: var(--h);
+          background-image: linear-gradient(
+            to top,
+            rgba(45, 80, 22, 0.6),
+            #4a7c23,
+            #6b8e23
+          );
+          box-shadow: inset 0 0 1vmin rgba(0, 0, 0, 0.3);
+        }
+
+        .flower__line__leaf--1 {
+          transform: rotate(70deg) rotateY(30deg);
+        }
+
+        .flower__line__leaf--2 {
+          top: 45%;
+          transform: rotate(70deg) rotateY(30deg);
+        }
+
+        .flower__line__leaf--3,
+        .flower__line__leaf--4{
+          border-top-right-radius: 0;
+          border-bottom-left-radius: 0;
+          border-top-left-radius: var(--h);
+          border-bottom-right-radius: var(--h);
+          left: -460%;
+          top: 12%;
+          transform: rotate(-70deg) rotateY(30deg);
+        }
+
+        .flower__line__leaf--4 {
+          top: 40%;
+        }
+
+        .flower__light {
+          position: absolute;
+          bottom: 0vmin;
+          width: 0.8vmin;
+          height: 0.8vmin;
+          background-color: #fff;
+          border-radius: 50%;
+          filter: blur(0.1vmin);
+          animation: tulip-light 6s linear infinite backwards;
+          box-shadow: 0 0 1vmin rgba(255,255,255,0.8);
+        }
+
+        .flower__light:nth-child(odd) {
+          background-color: #fff;
+        }
+
+        .flower__light--1 { left: -2vmin; animation-delay: 1s; }
+        .flower__light--2 { left: 3vmin; animation-delay: 0.5s; }
+        .flower__light--3 { left: -6vmin; animation-delay: 0.3s; }
+        .flower__light--4 { left: 6vmin; animation-delay: 0.9s; }
+        .flower__light--5 { left: -1vmin; animation-delay: 1.5s; }
+        .flower__light--6 { left: -4vmin; animation-delay: 3s; }
+        .flower__light--7 { left: 3vmin; animation-delay: 2s; }
+        .flower__light--8 { left: -6vmin; animation-delay: 3.5s; }
+
+        .flower__grass {
+          --c: #4a7c23;
+          --line-w: 2vmin;
+          position: absolute;
+          bottom: 12vmin;
+          left: -7vmin;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-end;
+          z-index: 20;
+          transform-origin: bottom center;
+          transform: rotate(-48deg) rotateY(40deg);
+        }
+
+        .flower__grass--1 {
+          animation: moving-grass 2s linear infinite;
+        }
+
+        .flower__grass--2 {
+          left: 2vmin;
+          bottom: 10vmin;
+          transform: scale(0.5) rotate(75deg) rotateX(10deg) rotateY(-200deg);
+          opacity: 0.8;
+          z-index: 0;
+          animation: moving-grass--2 1.5s linear infinite;
+        }
+
+        .flower__grass--3 {
+          left: -25vmin;
+          bottom: 8vmin;
+          transform: scale(0.7) rotate(-30deg) rotateY(45deg);
+          opacity: 0.9;
+          z-index: 15;
+          animation: moving-grass--3 2.2s linear infinite;
+        }
+
+        .flower__grass--4 {
+          left: -35vmin;
+          bottom: 15vmin;
+          transform: scale(0.4) rotate(60deg) rotateX(15deg) rotateY(-180deg);
+          opacity: 0.7;
+          z-index: 5;
+          animation: moving-grass--4 1.8s linear infinite;
+        }
+
+        .flower__grass--5 {
+          left: -18vmin;
+          bottom: 6vmin;
+          transform: scale(0.6) rotate(-60deg) rotateY(60deg);
+          opacity: 0.85;
+          z-index: 12;
+          animation: moving-grass--5 2.5s linear infinite;
+        }
+
+        .flower__grass--6 {
+          left: 25vmin;
+          bottom: 9vmin;
+          transform: scale(0.65) rotate(35deg) rotateY(-45deg);
+          opacity: 0.9;
+          z-index: 15;
+          animation: moving-grass--6 2.3s linear infinite;
+        }
+
+        .flower__grass--7 {
+          left: 35vmin;
+          bottom: 14vmin;
+          transform: scale(0.45) rotate(-70deg) rotateX(20deg) rotateY(170deg);
+          opacity: 0.75;
+          z-index: 8;
+          animation: moving-grass--7 1.9s linear infinite;
+        }
+
+        .flower__grass--8 {
+          left: 18vmin;
+          bottom: 5vmin;
+          transform: scale(0.55) rotate(50deg) rotateY(-70deg);
+          opacity: 0.8;
+          z-index: 10;
+          animation: moving-grass--8 2.1s linear infinite;
+        }
+
+        .flower__grass--9 {
+          left: -45vmin;
+          bottom: 20vmin;
+          transform: scale(0.3) rotate(20deg) rotateY(90deg);
+          opacity: 0.6;
+          z-index: 2;
+          animation: moving-grass--9 1.6s linear infinite;
+        }
+
+        .flower__grass--10 {
+          left: 42vmin;
+          bottom: 18vmin;
+          transform: scale(0.35) rotate(-45deg) rotateY(-120deg);
+          opacity: 0.65;
+          z-index: 3;
+          animation: moving-grass--10 2.0s linear infinite;
+        }
+
+        .flower__grass--top {
+          width: 7vmin;
+          height: 10vmin;
+          border-top-right-radius: 100%;
+          border-right: var(--line-w) solid var(--c);
+          transform-origin: bottom center;
+          transform: rotate(-2deg);
+        }
+
+        .flower__grass--bottom {
+          margin-top: -2px;
+          width: var(--line-w);
+          height: 25vmin;
+          background-image: linear-gradient(to top, transparent, var(--c));
+        }
+
+        .flower__grass__leaf {
+          --size: 10vmin;
+          position: absolute;
+          width: calc(var(--size) * 2.1);
+          height: var(--size);
+          border-top-left-radius: var(--size);
+          border-top-right-radius: var(--size);
+          background-image: linear-gradient(
+            to top,
+            transparent,
+            transparent 30%,
+            var(--c)
+          );
+          z-index: 100;
+        }
+
+        .flower__grass__leaf--1 {
+          top: -6%;
+          left: 30%;
+          --size: 6vmin;
+          transform: rotate(-20deg);
+          animation: growing-grass-ans--1 var(--speed-leaf) 2.6s backwards;
+        }
+
+        .flower__grass__leaf--2 {
+          top: -5%;
+          left: -110%;
+          --size: 6vmin;
+          transform: rotate(10deg);
+          animation: growing-grass-ans--2 var(--speed-leaf) 2.4s linear backwards;
+        }
+
+        .flower__grass__leaf--3 {
+          top: 5%;
+          left: 60%;
+          --size: 8vmin;
+          transform: rotate(-18deg) rotateX(-20deg);
+          animation: growing-grass-ans--3 var(--speed-leaf) 2.2s linear backwards;
+        }
+
+        .flower__grass__leaf--4 {
+          top: 6%;
+          left: -135%;
+          --size: 8vmin;
+          transform: rotate(2deg);
+          animation: growing-grass-ans--4 var(--speed-leaf) 2s linear backwards;
+        }
+
+        .flower__grass__leaf--5 {
+          top: 20%;
+          left: 60%;
+          --size: 10vmin;
+          transform: rotate(-24deg) rotateX(-20deg);
+          animation: growing-grass-ans--5 var(--speed-leaf) 1.8s linear backwards;
+        }
+
+        .flower__grass__leaf--6 {
+          top: 22%;
+          left: -180%;
+          --size: 10vmin;
+          transform: rotate(10deg);
+          animation: growing-grass-ans--6 var(--speed-leaf) 1.6s linear backwards;
+        }
+
+        .flower__grass__leaf--7 {
+          top: 39%;
+          left: 70%;
+          --size: 10vmin;
+          transform: rotate(-10deg);
+          animation: growing-grass-ans--7 var(--speed-leaf) 1.4s linear backwards;
+        }
+
+        .flower__grass__leaf--8 {
+          top: 40%;
+          left: -215%;
+          --size: 11vmin;
+          transform: rotate(10deg);
+          animation: growing-grass-ans--8 var(--speed-leaf) 1.2s linear backwards;
+        }
+
+        .flower__grass__overlay {
+          position: absolute;
+          top: -10%;
+          right: 0%;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.6);
+          filter: blur(1.5vmin);
+          z-index: 100;
+        }
+
+
+    @keyframes glowText {
+      0% {
+        text-shadow:
+          0 0 8px #fff,
+          0 0 16px #fff,
+          0 0 32px #00eaff,
+          0 0 48px #00eaff;
+      }
+      100% {
+        text-shadow:
+          0 0 16px #fff,
+          0 0 32px #fff,
+          0 0 64px #00eaff,
+          0 0 96px #00eaff;
+      }
+    }
+
+        /* KEYFRAMES */
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes tulip-light {
+          0% {
+            opacity: 0;
+            transform: translateY(0vmin) rotate(0deg);
+          }
+          20% {
+            opacity: 1;
+            transform: translateY(-3vmin) translateX(-1vmin) rotate(45deg);
+          }
+          40% {
+            opacity: 1;
+            transform: translateY(-8vmin) translateX(1vmin) rotate(90deg);
+          }
+          60% {
+            transform: translateY(-12vmin) translateX(-1vmin) rotate(135deg);
+          }
+          80% {
+            transform: translateY(-16vmin) translateX(2vmin) rotate(180deg);
+            opacity: 0.5;
+          }
+          100% {
+            transform: translateY(-25vmin) rotate(225deg);
+            opacity: 0;
+          }
+        }
+
+        @keyframes moving-flower-1 {
+          0%, 100% { transform: rotate(2deg); }
+          50% { transform: rotate(-2deg); }
+        }
+
+        @keyframes moving-flower-2 {
+          0%, 100% { transform: rotate(18deg); }
+          50% { transform: rotate(14deg); }
+        }
+
+        @keyframes moving-flower-3 {
+          0%, 100% { transform: rotate(-18deg); }
+          50% { transform: rotate(-20deg) rotateY(-10deg); }
+        }
+
+        @keyframes moving-flower-4 {
+          0%, 100% { transform: rotate(9deg); }
+          50% { transform: rotate(12deg) rotateY(9deg); }
+        }
+
+        @keyframes moving-flower-5 {
+          0%, 100% { transform: rotate(-5deg); }
+          50% { transform: rotate(-11deg) rotateY(5deg); }
+        }
+
+        @keyframes blooming-leaf-right {
+          0% {
+            transform-origin: left;
+            transform: rotate(70deg) rotateY(30deg) scale(0);
+          }
+        }
+
+        @keyframes blooming-leaf-left {
+          0% {
+            transform-origin: right;
+            transform: rotate(-70deg) rotateY(30deg) scale(0);
+          }
+        }
+
+        @keyframes grow-flower-tree {
+          0% {
+            height: 0;
+            border-radius: 1vmin;
+          }
+        }
+
+        @keyframes blooming-flower {
+          0% {
+            transform: scale(0);
+          }
+        }
+
+        @keyframes moving-grass {
+          0%, 100% { transform: rotate(-48deg) rotateY(40deg); }
+          50% { transform: rotate(-50deg) rotateY(40deg); }
+        }
+
+        @keyframes moving-grass--2 {
+          0%, 100% { transform: scale(0.5) rotate(75deg) rotateX(10deg) rotateY(-200deg); }
+          50% { transform: scale(0.5) rotate(79deg) rotateX(10deg) rotateY(-200deg); }
+        }
+
+        @keyframes moving-grass--3 {
+          0%, 100% { transform: scale(0.7) rotate(-30deg) rotateY(45deg); }
+          50% { transform: scale(0.7) rotate(-33deg) rotateY(50deg); }
+        }
+
+        @keyframes moving-grass--4 {
+          0%, 100% { transform: scale(0.4) rotate(60deg) rotateX(15deg) rotateY(-180deg); }
+          50% { transform: scale(0.4) rotate(63deg) rotateX(18deg) rotateY(-175deg); }
+        }
+
+        @keyframes moving-grass--5 {
+          0%, 100% { transform: scale(0.6) rotate(-60deg) rotateY(60deg); }
+          50% { transform: scale(0.6) rotate(-57deg) rotateY(65deg); }
+        }
+
+        @keyframes moving-grass--6 {
+          0%, 100% { transform: scale(0.65) rotate(35deg) rotateY(-45deg); }
+          50% { transform: scale(0.65) rotate(38deg) rotateY(-40deg); }
+        }
+
+        @keyframes moving-grass--7 {
+          0%, 100% { transform: scale(0.45) rotate(-70deg) rotateX(20deg) rotateY(170deg); }
+          50% { transform: scale(0.45) rotate(-67deg) rotateX(23deg) rotateY(175deg); }
+        }
+
+        @keyframes moving-grass--8 {
+          0%, 100% { transform: scale(0.55) rotate(50deg) rotateY(-70deg); }
+          50% { transform: scale(0.55) rotate(53deg) rotateY(-65deg); }
+        }
+
+        @keyframes moving-grass--9 {
+          0%, 100% { transform: scale(0.3) rotate(20deg) rotateY(90deg); }
+          50% { transform: scale(0.3) rotate(23deg) rotateY(95deg); }
+        }
+
+        @keyframes moving-grass--10 {
+          0%, 100% { transform: scale(0.35) rotate(-45deg) rotateY(-120deg); }
+          50% { transform: scale(0.35) rotate(-42deg) rotateY(-115deg); }
+        }
+
+        .ramo {
+          position: absolute;
+          bottom: 5vmin;
+          left: 50%;
+          transform: translateX(-50%);
+          z-index: 0;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 1.2s cubic-bezier(.4,0,.2,1);
+          width: 60vmin;
+        }
+        .ramo--visible {
+          opacity: 1;
+        }
+        .ramo img {
+          width: 60vmin;
+          height: auto;
+          display: block;
+        }
+        
+        /* CSS cho con thỏ */
+        .rabbit {
+          position: absolute;
+          width: 140px;
+          height: auto;
+          z-index: 5;
+          opacity: 0;
+          transition: opacity 1.2s cubic-bezier(.4,0,.2,1);
+          animation: rabbit-float 3s ease-in-out infinite;
+        }
+        
+        .rabbit--visible {
+          opacity: 1;
+        }
+        
+        .rabbit img {
+          width: 100%;
+          height: auto;
+          display: block;
+        }
+        
+        /* Đặt con thỏ ở bên phải bó hoa */
+        .rabbit--right {
+          right: -30px;
+          bottom: 30px;
+        }
+        
+        /* Đặt con thỏ ở bên trái bó hoa */
+        .rabbit--left {
+          left: -30px;
+          bottom: 30px;
+        }
+        
+        /* Animation nhẹ nhàng cho con thỏ */
+        @keyframes rabbit-float {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          25% {
+            transform: translateY(-8px) rotate(1deg);
+          }
+          50% {
+            transform: translateY(-5px) rotate(-1deg);
+          }
+          75% {
+            transform: translateY(-10px) rotate(0.5deg);
+          }
+        }
+        
+        /* CSS cho ảnh thầy cô */
+        .teacher-photo {
+          position: fixed;
+          width: 250px;
+          aspect-ratio: 3 / 4;
+          z-index: 6;
+          opacity: 0;
+          transition: opacity 1.2s cubic-bezier(.4,0,.2,1);
+        }
+        
+        .teacher-photo--visible {
+          opacity: 1;
+        }
+        
+        .teacher-photo img {
+          width: 100%;
+          height: 100%;
+          display: block;
+          object-fit: cover;
+          border-radius: 15px;
+          box-shadow: 
+            0 8px 20px rgba(0, 0, 0, 0.3),
+            0 0 15px rgba(255, 255, 255, 0.2);
+          border: 3px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Đặt ảnh thầy cô ở bên trái bó hoa, căn giữa theo chiều dọc viewport */
+        .teacher-photo--left {
+          left: 5%;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+        
+        /* Đặt ảnh thầy cô ở bên phải bó hoa, căn giữa theo chiều dọc viewport */
+        .teacher-photo--right {
+          right: 5%;
+          top: 50%;
+          transform: translateY(-50%);
+        }
+
+        /* Chế độ giảm hiệu ứng để tối ưu hiệu năng */
+        body.low-effects .particles {
+          display: none !important;
+        }
+
+        body.low-effects .shooting-star {
+          animation-duration: 5.5s !important;
+          opacity: 0.65;
+        }
+
+        body.low-effects .shooting-star:nth-child(n+5) {
+          display: none;
+        }
+
+        body.low-effects .flower__grass--1,
+        body.low-effects .flower__grass--2,
+        body.low-effects .flower__grass--3,
+        body.low-effects .flower__grass--4,
+        body.low-effects .flower__grass--5,
+        body.low-effects .flower__grass--6,
+        body.low-effects .flower__grass--7,
+        body.low-effects .flower__grass--8,
+        body.low-effects .flower__grass--9,
+        body.low-effects .flower__grass--10,
+        body.low-effects .flower__light,
+        body.low-effects .rabbit {
+          animation: none !important;
+        }
+        
+        /* Responsive cho mobile - thu nhỏ ảnh thầy cô và con thỏ */
+        @media (max-width: 768px) and (orientation: landscape) {
+          .teacher-photo {
+            width: 120px;
+          }
+          
+          .teacher-photo--left {
+            left: 10%;
+          }
+          
+          .teacher-photo--right {
+            right: 10%;
+          }
+          
+          .rabbit {
+            width: 80px;
+          }
+          
+          .rabbit--left {
+            left: -20px;
+            bottom: 20px;
+          }
+          
+          .rabbit--right {
+            right: -20px;
+            bottom: 20px;
+          }
+          
+          /* Đảm bảo modal scroll được trên mobile landscape */
+          .letter-modal {
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-y;
+          }
+          
+          .letter-modal--open {
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+          }
+          
+          .letter-content {
+            max-height: 85vh !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+          }
+        }
+        
+        /* Responsive cho tablet landscape - thu nhỏ ảnh thầy cô và con thỏ */
+        @media (min-width: 769px) and (max-width: 1368px) and (orientation: landscape) {
+          .teacher-photo {
+            width: 180px;
+          }
+          
+          .teacher-photo--left {
+            left: 10%;
+          }
+          
+          .teacher-photo--right {
+            right: 10%;
+          }
+          
+          .rabbit {
+            width: 110px;
+          }
+          
+          .rabbit--left {
+            left: -25px;
+            bottom: 25px;
+          }
+          
+          .rabbit--right {
+            right: -25px;
+            bottom: 25px;
+          }
+        }
+        
+        /* Responsive cho desktop - phóng to ảnh thầy cô */
+        @media (min-width: 1200px) {
+          .teacher-photo {
+            width: 250px !important;
+          }
+        }
+        
+        .montes {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: -10px;
+          width: 100%;
+          height: 60px;
+          pointer-events: none;
+          display: flex;
+          justify-content: space-between;
+          opacity: 0;
+          transition: opacity 1.2s cubic-bezier(.4,0,.2,1);
+          z-index: 1;
+        }
+        .ramo--visible .montes {
+          opacity: 1;
+        }
+        .monte {
+          display: block;
+        }
+        .monte-izq {
+          margin-left: -30px;
+        }
+        .monte-der {
+          margin-right: -30px;
+        }
+        
+        /* CSS cho lá thư */
+        .letter {
+          position: fixed;
+          bottom: 25vmin;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 120px;
+          height: 70px;
+          z-index: 1000;
+          cursor: pointer;
+          opacity: 0;
+          transition: opacity 1.2s cubic-bezier(.4,0,.2,1);
+          pointer-events: auto;
+          filter: none;
+        }
+        
+        .letter--visible {
+          opacity: 1;
+        }
+        
+        .letter-envelope {
+          position: relative;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(135deg, #fff9e6 0%, #ffe6cc 50%, #ffd9b3 100%);
+          border-radius: 8px;
+          box-shadow: 
+            0 4px 8px rgba(0, 0, 0, 0.25),
+            0 0 10px rgba(255, 215, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+          filter: none;
+          -webkit-font-smoothing: antialiased;
+          image-rendering: -webkit-optimize-contrast;
+          image-rendering: crisp-edges;
+          perspective: 1000px;
+          transform-style: preserve-3d;
+        }
+        
+        .letter-envelope::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 40%;
+          background: linear-gradient(135deg, #ffebcc 0%, #ffe0b3 100%);
+          border-radius: 8px 8px 0 0;
+          clip-path: polygon(0 0, 100% 0, 50% 100%);
+          transform-origin: top center;
+          transition: transform 0.5s ease-in-out;
+          z-index: 2;
+          backface-visibility: visible;
+        }
+        
+        .letter-seal {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 30px;
+          height: 30px;
+          background: radial-gradient(circle, #ff6b9d 0%, #c2185b 100%);
+          border-radius: 50%;
+          border: 2px solid #fff;
+          box-shadow: 
+            0 0 15px rgba(255, 107, 157, 0.8),
+            0 0 25px rgba(255, 107, 157, 0.6),
+            0 0 35px rgba(255, 107, 157, 0.4),
+            inset 0 0 6px rgba(255, 255, 255, 0.3);
+          filter: drop-shadow(0 0 10px rgba(255, 107, 157, 0.9));
+          z-index: 3;
+        }
+        
+        .letter-seal::after {
+          content: '💌';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-size: 16px;
+        }
+        
+        /* Modal cho nội dung thư - shape viền sóng */
+        .letter-modal {
+          position: fixed;
+          top:0;right:0;bottom:0;left:0;inset: 0;
+          z-index: 1000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          visibility: hidden;
+          transition: opacity 0.28s ease, visibility 0.28s ease;
+          padding: 24px;
+          overflow-y: auto;
+          overflow-x: hidden;
+          -webkit-overflow-scrolling: touch;
+          touch-action: pan-y;
+          overscroll-behavior: contain;
+        }
+
+        .letter-modal__backdrop {
+          position: fixed;
+          top:0;right:0;bottom:0;left:0;inset: 0;
+          background: rgba(20, 10, 35, 0.62);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+        }
+
+        .letter-modal--open {
+          opacity: 1;
+          visibility: visible;
+          overflow-y: auto !important;
+          overflow-x: hidden !important;
+          -webkit-overflow-scrolling: touch !important;
+          touch-action: pan-y !important;
+        }
+
+        .letter-modal__box-wrap {
+          position: relative;
+          width: 100%;
+          max-width: 760px;
+          margin: 5vh auto;
+          transform: scale(0.95);
+          transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .letter-modal--open .letter-modal__box-wrap {
+          transform: scale(1);
+        }
+
+        .letter-modal__box-wrap::before {
+          content: '';
+          position: absolute;
+          top:0;right:0;bottom:0;left:0;inset: 0;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #fff9e6 0%, #ffe6cc 100%);
+          box-shadow:
+            0 12px 44px rgba(0, 0, 0, 0.52),
+            0 0 34px rgba(255, 198, 94, 0.35),
+            inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+          filter: url(#wavyBorder);
+          z-index: 0;
+        }
+
+        .letter-content {
+          position: relative;
+          z-index: 1;
+          width: 100%;
+          min-height: 200px;
+          border-radius: 14px;
+          background: transparent;
+          padding: 50px 30px;
+          box-sizing: border-box;
+          overflow: visible;
+          isolation: isolate;
+          -webkit-transform: translateZ(0);
+          transform: translateZ(0);
+        }
+        
+        .letter-close {
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          width: 35px;
+          height: 35px;
+          background: rgba(194, 24, 91, 0.8);
+          border: none;
+          border-radius: 50%;
+          color: white;
+          font-size: 20px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+          filter: url(#wavyBorderLight);
+        }
+        
+        .letter-close:hover {
+          background: rgba(194, 24, 91, 1);
+          transform: rotate(90deg) scale(1.1);
+        }
+        
+        .letter-text {
+          font-family: 'Dancing Script', cursive;
+          font-size: 18px;
+          line-height: 1.8;
+          color: #4a4a4a;
+          text-align: left;
+          margin-top: 20px;
+          word-break: normal;
+          overflow-wrap: normal;
+          white-space: normal;
+          width: 100%;
+          max-width: 100%;
+          hyphens: none;
+          box-sizing: border-box;
+        }
+        
+        .letter-text h2 {
+          font-size: 32px;
+          color: #c2185b;
+          margin-bottom: 25px;
+          text-align: center;
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          font-weight: 700;
+          text-indent: 0;
+          white-space: nowrap;
+          line-height: 1.2;
+        }
+        
+        .letter-signature {
+          color: #c2185b !important;
+          font-weight: 600;
+          margin-right: 10px;
+        }
+        
+        .letter-text p {
+          margin-bottom: 15px;
+          text-indent: 20px;
+          word-break: normal;
+          overflow-wrap: normal;
+          width: 95%;
+          max-width: 95%;
+          white-space: normal;
+          hyphens: none;
+          box-sizing: border-box;
+        }
+        
+        /* Chỉ áp dụng first-letter cho paragraph đầu tiên */
+        .letter-text p:first-of-type::first-letter {
+          font-size: 32px;
+          font-weight: bold;
+          color: #c2185b;
+          float: left;
+          line-height: 1;
+          margin-right: 2px;
+          margin-top: 5px;
+        }
+        
+        /* Responsive cho letter content */
+        @media (max-width: 768px) {
+          .letter-modal {
+            padding: 14px;
+          }
+
+          .letter-modal__box-wrap {
+            margin: 3vh auto;
+          }
+
+          .letter-content {
+            width: 95%;
+            max-width: 95%;
+            padding: 40px 35px;
+            overflow-x: visible;
+          }
+          
+          .letter-text {
+            font-size: 16px;
+            word-break: normal;
+            overflow-wrap: normal;
+            white-space: normal;
+          }
+          
+          .letter-text h2 {
+            font-size: 28px;
+          }
+          
+          .letter-text p {
+            word-break: normal;
+            overflow-wrap: normal;
+            white-space: normal;
+          }
+        }
+        
+        /* Mobile và Tablet Landscape - Tăng kích thước chữ */
+        @media (max-width: 1024px) and (orientation: landscape) {
+          .letter-content {
+            overflow-x: visible;
+          }
+          
+          .letter-text {
+            font-size: 18px;
+            word-break: normal;
+            overflow-wrap: normal;
+            white-space: normal;
+          }
+          
+          .letter-text h2 {
+            font-size: 32px;
+          }
+          
+          .letter-text p {
+            word-break: normal;
+            overflow-wrap: normal;
+            white-space: normal;
+          }
+        }
+        
+        @media (max-width: 480px) {
+          .letter-content {
+            width: 98%;
+            max-width: 98%;
+            padding: 35px 30px;
+            overflow-x: visible;
+          }
+          
+          .letter-text {
+            font-size: 15px;
+            word-break: normal;
+            overflow-wrap: normal;
+            white-space: normal;
+          }
+          
+          .letter-text h2 {
+            font-size: 24px;
+          }
+          
+          .letter-text p {
+            text-indent: 15px;
+            word-break: normal;
+            overflow-wrap: normal;
+            white-space: normal;
+          }
+        }
+        
+        /* Hiệu ứng giấy viết */
+        .letter-content::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 100%;
+          background-image: 
+            repeating-linear-gradient(
+              transparent,
+              transparent 31px,
+              rgba(194, 24, 91, 0.1) 31px,
+              rgba(194, 24, 91, 0.1) 32px
+            );
+          pointer-events: none;
+          border-radius: 15px;
+        }
+        
+        /* Animation mở nắp thư */
+        .letter-envelope.opening::before {
+          transform: rotateX(-160deg) translateY(-5px);
+          background: linear-gradient(135deg, #ffe0b3 0%, #ffd9b3 100%);
+        }
+        
+        .letter-envelope.opening {
+          opacity: 1;
+          transition: opacity 0.5s ease-in-out;
+        }
+        
+    </style>
+</head>
+<body class="not-loaded">
+  <!-- Audio giữ lại để phát nhạc -->
+    <audio id="audio-para-ti" src=""></audio>
+  <div id="contenido-principal">
+  <div class="night"></div>
+  <div class="particles"></div>
+    <div class="shooting-stars">
+      <div class="shooting-star"></div>
+      <div class="shooting-star"></div>
+      <div class="shooting-star"></div>
+      <div class="shooting-star"></div>
+      <div class="shooting-star"></div>
+      <div class="shooting-star"></div>
+      <div class="shooting-star"></div>
+      <div class="shooting-star"></div>
+    </div>
+    <div class="flowers">
+    <div class="flower flower--1">
+      <div class="flower__leafs flower__leafs--1">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__leaf flower__leaf--5"></div>
+        <div class="flower__leaf flower__leaf--6"></div>
+        <div class="flower__center"></div>
+
+        <div class="flower__light flower__light--1"></div>
+        <div class="flower__light flower__light--2"></div>
+        <div class="flower__light flower__light--3"></div>
+        <div class="flower__light flower__light--4"></div>
+        <div class="flower__light flower__light--5"></div>
+        <div class="flower__light flower__light--6"></div>
+        <div class="flower__light flower__light--7"></div>
+        <div class="flower__light flower__light--8"></div>
+      </div>
+      <div class="flower__line">
+        <div class="flower__line__leaf flower__line__leaf--1"></div>
+        <div class="flower__line__leaf flower__line__leaf--2"></div>
+        <div class="flower__line__leaf flower__line__leaf--3"></div>
+        <div class="flower__line__leaf flower__line__leaf--4"></div>
+      </div>
+    </div>
+
+    <div class="flower flower--2">
+      <div class="flower__leafs flower__leafs--2">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__leaf flower__leaf--5"></div>
+        <div class="flower__leaf flower__leaf--6"></div>
+        <div class="flower__center"></div>
+
+        <div class="flower__light flower__light--1"></div>
+        <div class="flower__light flower__light--2"></div>
+        <div class="flower__light flower__light--3"></div>
+        <div class="flower__light flower__light--4"></div>
+        <div class="flower__light flower__light--5"></div>
+        <div class="flower__light flower__light--6"></div>
+        <div class="flower__light flower__light--7"></div>
+        <div class="flower__light flower__light--8"></div>
+      </div>
+      <div class="flower__line">
+        <div class="flower__line__leaf flower__line__leaf--1"></div>
+        <div class="flower__line__leaf flower__line__leaf--2"></div>
+        <div class="flower__line__leaf flower__line__leaf--3"></div>
+        <div class="flower__line__leaf flower__line__leaf--4"></div>
+      </div>
+    </div>
+
+    <div class="flower flower--3">
+      <div class="flower__leafs flower__leafs--3">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__leaf flower__leaf--5"></div>
+        <div class="flower__leaf flower__leaf--6"></div>
+        <div class="flower__center"></div>
+
+        <div class="flower__light flower__light--1"></div>
+        <div class="flower__light flower__light--2"></div>
+        <div class="flower__light flower__light--3"></div>
+        <div class="flower__light flower__light--4"></div>
+        <div class="flower__light flower__light--5"></div>
+        <div class="flower__light flower__light--6"></div>
+        <div class="flower__light flower__light--7"></div>
+        <div class="flower__light flower__light--8"></div>
+      </div>
+      <div class="flower__line">
+        <div class="flower__line__leaf flower__line__leaf--1"></div>
+        <div class="flower__line__leaf flower__line__leaf--2"></div>
+        <div class="flower__line__leaf flower__line__leaf--3"></div>
+        <div class="flower__line__leaf flower__line__leaf--4"></div>
+      </div>
+    </div>
+
+    <div class="flower flower--4">
+      <div class="flower__leafs flower__leafs--4">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__leaf flower__leaf--5"></div>
+        <div class="flower__leaf flower__leaf--6"></div>
+        <div class="flower__center"></div>
+
+        <div class="flower__light flower__light--1"></div>
+        <div class="flower__light flower__light--2"></div>
+        <div class="flower__light flower__light--3"></div>
+        <div class="flower__light flower__light--4"></div>
+        <div class="flower__light flower__light--5"></div>
+        <div class="flower__light flower__light--6"></div>
+        <div class="flower__light flower__light--7"></div>
+        <div class="flower__light flower__light--8"></div>
+      </div>
+      <div class="flower__line">
+        <div class="flower__line__leaf flower__line__leaf--1"></div>
+        <div class="flower__line__leaf flower__line__leaf--2"></div>
+        <div class="flower__line__leaf flower__line__leaf--3"></div>
+        <div class="flower__line__leaf flower__line__leaf--4"></div>
+      </div>
+    </div>
+
+    <div class="flower flower--5">
+      <div class="flower__leafs flower__leafs--5">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__leaf flower__leaf--5"></div>
+        <div class="flower__leaf flower__leaf--6"></div>
+        <div class="flower__center"></div>
+
+        <div class="flower__light flower__light--1"></div>
+        <div class="flower__light flower__light--2"></div>
+        <div class="flower__light flower__light--3"></div>
+        <div class="flower__light flower__light--4"></div>
+        <div class="flower__light flower__light--5"></div>
+        <div class="flower__light flower__light--6"></div>
+        <div class="flower__light flower__light--7"></div>
+        <div class="flower__light flower__light--8"></div>
+      </div>
+      <div class="flower__line">
+        <div class="flower__line__leaf flower__line__leaf--1"></div>
+        <div class="flower__line__leaf flower__line__leaf--2"></div>
+        <div class="flower__line__leaf flower__line__leaf--3"></div>
+        <div class="flower__line__leaf flower__line__leaf--4"></div>
+      </div>
+    </div>
+    <!-- Flores extra para el ramo -->
+    <div class="flower flower--6" style="left:20%;transform:rotate(-10deg);z-index:40;">
+      <div class="flower__leafs flower__leafs--6">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__leaf flower__leaf--5"></div>
+        <div class="flower__leaf flower__leaf--6"></div>
+        <div class="flower__center"></div>
+      </div>
+      <div class="flower__line"></div>
+    </div>
+    <div class="flower flower--7" style="left:80%;transform:rotate(15deg);z-index:40;">
+      <div class="flower__leafs flower__leafs--7">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__leaf flower__leaf--5"></div>
+        <div class="flower__leaf flower__leaf--6"></div>
+        <div class="flower__center"></div>
+      </div>
+      <div class="flower__line"></div>
+    </div>
+    <div class="flower flower--8" style="left:35%;transform:rotate(-25deg);z-index:30;">
+      <div class="flower__leafs flower__leafs--8">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__leaf flower__leaf--5"></div>
+        <div class="flower__leaf flower__leaf--6"></div>
+        <div class="flower__center"></div>
+      </div>
+      <div class="flower__line"></div>
+    </div>
+    <div class="flower flower--9" style="left:65%;transform:rotate(25deg);z-index:30;">
+      <div class="flower__leafs flower__leafs--9">
+        <div class="flower__leaf flower__leaf--1"></div>
+        <div class="flower__leaf flower__leaf--2"></div>
+        <div class="flower__leaf flower__leaf--3"></div>
+        <div class="flower__leaf flower__leaf--4"></div>
+        <div class="flower__leaf flower__leaf--5"></div>
+        <div class="flower__leaf flower__leaf--6"></div>
+        <div class="flower__center"></div>
+      </div>
+      <div class="flower__line"></div>
+    </div>
+  </div>
+    <div class="ramo">
+  <img src="./assets/images/ramo.png" alt="Ramo de flores">
+    <div class="montes">
+      <svg class="monte monte-izq" viewBox="0 0 120 60" width="120" height="60">
+        <path d="M0,60 Q30,10 60,60 Q90,30 120,60 Z" fill="#4a7c23" opacity="0.85"/>
+        <path d="M10,60 Q35,25 60,60 Q80,40 110,60 Z" fill="#6b8e23" opacity="0.7"/>
+      </svg>
+      <svg class="monte monte-der" viewBox="0 0 120 60" width="120" height="60">
+        <path d="M0,60 Q30,30 60,60 Q90,10 120,60 Z" fill="#4a7c23" opacity="0.85"/>
+        <path d="M10,60 Q40,40 60,60 Q85,25 110,60 Z" fill="#8fcf5a" opacity="0.7"/>
+      </svg>
+    </div>
+    <!-- Con thỏ đặt cạnh bó hoa -->
+    <div class="rabbit rabbit--left">
+      <img src="./assets/images/mewmew.gif" alt="Con thỏ trái">
+    </div>
+    <div class="rabbit rabbit--right">
+      <img src="./assets/images/mewmew.gif" alt="Con thỏ phải">
+    </div>
+  </div>
+  
+  <!-- Ảnh thầy cô đặt 2 bên bó hoa (đặt ngoài .ramo để căn giữa theo viewport) -->
+  <div class="teacher-photo teacher-photo--left" id="teacherPhotoLeft" style="display: none;">
+    <img src="" alt="Ảnh thầy cô bên trái" id="teacherPhotoLeftImg">
+  </div>
+  <div class="teacher-photo teacher-photo--right" id="teacherPhotoRight" style="display: none;">
+    <img src="" alt="Ảnh thầy cô bên phải" id="teacherPhotoRightImg">
+  </div>
+  
+  <!-- Lá thư trong bó hoa (đặt ngoài .ramo để tránh bị pointer-events: none) -->
+  <div class="letter">
+    <div class="letter-envelope">
+      <div class="letter-seal"></div>
+    </div>
+  </div>
+  
+  <!-- SVG filter cho shape viền sóng -->
+  <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <defs>
+      <filter id="wavyBorder" x="-15%" y="-15%" width="130%" height="130%">
+        <feTurbulence type="turbulence" baseFrequency="0.012 0.006" numOctaves="2" seed="5" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="18" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+      <filter id="wavyBorderLight" x="-10%" y="-10%" width="120%" height="120%">
+        <feTurbulence type="turbulence" baseFrequency="0.015 0.008" numOctaves="2" seed="5" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+  </svg>
+
+  <!-- Modal hiển thị nội dung thư -->
+  <div class="letter-modal" id="letterModal">
+    <div class="letter-modal__backdrop"></div>
+    <div class="letter-modal__box-wrap">
+      <div class="letter-content">
+        <button class="letter-close" id="letterClose">&times;</button>
+        <div class="letter-text" id="letterText">
+          <!-- Nội dung sẽ được typing vào đây -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+
+  <script>
+    // Wrap toàn bộ script trong IIFE để tránh lỗi duplicate declaration
+    (function() {
+      'use strict';
+      
+      try {
+    // Bật chế độ giảm hiệu ứng để giảm lag trên máy yếu
+    const REDUCE_EFFECTS = true;
+
+    // Generar partículas blancas animadas que suben desde abajo
+    function randomBetween(a, b) {
+      return Math.random() * (b - a) + a;
+    }
+    function createParticles() {
+      const particlesContainer = document.querySelector('.particles');
+        if (!particlesContainer) {
+          console.error('❌ [Tulipanes] Không tìm thấy .particles container!');
+          return;
+        }
+      const numParticles = 20;
+      for (let i = 0; i < numParticles; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        // Posición horizontal aleatoria
+        p.style.left = randomBetween(0, 100) + 'vw';
+        // Tamaño aleatorio
+        const size = randomBetween(0.5, 1.5);
+        p.style.width = size + 'vmin';
+        p.style.height = size + 'vmin';
+        // Duración y retardo aleatorio
+        const duration = randomBetween(3, 7);
+        const delay = randomBetween(0, 5);
+        p.style.animationDuration = duration + 's';
+        p.style.animationDelay = delay + 's';
+        // Opacidad aleatoria
+        p.style.opacity = randomBetween(0.4, 0.9);
+        particlesContainer.appendChild(p);
+      }
+    }
+      
+    if (!REDUCE_EFFECTS) {
+      createParticles();
+    }
+      
+      if (document.body) {
+  document.body.classList.remove('not-loaded');
+  if (REDUCE_EFFECTS) {
+    document.body.classList.add('low-effects');
+  }
+      } else {
+        console.error('❌ [Tulipanes] document.body không tồn tại!');
+      }
+    
+    // Load Gift2011 data nếu có
+    // Sử dụng gift2011Data từ window, KHÔNG khai báo lại để tránh lỗi duplicate declaration
+    // Chỉ đọc từ window, không khai báo biến mới
+    var gift2011Data = (function() {
+      if (typeof window.gift2011Data !== 'undefined') {
+        return window.gift2011Data;
+      }
+      return null;
+    })();
+    
+    // Load ảnh thầy cô nếu có
+    if (gift2011Data) {
+      const teacherPhotoLeft = document.getElementById('teacherPhotoLeft');
+      const teacherPhotoLeftImg = document.getElementById('teacherPhotoLeftImg');
+      const teacherPhotoRight = document.getElementById('teacherPhotoRight');
+      const teacherPhotoRightImg = document.getElementById('teacherPhotoRightImg');
+      
+      if (gift2011Data.teacherPhoto1 && teacherPhotoLeft && teacherPhotoLeftImg) {
+        teacherPhotoLeftImg.src = gift2011Data.teacherPhoto1;
+        teacherPhotoLeft.style.display = 'block';
+      }
+      
+      if (gift2011Data.teacherPhoto2 && teacherPhotoRight && teacherPhotoRightImg) {
+        teacherPhotoRightImg.src = gift2011Data.teacherPhoto2;
+        teacherPhotoRight.style.display = 'block';
+      }
+    }
+    
+    // Load nhạc nếu có
+      var audio = document.getElementById('audio-para-ti');
+    
+    if (audio && gift2011Data) {
+      if (gift2011Data.musicType === 'Sample' && gift2011Data.musicPath) {
+        audio.src = gift2011Data.musicPath;
+      } else if (gift2011Data.musicType === 'Custom' && gift2011Data.customMusic) {
+        audio.src = gift2011Data.customMusic;
+      }
+    } else if (audio && window.preloadAudio) {
+      // Nếu đã preload từ index.html, sử dụng nó
+      audio.src = window.preloadAudio.src;
+    }
+    
+    // Hiển thị bó hoa và con thỏ sau khi hoa nở (2.5s)
+      setTimeout(function() {
+        document.querySelector('.ramo').classList.add('ramo--visible');
+      // Hiển thị cả hai con thỏ cùng lúc với bó hoa
+      document.querySelectorAll('.rabbit').forEach(function(rabbit) {
+        rabbit.classList.add('rabbit--visible');
+      });
+      // Hiển thị ảnh thầy cô cùng lúc với bó hoa (nếu có)
+      document.querySelectorAll('.teacher-photo').forEach(function(photo) {
+        if (photo.style.display !== 'none') {
+        photo.classList.add('teacher-photo--visible');
+        }
+      });
+      // Hiển thị lá thư cùng lúc với bó hoa
+      document.querySelector('.letter').classList.add('letter--visible');
+      }, 2500);
+    
+    // Xử lý click vào lá thư để mở modal
+    var letterEnvelope = document.querySelector('.letter-envelope');
+    var letterModal = document.getElementById('letterModal');
+    var letterClose = document.getElementById('letterClose');
+    var letterText = document.getElementById('letterText');
+    
+    // Nội dung thư - sử dụng data từ Gift2011 nếu có, không thì dùng mặc định
+    var letterContentOriginal;
+    
+    if (gift2011Data) {
+      // Sử dụng data từ Gift2011
+      var paragraphs = gift2011Data.letterContent || [];
+      
+      // Đảm bảo paragraphs là array
+      if (!Array.isArray(paragraphs)) {
+        // Nếu là string, split theo dấu xuống dòng hoặc dấu chấm
+        if (typeof paragraphs === 'string') {
+          paragraphs = paragraphs.split(/\n+/).filter(p => p.trim().length > 0);
+          // Nếu không có dấu xuống dòng, thử split theo dấu chấm
+          if (paragraphs.length === 1) {
+            paragraphs = paragraphs[0].split(/\.\s+/).filter(p => p.trim().length > 0);
+            // Thêm dấu chấm lại vào cuối mỗi câu (trừ câu cuối)
+            paragraphs = paragraphs.map((p, i) => {
+              if (i < paragraphs.length - 1 && !p.endsWith('.')) {
+                return p + '.';
+              }
+              return p;
+            });
+          }
+        } else {
+          paragraphs = [paragraphs];
+        }
+      }
+      
+      letterContentOriginal = {
+        title: gift2011Data.letterTitle || 'Gửi người tôi yêu thương nhất,',
+        paragraphs: paragraphs,
+        signature: gift2011Data.letterSignature || 'Người yêu bạn ❤️'
+      };
+    } else {
+      // Dùng dữ liệu mặc định
+      letterContentOriginal = {
+        title: 'Gửi người tôi yêu thương nhất,',
+        paragraphs: [
+          'Hôm nay, tôi muốn gửi đến bạn những lời chân thành từ tận đáy lòng. Mỗi ngày trôi qua, tôi đều cảm thấy may mắn vì có bạn bên cạnh.',
+          'Những bông hoa tulip hồng này là biểu tượng cho tình yêu chân thành và sự ngưỡng mộ mà tôi dành cho bạn. Màu hồng dịu dàng như nụ cười của bạn, và sự nở rộ của những bông hoa giống như cách tình yêu của chúng ta ngày càng đẹp đẽ hơn.',
+          'Tôi hy vọng rằng mỗi khi bạn nhìn thấy những bông hoa này, bạn sẽ nhớ đến những khoảnh khắc đẹp đẽ mà chúng ta đã chia sẻ cùng nhau. Tình yêu của tôi dành cho bạn sẽ luôn nở rộ như những bông hoa này, không bao giờ tàn phai.',
+          'Với tất cả tình yêu,'
+        ],
+        signature: 'Người yêu bạn ❤️'
+      };
+    }
+    
+    // Typing effect cho thư
+    var typingTimeout;
+    var currentTypingIndex = 0;
+    var isTyping = false;
+    
+    function startTyping() {
+      if (!letterText) {
+        console.error('❌ [Tulipanes] letterText element không tìm thấy!');
+        return;
+      }
+      
+      if (!letterContentOriginal) {
+        console.error('❌ [Tulipanes] letterContentOriginal không có!');
+        return;
+      }
+      
+      // Reset
+      letterText.innerHTML = '';
+      currentTypingIndex = 0;
+      isTyping = true;
+      
+      // Tạo h2 title
+      var h2 = document.createElement('h2');
+      letterText.appendChild(h2);
+      
+      // Typing title, sau đó typing các paragraph tuần tự
+      typeText(letterContentOriginal.title, h2, function() {
+        // Sau khi typing title xong, bắt đầu typing paragraph đầu tiên
+        setTimeout(function() {
+          typeParagraphsSequentially(0);
+        }, 100);
+      });
+    }
+    
+    function typeParagraphsSequentially(paraIndex) {
+      // Nếu đã hết paragraphs, type signature
+      if (paraIndex >= letterContentOriginal.paragraphs.length) {
+        // Type signature
+        if (letterContentOriginal.signature) {
+          var p = document.createElement('p');
+          letterText.appendChild(p);
+          var br = document.createElement('br');
+          p.appendChild(br);
+          
+          var span = document.createElement('span');
+          span.className = 'letter-signature';
+          span.style.textAlign = 'right';
+          span.style.display = 'block';
+          span.style.marginTop = '20px';
+          span.style.fontStyle = 'italic';
+          p.appendChild(span);
+          
+          // Typing signature
+          typeText(letterContentOriginal.signature, span, null, function() {
+            isTyping = false;
+          });
+        } else {
+          isTyping = false;
+        }
+        return;
+      }
+      
+      var paraText = letterContentOriginal.paragraphs[paraIndex];
+      var trimmed = (typeof paraText === 'string') ? paraText.trim() : String(paraText).trim();
+      // Kẻ ngang: đoạn chỉ chứa --- (hoặc toàn dấu gạch ngang) → render thành <hr>
+      if (/^\-+$/.test(trimmed) || trimmed === '---') {
+        var hr = document.createElement('hr');
+        hr.style.margin = '16px 0';
+        hr.style.border = 'none';
+        hr.style.borderTop = '1px solid rgba(0,0,0,0.2)';
+        letterText.appendChild(hr);
+        setTimeout(function() {
+          typeParagraphsSequentially(paraIndex + 1);
+        }, 150);
+        return;
+      }
+      
+      // Type paragraph bình thường
+      var p = document.createElement('p');
+      letterText.appendChild(p);
+      typeText(paraText, p, null, function() {
+        setTimeout(function() {
+          typeParagraphsSequentially(paraIndex + 1);
+        }, 100);
+      });
+    }
+    
+    function typeText(text, element, callback, onComplete) {
+      var charIndex = 0;
+      var textLength = text.length;
+      
+      function typeChar() {
+        if (charIndex < textLength) {
+          var char = text[charIndex];
+          // Dùng space thường để trình duyệt xuống dòng đúng theo từ
+          element.textContent += char;
+          charIndex++;
+          
+          // Auto scroll
+          if (letterModal && letterModal.classList.contains('letter-modal--open')) {
+            letterModal.scrollTop = letterModal.scrollHeight;
+          }
+          
+          // Delay giữa các ký tự: nhanh hơn - 20ms cho chữ thường, 50ms cho dấu câu
+          var delay = (char === ' ' || char === '.' || char === ',' || char === '!' || char === '?') ? 50 : 20;
+          typingTimeout = setTimeout(typeChar, delay);
+        } else {
+          if (callback) callback();
+          if (onComplete) onComplete();
+        }
+      }
+      
+      typeChar();
+    }
+    
+    function stopTyping() {
+      if (typingTimeout) {
+        clearTimeout(typingTimeout);
+        typingTimeout = null;
+      }
+      isTyping = false;
+    }
+    
+    if (letterEnvelope && letterModal) {
+      letterEnvelope.addEventListener('click', function() {
+        // Thêm animation mở nắp thư
+        this.classList.add('opening');
+        
+        // Đợi animation mở nắp thư hoàn thành (0.5s) rồi mới hiển thị nội dung
+        setTimeout(function() {
+          letterModal.classList.add('letter-modal--open');
+          
+          // Đảm bảo modal có thể scroll được trên mobile - set inline style để override mọi CSS
+          letterModal.style.cssText = 'position: fixed !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; overflow-y: auto !important; overflow-x: hidden !important; -webkit-overflow-scrolling: touch !important; touch-action: pan-y !important; display: flex !important; align-items: center !important; justify-content: center !important; z-index: 1000 !important;';
+          
+          // Cho phép scroll trong modal content - không set overflow để modal scroll
+          var letterContent = letterModal.querySelector('.letter-content');
+          if (letterContent) {
+            letterContent.style.overflowY = 'visible';
+            letterContent.style.overflowX = 'hidden';
+            letterContent.style.webkitOverflowScrolling = 'touch';
+            letterContent.style.touchAction = 'pan-y';
+          }
+          
+          // Đảm bảo không có event listener nào chặn scroll trong modal
+          letterModal.addEventListener('touchmove', function(e) {
+            // Cho phép scroll trong modal
+            e.stopPropagation();
+          }, { passive: true });
+          
+          letterModal.addEventListener('wheel', function(e) {
+            // Cho phép scroll trong modal
+            e.stopPropagation();
+          }, { passive: true });
+          
+          // Bắt đầu typing effect
+          setTimeout(function() {
+            startTyping();
+          }, 300);
+        }, 500);
+      });
+    } else {
+      console.error('❌ [Tulipanes] Không tìm thấy letterEnvelope hoặc letterModal!');
+      console.error('❌ [Tulipanes] letterEnvelope:', letterEnvelope);
+      console.error('❌ [Tulipanes] letterModal:', letterModal);
+    }
+    
+    // Hàm đóng modal
+    var closeModal = function() {
+      stopTyping();
+        letterModal.classList.remove('letter-modal--open');
+      // Reset inline styles
+      letterModal.style.overflowY = '';
+      letterModal.style.overflowX = '';
+      letterModal.style.webkitOverflowScrolling = '';
+      letterModal.style.touchAction = '';
+        // Reset animation của lá thư
+        setTimeout(function() {
+          if (letterEnvelope) {
+            letterEnvelope.classList.remove('opening');
+          }
+        }, 300);
+    };
+    
+    // Xử lý đóng modal khi click vào nút đóng
+    if (letterClose) {
+      letterClose.addEventListener('click', closeModal);
+    }
+    
+    // Đóng modal khi click ra ngoài nội dung thư
+    if (letterModal) {
+      letterModal.addEventListener('click', function(e) {
+        if (e.target === letterModal || (e.target && e.target.classList && e.target.classList.contains('letter-modal__backdrop'))) {
+          closeModal();
+        }
+      });
+    }
+    
+    // Đóng modal bằng phím ESC
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && letterModal && letterModal.classList.contains('letter-modal--open')) {
+        closeModal();
+      }
+    });
+    
+      } catch (error) {
+        console.error('❌ [Tulipanes] LỖI TRONG SCRIPT:', error);
+        console.error('❌ [Tulipanes] Error stack:', error.stack);
+          }
+    })(); // Đóng IIFE
+  </script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

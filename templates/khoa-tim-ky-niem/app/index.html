@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
+    <script src="giftto-bridge.js"></script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <!-- SEO Meta Tags -->
+    <title>Thiệp Tình Yêu Online</title>
+    <meta name="description" content="Tạo thiệp tình yêu online miễn phí với hiệu ứng độc đáo. Gửi lời yêu thương đến người thân yêu một cách lãng mạn và đặc biệt nhất.">
+    <meta name="robots" content="index, follow">
+
+    <!-- Sitemap -->
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml">
+
+    <!-- Open Graph / Facebook -->
+
+    <!-- Twitter -->
+
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#FFB6C1">
+    <meta name="msapplication-navbutton-color" content="#FFB6C1">
+    <meta name="apple-mobile-web-app-status-bar-style" content="#FFB6C1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <!-- Favicon -->
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+
+    <!-- Pako library for decompression -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+</head>
+<body>
+    <!-- Screen 1: Heart Lock -->
+    <div id="lock-screen" class="screen active">
+        <div class="heart-lock-container">
+            <img src="heart.png" alt="Heart Lock" class="heart-lock-image">
+            <div class="lock-overlay">
+                <p id="preview-notice" class="preview-notice" style="display: none;">Đang xem ở chế độ demo - Mã mở khóa: 1402</p>
+                <p class="lock-title">Ngày Chúng Mình Bên Nhau</p>
+                <div class="number-inputs">
+                    <div class="number-box">
+                        <button class="arrow up" data-index="0">▲</button>
+                        <input type="text" class="digit" value="0" readonly data-index="0">
+                        <button class="arrow down" data-index="0">▼</button>
+                    </div>
+                    <div class="number-box">
+                        <button class="arrow up" data-index="1">▲</button>
+                        <input type="text" class="digit" value="0" readonly data-index="1">
+                        <button class="arrow down" data-index="1">▼</button>
+                    </div>
+                    <div class="number-box">
+                        <button class="arrow up" data-index="2">▲</button>
+                        <input type="text" class="digit" value="0" readonly data-index="2">
+                        <button class="arrow down" data-index="2">▼</button>
+                    </div>
+                    <div class="number-box">
+                        <button class="arrow up" data-index="3">▲</button>
+                        <input type="text" class="digit" value="0" readonly data-index="3">
+                        <button class="arrow down" data-index="3">▼</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 2: Valentine Card with Scratch -->
+    <div id="card-screen" class="screen">
+        <div class="valentine-card">
+            <div class="card-border">
+                <div class="card-content">
+                    <div class="card-left">
+                        <h1 class="card-title">CHÚC MỪNG 2 NĂM<br>BÊN NHAU</h1>
+                        <p class="card-message">
+                            Ba năm bên em là khoảng thời gian tuyệt vời nhất
+                            cuộc đời anh. Mỗi khoảnh khắc, mỗi nụ cười, mỗi
+                            cái nắm tay đều khiến anh thêm yêu em hơn.
+                            Em là nguồn sáng, là nơi bình yên của anh.
+                            Cảm ơn em đã đến bên anh và cho anh một tình yêu
+                            trọn vẹn đến như vậy.
+                        </p>
+                        <p class="scratch-instruction">Cào để xem những điều bí mật nhé.<br><em>Yêu Em Mãi!</em></p>
+                    </div>
+                    <div class="card-right">
+                        <div class="scratch-container">
+                            <canvas id="scratch-canvas"></canvas>
+                            <div class="photo-gallery"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Zoom Modal -->
+    <div id="image-modal" class="image-modal">
+        <span class="modal-close">&times;</span>
+        <img class="modal-content" id="modal-image">
+    </div>
+
+    <!-- Social Share Buttons -->
+
+    <!-- Floating Hearts -->
+    <div class="floating-hearts-container">
+        <span class="heart" style="left: 10%;"></span>
+        <span class="heart" style="left: 20%;"></span>
+        <span class="heart" style="left: 30%;"></span>
+        <span class="heart" style="left: 40%;"></span>
+        <span class="heart" style="left: 50%;"></span>
+        <span class="heart" style="left: 60%;"></span>
+        <span class="heart" style="left: 70%;"></span>
+        <span class="heart" style="left: 80%;"></span>
+        <span class="heart" style="left: 15%;"></span>
+        <span class="heart" style="left: 25%;"></span>
+        <span class="heart" style="left: 35%;"></span>
+        <span class="heart" style="left: 45%;"></span>
+        <span class="heart" style="left: 55%;"></span>
+        <span class="heart" style="left: 65%;"></span>
+        <span class="heart" style="left: 75%;"></span>
+        <span class="heart" style="left: 85%;"></span>
+        <span class="heart" style="left: 5%;"></span>
+        <span class="heart" style="left: 90%;"></span>
+        <span class="heart" style="left: 95%;"></span>
+        <span class="heart" style="left: 12%;"></span>
+    </div>
+
+    <script src="script.js?v=20261107_v3"></script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>

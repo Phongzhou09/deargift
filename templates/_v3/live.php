@@ -169,5 +169,15 @@ try {
 
 <script src="/templates/_v3/assets/js/effects.js"></script>
 <script src="/templates/_v3/assets/js/gift.js"></script>
-</body>
+<script>
+window.addEventListener('message', function(e) {
+    if (!e.data) return;
+    if (e.data.type === 'DG_STOP_AUDIO' || e.data.type === 'DG_CHANGE_MUSIC') {
+        var inner = document.querySelector('iframe.gift-app-frame');
+        if (inner && inner.contentWindow) {
+            try { inner.contentWindow.postMessage(e.data, '*'); } catch(err) {}
+        }
+    }
+});
+</script></body>
 </html>

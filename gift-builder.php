@@ -837,6 +837,7 @@ input:checked+.slider { background:var(--primary); } input:checked+.slider:befor
                     <button type="button" class="gb-preview-mode active" data-preview-mode="desktop" onclick="setPreviewMode('desktop', this)">▣ PC</button>
                     <button type="button" class="gb-preview-mode" data-preview-mode="tablet" onclick="setPreviewMode('tablet', this)">📱 iPad</button>
                     <button type="button" class="gb-preview-mode" data-preview-mode="phone" onclick="setPreviewMode('phone', this)">▯ Điện thoại</button>
+                    <button type="button" id="btn-toggle-sound" class="gb-live-preview-refresh" style="background:#fff0f6; border-color:#f472b6; color:#db2777; font-weight:700;" onclick="togglePreviewSound(this)">🔊 Tắt nhạc</button>
                     <button type="button" class="gb-live-preview-refresh" onclick="refreshGiftPreview()">↻ Cập nhật</button>
                 </div>
             </div>
@@ -861,7 +862,7 @@ input:checked+.slider { background:var(--primary); } input:checked+.slider:befor
                 <div class="icon-tab active" id="tab-sec-v3" data-section="sec-v3" onclick="switchSection('sec-v3', this)">
                     <div class="tab-img" style="background:#fff3e0;">🎁</div>
                     <span class="tab-label">Kịch bản & Nội dung</span>
-                    <span class="tab-status" id="st-sec-v3" style="color:#e8589a;">Đầy đủ các cảnh</span>
+                    <span class="tab-status" id="st-sec-v3" style="color:#e8589a;">Kịch bản 19/11</span>
                 </div>
                 <div class="icon-tab" id="tab-sec-letter" data-section="sec-letter" onclick="switchSection('sec-letter', this)" style="display:none;">
                     <div class="tab-img" style="background:#fff3e0;">💌</div>
@@ -1150,59 +1151,19 @@ input:checked+.slider { background:var(--primary); } input:checked+.slider:befor
                 <p style="font-size:12px; color:#7a7090; margin:4px 0 0; line-height:1.5;">Mỗi cảnh là một khung riêng biệt: bạn có thể <b>Bật/Tắt từng cảnh</b>, sửa <b>chữ</b> hoặc <b>chọn ảnh riêng cho đúng cảnh đó</b>. Để trống thì mẫu tự dùng nội dung gợi ý sẵn.</p>
             </div>
 
-                        <div class="v3-occasion-box">
-                <div class="v3-occasion-head">
-                    <span class="v3-occasion-title">🎯 Chọn nhanh chủ đề / dịp tặng quà (1 chạm đổi toàn bộ câu chữ gợi ý)</span>
-                    <span class="v3-occasion-note">Tự động theo ngày thực tế sau khi qua lễ</span>
-                </div>
-                <div class="v3-occasion-grid" id="v3OccasionBar">
-                                        <button type="button" class="v3-occasion-btn active" data-occasion="19-11" onclick="applyV3OccasionPreset(&quot;19-11&quot;, this)">
-                        <span>🤵 19/11 · Quốc tế Nam giới</span>
-                    </button>
-                                        <button type="button" class="v3-occasion-btn " data-occasion="everyday" onclick="applyV3OccasionPreset(&quot;everyday&quot;, this)">
-                        <span>💖 Ngày thường · Kỷ niệm &amp; Tỏ tình</span>
-                    </button>
-                                        <button type="button" class="v3-occasion-btn " data-occasion="birthday" onclick="applyV3OccasionPreset(&quot;birthday&quot;, this)">
-                        <span>🎂 Sinh nhật</span>
-                    </button>
-                                        <button type="button" class="v3-occasion-btn " data-occasion="20-11" onclick="applyV3OccasionPreset(&quot;20-11&quot;, this)">
-                        <span>👩‍🏫 20/11 · Ngày Nhà giáo</span>
-                    </button>
-                                        <button type="button" class="v3-occasion-btn " data-occasion="20-10" onclick="applyV3OccasionPreset(&quot;20-10&quot;, this)">
-                        <span>🌸 20/10 · Phụ nữ Việt Nam</span>
-                    </button>
-                                        <button type="button" class="v3-occasion-btn " data-occasion="8-3" onclick="applyV3OccasionPreset(&quot;8-3&quot;, this)">
-                        <span>🌷 8/3 · Quốc tế Phụ nữ</span>
-                    </button>
-                                        <button type="button" class="v3-occasion-btn " data-occasion="14-2" onclick="applyV3OccasionPreset(&quot;14-2&quot;, this)">
-                        <span>💘 14/2 · Lễ Tình Nhân Valentine</span>
-                    </button>
-                                    </div>
-                <div id="v3OccasionBadge" style="margin-top:8px; font-size:11.5px; color:#5a4e6d;">
-                    💡 Đang áp dụng bộ gợi ý: <b id="v3OccasionBadgeText">Sắp tới 19/11</b> — Bạn vẫn có thể sửa lại bất kỳ câu chữ hay ngày tháng nào bên dưới.
-                </div>
-            </div>
-            
-            <div class="v3-scene-filter" id="v3SceneFilterBar">
-                <button type="button" class="v3-filter-pill active" onclick="filterV3SceneCards('all', this)">📋 Xem tất cả (9 phần)</button>
-                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-1', this)">👤 Thông tin chung</button>
-                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-2', this)">🔒 Mở đầu · Màn khóa mật mã 2 chú gấu</button>
-                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-3', this)">📅 Cảnh 1 · Tờ lịch ngày đặc biệt</button>
-                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-4', this)">✨ Cảnh 2 · Chữ hạt sáng &amp; Ảnh hạt</button>
-                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-5', this)">🌹 Cảnh 3 · Bó hoa 3D không bao giờ tàn</button>
-                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-6', this)">🔮 Cảnh 4 · Quả cầu ảnh &amp; Ảnh bay bóng bay</button>
-                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-7', this)">💌 Cảnh 5 · Phong bì sáp ong &amp; Lá thư tay</button>
-                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-8', this)">🎁 Cảnh 6 · Hộp quà 3D &amp; Thẻ cào bí mật</button>
-                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-9', this)">🎆 Cảnh 7 · Đêm pháo hoa &amp; Đếm ngày bên nhau</button>
-                            </div>
-
-                        <div class="v3-scene-card " id="scene-card-1">
-                <div class="v3-scene-header">
-                    <div style="flex:1; min-width:0;">
-                        <div class="v3-scene-title">0. 👤 Thông tin chung</div>
-                                                <div class="v3-scene-desc">Tên người nhận hiển thị trên thẻ quà cào (&quot;Món quà dành cho …&quot;) và màn pháo hoa cuối.</div>
-                                            </div>
-                                    </div>
+                        <div class="v3-occasion-box" style="background: linear-gradient(135deg, #f0f7ff 0%, #eef2ff 100%); border: 1.5px solid #c7d2fe; padding: 12px 16px; border-radius: 14px; margin-bottom: 14px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <span style="font-size:13.5px; font-weight:800; color:#3730a3; display:inline-flex; align-items:center; gap:6px;">
+            🤵 Kịch bản quà tặng: 19/11 · Ngày Quốc tế Nam giới
+        </span>
+        <span style="font-size:11.5px; color:#4338ca; background:#fff; padding:3px 10px; border-radius:99px; border:1px solid #c7d2fe; font-weight:700;">
+            Kịch bản độc quyền
+        </span>
+    </div>
+    <div style="font-size:12px; color:#4b5563; margin-top:6px; line-height:1.45;">
+        Kịch bản 7 cảnh được thiết kế riêng cho dịp 19/11: Tờ lịch 19 tháng 11, lời chúc người thương/bạn trai/chồng, bó hoa và quà tặng.
+    </div>
+</div>
 
                 <div class="v3-scene-body">
                                         <div class="form-group" style="margin-bottom:12px;">
@@ -1370,7 +1331,7 @@ Cảm ơn anh vì tất cả</textarea>
                             <span style="font-size:12.5px; font-weight:700; color:#3d3551;">Hiển thị ảnh ghép từ hạt sáng ở cuối Cảnh 2</span>
                             <span class="switch" style="flex-shrink:0;">
                                 <input type="hidden" name="v3[enable_particle_image]" value="0">
-                                <input type="checkbox" class="v3-input" id="v3_enable_particle_image" name="v3[enable_particle_image]" value="1" checked>
+                                <input type="checkbox" class="v3-input" id="v3_enable_particle_image" name="v3[enable_particle_image]" value="0">
                                 <span class="slider round"></span>
                             </span>
                         </label>
@@ -3228,10 +3189,26 @@ function switchMusicTab(tab) {
 var _previewAudio = null;
 var _activePreviewBtn = null;
 
+function stopAllAudio() {
+    if (_previewAudio) {
+        _previewAudio.pause();
+        _previewAudio.currentTime = 0;
+    }
+    if (_activePreviewBtn) {
+        _activePreviewBtn.textContent = '▶';
+        _activePreviewBtn.classList.remove('playing');
+        _activePreviewBtn = null;
+    }
+    var frame = document.getElementById('gift-live-preview');
+    if (frame && frame.contentWindow) {
+        try {
+            frame.contentWindow.postMessage({ type: 'DG_STOP_AUDIO' }, '*');
+        } catch(e) {}
+    }
+}
+
 function selectMusicCard(card) {
-    if (_activePreviewBtn) { _activePreviewBtn.textContent='▶'; _activePreviewBtn.classList.remove('playing'); }
-    if (_previewAudio) { _previewAudio.pause(); }
-    _activePreviewBtn = null;
+    stopAllAudio();
     document.querySelectorAll('.music-card').forEach(c => c.classList.remove('selected'));
     card.classList.add('selected');
     var uploadInput = document.getElementById('music_upload');
@@ -3240,7 +3217,8 @@ function selectMusicCard(card) {
         uploadInput.disabled = true;
     }
     document.getElementById('music_source_type').value = 'preset';
-    document.getElementById('music_url').value = card.getAttribute('data-value');
+    var chosenVal = card.getAttribute('data-value') || card.getAttribute('data-preview') || '';
+    document.getElementById('music_url').value = chosenVal;
     document.getElementById('music_song_id').value = card.getAttribute('data-song-id') || '';
     var songName = card.querySelector('.music-card-name');
     document.getElementById('st-sec-music').textContent = card.getAttribute('data-original') === '1'
@@ -3248,6 +3226,16 @@ function selectMusicCard(card) {
         : (songName ? songName.textContent.trim() : 'Đã chọn');
     document.getElementById('st-sec-music').style.color = '#22c55e';
     updateTotal();
+
+    // Immediately stop old audio in iframe and switch to new song
+    var frame = document.getElementById('gift-live-preview');
+    if (frame && frame.contentWindow && chosenVal) {
+        var resolved = '';
+        try { resolved = new URL(chosenVal, window.location.origin).href; } catch(e) { resolved = chosenVal; }
+        try {
+            frame.contentWindow.postMessage({ type: 'DG_CHANGE_MUSIC', music_url: resolved }, '*');
+        } catch(e) {}
+    }
     if (typeof sendLivePreviewUpdate === 'function') sendLivePreviewUpdate();
 }
 
@@ -3391,6 +3379,7 @@ function previewMusic(e, src, btn) {
     e.stopPropagation();
     var card = btn.closest('.music-card');
     if (card) selectMusicCard(card);
+    stopAllAudio();
     if (!_previewAudio) _previewAudio = document.getElementById('music-preview-player');
     if (_activePreviewBtn && _activePreviewBtn !== btn) {
         _activePreviewBtn.textContent='▶';
@@ -4034,7 +4023,33 @@ window.addEventListener('message', function(e) {
     }
 })();
 
-function refreshGiftPreview() {
+
+    var _previewSoundMuted = false;
+    function togglePreviewSound(btn) {
+        _previewSoundMuted = !_previewSoundMuted;
+        if (_previewSoundMuted) {
+            btn.textContent = '🔇 Bật nhạc';
+            btn.style.background = '#f3f4f6';
+            btn.style.borderColor = '#d1d5db';
+            btn.style.color = '#6b7280';
+            stopAllAudio();
+            var frame = document.getElementById('gift-live-preview');
+            if (frame && frame.contentWindow) {
+                try {
+                    frame.contentWindow.postMessage({ type: 'DG_STOP_AUDIO' }, '*');
+                    frame.contentWindow.postMessage({ type: 'DG_MUTE' }, '*');
+                } catch(e) {}
+            }
+        } else {
+            btn.textContent = '🔊 Tắt nhạc';
+            btn.style.background = '#fff0f6';
+            btn.style.borderColor = '#f472b6';
+            btn.style.color = '#db2777';
+            refreshGiftPreview();
+        }
+    }
+
+    function refreshGiftPreview() {
     var frame = document.getElementById('gift-live-preview');
     if (!frame) return;
     var urlParams = new URLSearchParams(window.location.search);
@@ -4631,62 +4646,72 @@ window.DG_BUILDER_LANGUAGE = "vi";
         var tplId = params.get('id') || '69';
         var tpl = (window.DG_TEMPLATES && window.DG_TEMPLATES[tplId]) ? window.DG_TEMPLATES[tplId] : {
             id: tplId,
-            title: 'Món Quà Ý Nghĩa 🎁',
-            price: '50.000đ',
+            title: (tplId === '69' ? 'Món Quà Nhỏ 3D · 19/11 (Quốc Tế Nam Giới)' : 'Món Quà Ý Nghĩa'),
+            price: (tplId === '69' ? '50.000đ' : 'Miễn phí'),
             demo_url: 'demo.php?id=' + tplId
         };
 
-        // 1. Form action & hidden template_id
+        var cleanTitle = tpl.title.replace(/&amp;/g, '&');
+
+        // 1. Main Studio Title on Top of Page
+        var studioTitle = document.getElementById('gb-studio-title');
+        if (studioTitle) {
+            studioTitle.innerHTML = cleanTitle + ' 🎁';
+        }
+        document.title = 'Tạo ' + cleanTitle.replace(/<[^>]*>/g, '') + ' | DearGift';
+
+        // 2. Form action & hidden template_id
         var form = document.getElementById('giftForm');
         if (form) form.action = 'gift-builder.php?id=' + tplId;
         var hiddenTpl = document.getElementById('hidden_template_id');
         if (hiddenTpl) hiddenTpl.value = tplId;
 
-        // 2. Preview Title & Iframe src
+        // 3. Preview Title & Iframe src
         var titleEl = document.querySelector('.gb-live-preview-title');
         if (titleEl) {
-            titleEl.innerHTML = '👀 Xem trước: ' + tpl.title;
+            titleEl.innerHTML = '👀 Xem trước: ' + cleanTitle;
         }
         var previewFrame = document.getElementById('gift-live-preview');
         if (previewFrame) {
-            if (tplId === '69') {
-                previewFrame.src = 'templates/_v3/live.php?slug=mon-qua-nho-2010';
-            } else {
-                previewFrame.src = 'demo.php?id=' + tplId;
+            var targetSrc = (tplId === '69') ? 'templates/_v3/live.php?slug=mon-qua-nho-2010' : ('demo.php?id=' + tplId);
+            if (!previewFrame.src || previewFrame.src.indexOf(targetSrc) === -1) {
+                previewFrame.src = targetSrc;
             }
         }
 
-        // 3. Price Display
+        // 4. Price Display & Modal checkout title
         var prTemplate = document.getElementById('pr-template');
         if (prTemplate && tpl.price) {
             prTemplate.textContent = tpl.price;
         }
+        var orderTplTitle = document.getElementById('modal-tpl-title');
+        if (orderTplTitle) {
+            orderTplTitle.textContent = cleanTitle + ' 🎁';
+        }
 
-        // 4. Tab and Section Visibility
+        // 5. Tab and Section Visibility: strict isolation
         var tabV3 = document.getElementById('tab-sec-v3');
         var tabLetter = document.getElementById('tab-sec-letter');
         var secV3 = document.getElementById('sec-v3');
         var secLetter = document.getElementById('sec-letter');
 
         if (tplId === '69') {
-            // Multi-scene Template 69
+            // Dedicated 19/11 Men's Day Gift
             if (tabV3) { tabV3.style.display = ''; tabV3.classList.add('active'); }
             if (tabLetter) { tabLetter.style.display = 'none'; tabLetter.classList.remove('active'); }
             if (secV3) { secV3.style.display = ''; secV3.classList.add('active'); }
-            if (secLetter) { secLetter.classList.remove('active'); }
+            if (secLetter) { secLetter.style.display = 'none'; secLetter.classList.remove('active'); }
         } else {
-            // Non-69 templates: Hide the 7-scene editor, show clean Letter/Wishes editor
+            // All other templates: standard clean editor (Letter, Photos, Music only)
             if (tabV3) { tabV3.style.display = 'none'; tabV3.classList.remove('active'); }
             if (tabLetter) { tabLetter.style.display = ''; tabLetter.classList.add('active'); }
             if (secV3) { secV3.style.display = 'none'; secV3.classList.remove('active'); }
             if (secLetter) { secLetter.style.display = ''; secLetter.classList.add('active'); }
             
-            // Update photo tab label
             var photoLabel = document.querySelector('[data-section="sec-photos"] .tab-label');
-            if (photoLabel) photoLabel.textContent = 'Ảnh kỷ niệm';
+            if (photoLabel) photoLabel.textContent = 'Album ảnh';
         }
 
-        // Always recalculate pricing when template is bound
         if (typeof updateTotal === 'function') {
             updateTotal();
         }

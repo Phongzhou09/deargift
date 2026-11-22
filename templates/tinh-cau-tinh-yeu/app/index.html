@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
+    <script src="giftto-bridge.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tinh Cầu Tình Yêu 🪐</title>
+    <meta name="description"
+          content="💝 Gửi yêu thương đến người bạn yêu quý nhất! Tạo thiệp, lời chúc và quà tặng online đầy ý nghĩa. Hãy để tình yêu lan tỏa! 💌✨">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+            href="https://fonts.googleapis.com/css2?family=Mali:ital,wght@0,200;0,300;0,400;0,500;0,600;0,700;1,200;1,300;1,400;1,500;1,600;1,700&family=Pacifico&family=Noto+Sans:wght@300;400;500;700&display=swap"
+            rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <script>
+      (function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const cfgId = urlParams.get("id");
+        if (!cfgId) return;
+        window.__configPromise = fetch(
+          "https://lovegift.online/api/settings/" + cfgId
+        )
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function (data) {
+            if (data && data.success && data.data && data.data.settings) {
+              window.apiConfig = data.data.settings;
+              console.log("Config loaded from API:", window.apiConfig);
+            }
+          })
+          .catch(function (err) {
+            console.error("Lỗi load config từ API:", err);
+          });
+      })();
+    </script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.152.2/build/three.module.js",
+          "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js",
+          "three/examples/jsm/loaders/FontLoader.js": "https://unpkg.com/three@0.152.2/examples/jsm/loaders/FontLoader.js",
+          "three/examples/jsm/geometries/TextGeometry.js": "https://unpkg.com/three@0.152.2/examples/jsm/geometries/TextGeometry.js"
+        }
+      }
+    </script>
+  </head>
+
+  <body>
+    <audio id="bg-music" autoplay loop>
+      <source src="" type="audio/mpeg" />
+    </audio>
+    <div id="container"></div>
+    <div id="landscape-warning">
+      <div class="warning-content">
+        <div class="rotate-icon"></div>
+        <h1>Stellar Bloom</h1>
+        <h1>Tinh Cầu tình yêu</h1>
+        <div class="stars-bg"></div>
+      </div>
+    </div>
+    <div id="dark-overlay"></div>
+    <div id="info"></div>
+    <script type="module" src="script.js"></script>
+  <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
