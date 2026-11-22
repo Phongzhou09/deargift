@@ -203,28 +203,20 @@
   <div id="loginScreen" class="login-overlay">
     <div class="login-card">
       <div class="login-logo">
-        <i data-lucide="lock"></i>
+        <i data-lucide="shield-check" style="color: white; width: 28px; height: 28px;"></i>
       </div>
       <h2 class="login-title">Đăng Nhập Quản Trị CMS</h2>
-      <p class="login-desc">Hệ thống quản trị nội dung website DearGift Studio</p>
+      <p class="login-desc">Khu vực bảo mật dành riêng cho Quản trị viên (Nguyễn Văn Phong). Vui lòng nhập mật khẩu quản trị để tiếp tục.</p>
 
       <form onsubmit="handleLogin(event)">
         <div class="form-group" style="text-align: left;">
-          <label class="form-label">Mật khẩu quản trị</label>
-          <input type="text" id="adminPasswordInput" class="form-input" placeholder="Nhập mật khẩu..." value="admin" required autofocus>
-          <div style="font-size: 12px; color: #6d28d9; margin-top: 6px; font-weight: 700;">
-            🔑 Mật khẩu mặc định: <code style="background: #ede9fe; padding: 2px 6px; border-radius: 6px;">admin</code> hoặc <code style="background: #ede9fe; padding: 2px 6px; border-radius: 6px;">admin1911</code>
-          </div>
+          <label class="form-label">Mật khẩu quản trị viên</label>
+          <input type="password" id="adminPasswordInput" class="form-input" placeholder="Nhập mật khẩu quản trị..." required autofocus autocomplete="current-password">
         </div>
 
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; border-radius: 12px; margin-top: 6px;">
-          <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
-          <span>Vào Bảng Quản Trị</span>
-        </button>
-
-        <button type="button" onclick="quickLogin()" style="width: 100%; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 12px; padding: 10px; margin-top: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
-          <i data-lucide="zap" style="width: 15px; height: 15px; color: #f59e0b;"></i>
-          <span>Đăng Nhập Nhanh 1 Chạm</span>
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; border-radius: 12px; margin-top: 10px;">
+          <i data-lucide="lock" style="width: 16px; height: 16px;"></i>
+          <span>Xác Thực & Vào Bảng Quản Trị</span>
         </button>
       </form>
     </div>
@@ -611,32 +603,37 @@
     let siteSettings = {};
 
     // Check Auth on Load
-    document.addEventListener('DOMContentLoaded', () => {
-      lucide.createIcons();
-      const token = localStorage.getItem('deargift_admin_token');
-      if (token) {
-        document.getElementById('loginScreen').style.display = 'none';
-        loadAdminData();
-      }
-    });
-
-    // Quick Login (1-touch)
-    function quickLogin() {
-      localStorage.setItem('deargift_admin_token', 'quick_auth_ok');
-      document.getElementById('loginScreen').style.display = 'none';
-      loadAdminData();
+        function getAdminToken() {
+      return sessionStorage.getItem('deargift_admin_token') || localStorage.getItem('deargift_admin_token') || '';
     }
 
-    // Handle Login
+    document.addEventListener('DOMContentLoaded', async () => {
+      lucide.createIcons();
+      const token = getAdminToken();
+      if (token) {
+        try {
+          const res = await fetch(API_BASE + '/api/admin/verify', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+          const d = await res.json();
+          if (d && d.status === 'success') {
+            document.getElementById('loginScreen').style.display = 'none';
+            loadAdminData();
+            return;
+          }
+        } catch (e) {
+          console.warn('Xác thực phiên làm việc thất bại:', e);
+        }
+      }
+      // Khóa màn hình nếu chưa có token hợp lệ
+      document.getElementById('loginScreen').style.display = 'flex';
+    });
+
+    // Handle Login (Xác thực mật khẩu duy nhất từ máy chủ)
     async function handleLogin(e) {
       if (e) e.preventDefault();
       const pwd = document.getElementById('adminPasswordInput').value.trim();
-
-      // Client-side quick check
-      if (['admin', 'admin1911', '123456'].includes(pwd)) {
-        quickLogin();
-        return;
-      }
+      if (!pwd) return;
 
       try {
         const res = await fetch(API_BASE + '/api/admin/login', {
@@ -645,27 +642,26 @@
           body: JSON.stringify({ password: pwd })
         });
         const data = await res.json();
-        if (data.status === 'success') {
-          quickLogin();
+        if (data.status === 'success' && data.token) {
+          sessionStorage.setItem('deargift_admin_token', data.token);
+          localStorage.setItem('deargift_admin_token', data.token);
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('adminPasswordInput').value = '';
+          loadAdminData();
         } else {
-          alert('Mật khẩu không chính xác! Hãy thử: admin');
+          alert(data.message || 'Mật khẩu quản trị không chính xác!');
         }
       } catch (err) {
-        // Fallback for file:// or network issues
-        console.warn('API login failed, verifying locally:', err);
-        if (pwd === 'admin' || pwd === 'admin1911') {
-          quickLogin();
-        } else {
-          alert('Không thể kết nối máy chủ. Mật khẩu mặc định là: admin');
-        }
+        alert('Không thể kết nối máy chủ xác thực.');
       }
     }
 
     // Handle Logout
     function handleLogout() {
+      sessionStorage.removeItem('deargift_admin_token');
       localStorage.removeItem('deargift_admin_token');
       document.getElementById('loginScreen').style.display = 'flex';
-      document.getElementById('adminPasswordInput').value = 'admin';
+      document.getElementById('adminPasswordInput').value = '';
     }
 
     // Switch Tabs

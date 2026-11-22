@@ -43,6 +43,16 @@ REVIEWS_FILE = os.path.join(DIRECTORY, 'reviews.json')
 UPLOADS_DIR = os.path.join(DIRECTORY, 'uploads')
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
+ADMIN_SESSIONS = set()
+
+def verify_admin_request(handler):
+    auth = handler.headers.get('Authorization', '')
+    if auth.startswith('Bearer '):
+        token = auth[7:].strip()
+        if token and token in ADMIN_SESSIONS:
+            return True
+    return False
+
 SLUG_TO_ID = {
     'mon-qua-nho-2010': '69',
     'hpbd-vip': '21',
@@ -868,13 +878,22 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             data = self.read_request_data()
             settings = get_settings()
             entered = str(data.get('password', '')).strip() if data else ''
-            valid_passwords = [settings.get('admin_password', 'admin'), 'admin', 'admin1911', 'Phongzhouok']
+            admin_pwd = settings.get('admin_password', 'Phongzhouok')
             
-            if entered and entered in valid_passwords:
-                token = str(uuid.uuid4())
+            if entered and entered == admin_pwd:
+                token = uuid.uuid4().hex
+                ADMIN_SESSIONS.add(token)
                 self.send_json_response({"status": "success", "token": token, "message": "Đăng nhập CMS quản trị thành công!"})
             else:
-                self.send_json_response({"status": "error", "message": "Mật khẩu không đúng!"}, status=401)
+                self.send_json_response({"status": "error", "message": "Mật khẩu quản trị không chính xác!"}, status=401)
+            return
+
+        # API: Admin Verify Session
+        if path == '/api/admin/verify':
+            if verify_admin_request(self):
+                self.send_json_response({"status": "success", "message": "Xác thực phiên thành công"})
+            else:
+                self.send_json_response({"status": "error", "message": "Phiên làm việc hết hạn hoặc không hợp lệ"}, status=401)
             return
 
         # 12. API: Admin Add Template
