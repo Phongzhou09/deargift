@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 340">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="55%" r="50%"><stop offset="0" stop-color="#fff3d6" stop-opacity=".9"/><stop offset="1" stop-color="#fff3d6" stop-opacity="0"/></radialGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff8ec"/><stop offset="1" stop-color="#f3e2c7"/></linearGradient>
+    <linearGradient id="roof" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c9784a"/><stop offset="1" stop-color="#a65a35"/></linearGradient>
+    <radialGradient id="win" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#fff2b3"/><stop offset="1" stop-color="#f6b955"/></radialGradient>
+  </defs>
+  <ellipse cx="200" cy="190" rx="190" ry="150" fill="url(#g)"/>
+  <ellipse cx="200" cy="312" rx="150" ry="14" fill="#8a6a43" opacity=".18"/>
+  <rect x="250" y="70" width="30" height="60" rx="4" fill="#b8673f"/>
+  <rect x="95" y="150" width="210" height="160" rx="8" fill="url(#wall)" stroke="#d8bf98" stroke-width="3"/>
+  <path d="M70 160 L200 55 L330 160 Z" fill="url(#roof)" stroke="#8e4b2b" stroke-width="4" stroke-linejoin="round"/>
+  <rect x="120" y="185" width="60" height="55" rx="6" fill="url(#win)" stroke="#c9945a" stroke-width="4"/>
+  <path d="M150 185 V240 M120 212 H180" stroke="#c9945a" stroke-width="3"/>
+  <rect x="220" y="215" width="55" height="95" rx="26" fill="#9b6b44"/>
+  <circle cx="262" cy="265" r="4" fill="#f6d28b"/>
+  <path d="M200 132 c-8 -14 -30 -8 -26 8 c3 10 26 22 26 22 s23 -12 26 -22 c4 -16 -18 -22 -26 -8z" fill="#e8806a"/>
+  <g fill="#7fae6a"><ellipse cx="88" cy="300" rx="30" ry="16"/><ellipse cx="318" cy="302" rx="28" ry="14"/></g>
+  <g fill="#f3c74f"><circle cx="78" cy="293" r="5"/><circle cx="98" cy="297" r="4"/><circle cx="325" cy="295" r="5"/></g>
+</svg>
