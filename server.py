@@ -229,28 +229,33 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
-        # Audio file handling fallback
-        if path.lower().endswith(('.mp3', '.m4a', '.wav', '.ogg')):
+        # Media file handling (Video and Audio with full HTTP 206 Range support)
+        if path.lower().endswith(('.mp4', '.webm', '.mp3', '.m4a', '.wav', '.ogg')):
             fname = os.path.basename(path)
+            ctype = 'video/mp4' if fname.endswith('.mp4') else ('video/webm' if fname.endswith('.webm') else ('audio/mpeg' if fname.endswith('.mp3') else 'audio/wav'))
+            
+            # Direct path check
+            direct = os.path.join(DIRECTORY, path.lstrip('/'))
+            if os.path.exists(direct) and os.path.isfile(direct):
+                return self.serve_media_with_range(direct, ctype)
+
             cand_paths = [
+                os.path.join(DIRECTORY, 'assets', 'images', fname),
+                os.path.join(DIRECTORY, 'christmas-gift', 'assets', 'images', fname),
                 os.path.join(DIRECTORY, 'assets', 'music', fname),
                 os.path.join(DIRECTORY, 'assets', 'musics', fname),
                 os.path.join(DIRECTORY, 'assets', 'audio', fname),
-                os.path.join(DIRECTORY, 'assets', 'audios', fname),
                 os.path.join(DIRECTORY, 'demos', 'assets', fname),
-                os.path.join(DIRECTORY, 'demos', 'assets', 'musics', fname),
-                os.path.join(DIRECTORY, 'demos', 'assets', 'music', fname),
-                os.path.join(DIRECTORY, 'demos', 'assets', 'audio', fname),
                 os.path.join(DIRECTORY, 'templates', 'mon-qua-nho-2010', 'app', 'assets', 'music', fname)
             ]
             for cand in cand_paths:
-                if os.path.exists(cand):
-                    return self.serve_audio(cand, 'audio/mpeg' if fname.endswith('.mp3') else 'audio/wav')
+                if os.path.exists(cand) and os.path.isfile(cand):
+                    return self.serve_media_with_range(cand, ctype)
             
-            # Universal fallback if audio not found: serve givemeyourforever.mp3 so audio NEVER 404s
-            fallback = os.path.join(DIRECTORY, 'assets', 'music', 'givemeyourforever.mp3')
-            if os.path.exists(fallback):
-                return self.serve_audio(fallback, 'audio/mpeg')
+            if fname.endswith(('.mp3', '.m4a', '.wav', '.ogg')):
+                fallback = os.path.join(DIRECTORY, 'assets', 'music', 'givemeyourforever.mp3')
+                if os.path.exists(fallback):
+                    return self.serve_media_with_range(fallback, 'audio/mpeg')
 
         # Standard Page Routes
         if path in ['/', '/index.php', '/index.html']:
@@ -1432,22 +1437,52 @@ setInterval(pollStatus, 2500);
         else:
             self.send_error(404, f"{filename} not found")
 
-    def serve_audio(self, file_path, content_type='audio/mpeg'):
-        if os.path.exists(file_path):
+    def serve_media_with_range(self, file_path, content_type):
+        if not os.path.exists(file_path):
+            self.send_error(404, "Media file not found")
+            return
+
+        file_size = os.path.getsize(file_path)
+        range_header = self.headers.get('Range')
+
+        if not range_header:
             self.send_response(200)
             self.send_header('Content-Type', content_type)
-            self.send_header('Content-Length', str(os.path.getsize(file_path)))
+            self.send_header('Content-Length', str(file_size))
+            self.send_header('Accept-Ranges', 'bytes')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             with open(file_path, 'rb') as f:
                 self.wfile.write(f.read())
-        else:
-            self.send_error(404, "Audio file not found")
+            return
+
+        try:
+            bytes_range = range_header.strip().split('=')[1]
+            parts = bytes_range.split('-')
+            start = int(parts[0]) if parts[0] else 0
+            end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
+            if end >= file_size:
+                end = file_size - 1
+            length = end - start + 1
+
+            self.send_response(206, "Partial Content")
+            self.send_header('Content-Type', content_type)
+            self.send_header('Content-Range', f'bytes {start}-{end}/{file_size}')
+            self.send_header('Content-Length', str(length))
+            self.send_header('Accept-Ranges', 'bytes')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+
+            with open(file_path, 'rb') as f:
+                f.seek(start)
+                self.wfile.write(f.read(length))
+        except Exception as e:
+            self.send_error(500, f"Range error: {e}")
 
     def serve_gift_builder(self, query):
         filepath = os.path.join(DIRECTORY, 'gift-builder.php')
         if not os.path.exists(filepath):
-            self.send_error(404, "gift-builder.php not found")
+            self.send_error(404, 'gift-builder.php not found')
             return
 
         with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
@@ -1456,33 +1491,6 @@ setInterval(pollStatus, 2500);
         tpl_id = query.get('id', ['69'])[0].strip()
         expected_src = 'templates/_v3/live.php?slug=mon-qua-nho-2010' if tpl_id == '69' else f'demo.php?id={tpl_id}'
 
-        # Load metadata
-        tpl_title = 'Món Quà Nhỏ 3D · 19/11 (Quốc Tế Nam Giới)' if tpl_id == '69' else 'Món Quà Ý Nghĩa'
-        tpl_price = '50.000đ' if tpl_id == '69' else 'Miễn phí'
-        
-        try:
-            map_path = os.path.join(DIRECTORY, 'js', 'templates_map.js')
-            if os.path.exists(map_path):
-                with open(map_path, 'r', encoding='utf-8', errors='ignore') as mf:
-                    mtext = mf.read()
-                    mstart = mtext.find('{')
-                    mend = mtext.rfind('}') + 1
-                    tmap = json.loads(mtext[mstart:mend])
-                    if tpl_id in tmap:
-                        tpl_title = tmap[tpl_id].get('title', tpl_title).replace('&amp;', '&')
-                        tpl_price = tmap[tpl_id].get('price', tpl_price)
-        except Exception as e:
-            pass
-
-        # Replace Title & Header
-        content = re.sub(r'<h1 id="gb-studio-title">.*?</h1>', f'<h1 id="gb-studio-title">{tpl_title} 🎁</h1>', content)
-        content = re.sub(r'<span class="gb-live-preview-title">.*?</span>', f'<span class="gb-live-preview-title">👀 Xem trước: {tpl_title}</span>', content)
-        content = re.sub(r'<title>.*?</title>', f'<title>Tạo {tpl_title} | DearGift</title>', content)
-
-        # Replace Price
-        content = content.replace('<span id="pr-template" style="font-weight:700; color:#e8589a;">50.000đ</span>', f'<span id="pr-template" style="font-weight:700; color:#e8589a;">{tpl_price}</span>')
-
-        # Iframe and Form Actions
         content = content.replace(
             'src="templates/_v3/live.php?slug=mon-qua-nho-2010"',
             f'src="{expected_src}"'
@@ -1500,35 +1508,10 @@ setInterval(pollStatus, 2500);
             f'id="hidden_template_id" value="{tpl_id}"'
         )
 
-        # Strict isolation: if non-69, show letter and hide v3 scenes on initial render
-        if tpl_id != '69':
-            content = content.replace('id="tab-sec-v3"', 'id="tab-sec-v3" style="display:none;"')
-            content = content.replace('class="icon-tab active" id="tab-sec-v3"', 'class="icon-tab" id="tab-sec-v3" style="display:none;"')
-            content = content.replace('id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)" style="display:none;"', 'id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)"')
-            content = content.replace('class="icon-tab" id="tab-sec-letter"', 'class="icon-tab active" id="tab-sec-letter"')
-            content = content.replace('class="gb-section active" id="sec-v3"', 'class="gb-section" id="sec-v3" style="display:none;"')
-            content = content.replace('class="gb-section " id="sec-letter"', 'class="gb-section active" id="sec-letter"')
-            content = content.replace('Album Quả cầu', 'Album ảnh')
-
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         self.wfile.write(content.encode('utf-8'))
 
-def run():
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), DearGiftHandler) as httpd:
-        print(f"=======================================================")
-        print(f"🚀 DearGift Full Production Server is running on port {PORT}!")
-        print(f"👉 Client Home:    http://localhost:{PORT}/")
-        print(f"👉 Template Store: http://localhost:{PORT}/templates.php")
-        print(f"👉 Admin CMS:      http://localhost:{PORT}/admin")
-        print(f"=======================================================")
-        try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\nShutting down server...")
 
-if __name__ == '__main__':
-    run()
