@@ -454,6 +454,9 @@
         <p class="orientation-gate__text">
           Vui lòng quay ngang điện thoại hoặc iPad để có trải nghiệm tốt nhất.
         </p>
+        <button type="button" onclick="window.__skipOrientationGate=true; var g=document.getElementById('orientation-gate'); if(g) g.hidden=true;" style="margin-top:14px; padding:10px 20px; background:#fff; color:#e8589a; font-weight:700; border-radius:24px; border:none; cursor:pointer; font-size:14px; box-shadow:0 4px 15px rgba(0,0,0,0.15);">
+          Tiếp tục xem dọc &rarr;
+        </button>
       </div>
     </div>
     <script>
@@ -469,6 +472,9 @@
           return window.innerHeight > window.innerWidth;
         }
         function shouldShowOrientationGate() {
+          var isInIframe = false;
+          try { isInIframe = window.self !== window.top; } catch(e) { isInIframe = true; }
+          if (isInIframe || window.__skipOrientationGate) return false;
           if (!isTouchDevice()) return false;
           if (!isPortraitLayout()) return false;
           var shortSide = Math.min(window.innerWidth, window.innerHeight);

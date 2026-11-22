@@ -11,6 +11,35 @@ window.giftBackgroundImage = bgImagePreload;
 
 
 function checkOrientation() {
+    // If inside an iframe (like gift-builder preview or modal), or if user dismissed: NEVER BLOCK
+    var isInIframe = false;
+    try { isInIframe = window.self !== window.top; } catch(e) { isInIframe = true; }
+    if (isInIframe || window.__skipOrientationLock) {
+        isLandscape = true;
+        const orientationLock = document.getElementById('orientation-lock');
+        if (orientationLock) {
+            orientationLock.style.display = 'none';
+        }
+        if (hasStarted) {
+            const mainCanvas = document.querySelector('.canvas');
+            const backgroundVideo = document.getElementById('backgroundVideo');
+            const musicControl = document.getElementById('musicControl');
+            if (musicControl) musicControl.style.display = 'block';
+            if (mainCanvas) mainCanvas.style.display = 'block';
+            if (backgroundVideo && !backgroundVideo.ended) {
+                backgroundVideo.style.display = 'block';
+                backgroundVideo.style.visibility = 'visible';
+                backgroundVideo.play().catch(e => console.log('Video autoplay prevented:', e));
+            }
+            const christmasAudio = document.getElementById('christmasAudio');
+            if (christmasAudio) {
+                christmasAudio.play().catch(e => console.log('Audio autoplay prevented:', e));
+            }
+            startWebsite();
+        }
+        return;
+    }
+
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const orientationLock = document.getElementById('orientation-lock');
     const mainCanvas = document.querySelector('.canvas');
@@ -109,6 +138,13 @@ function checkOrientation() {
         }
 
         mediaQuery.addEventListener('change', (e) => {
+            var isInIframe = false;
+            try { isInIframe = window.self !== window.top; } catch(err) { isInIframe = true; }
+            if (isInIframe || window.__skipOrientationLock) {
+                isLandscape = true;
+                if (orientationLock) orientationLock.style.display = 'none';
+                return;
+            }
             isLandscape = e.matches;
             if (isLandscape) {
                 orientationLock.style.display = 'none';
@@ -378,62 +414,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 500);
             
             // Kiểm tra lại orientation và hiển thị nội dung phù hợp
-            // Đối với mobile, cần check orientation trước
+            var isInIframe = false;
+            try { isInIframe = window.self !== window.top; } catch(err) { isInIframe = true; }
             const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            if (isMobileDevice) {
-                // Mobile: check orientation
+
+            if (isInIframe || window.__skipOrientationLock) {
+                isLandscape = true;
+            } else if (isMobileDevice) {
                 const mediaQuery = window.matchMedia("(orientation: landscape)");
                 isLandscape = mediaQuery.matches;
-                
-                if (isLandscape) {
-                    // Đã xoay ngang, hiển thị tất cả
-                    const backgroundVideo = document.getElementById('backgroundVideo');
-                    const mainCanvas = document.querySelector('.canvas');
-                    const musicControl = document.getElementById('musicControl');
-                    const orientationLock = document.getElementById('orientation-lock');
-                    
-                    if (orientationLock) {
-                        orientationLock.style.display = 'none';
-                    }
-                    
-                    if (mainCanvas) {
-                        mainCanvas.style.display = 'block';
-                    }
-                    
-                    if (backgroundVideo) {
-                        backgroundVideo.style.display = 'block';
-                        backgroundVideo.style.visibility = 'visible';
-                        backgroundVideo.currentTime = 0;
-                        backgroundVideo.play().catch(e => console.log('Video autoplay prevented:', e));
-                    }
-                    
-                    if (musicControl) {
-                        musicControl.style.display = 'block';
-                    }
-                    
-                    // Phát nhạc (user interaction sẽ unlock audio)
-                    const christmasAudio = document.getElementById('christmasAudio');
-                    if (christmasAudio) {
-                        christmasAudio.play().catch(e => {
-                            console.log('Audio autoplay prevented:', e);
-                        });
-                    }
-                    
-                    // Khởi động website
-                    startWebsite();
-                } else {
-                    // Chưa xoay ngang, hiển thị orientation lock
-                    const orientationLock = document.getElementById('orientation-lock');
-                    if (orientationLock) {
-                        orientationLock.style.display = 'flex';
-                    }
-                }
             } else {
-                // Desktop: hiển thị tất cả ngay
+                isLandscape = true;
+            }
+            
+            if (isLandscape || isInIframe || window.__skipOrientationLock) {
+                // Hiển thị tất cả và phát video + nhạc
                 const backgroundVideo = document.getElementById('backgroundVideo');
                 const mainCanvas = document.querySelector('.canvas');
                 const musicControl = document.getElementById('musicControl');
+                const orientationLock = document.getElementById('orientation-lock');
+                
+                if (orientationLock) {
+                    orientationLock.style.display = 'none';
+                }
                 
                 if (mainCanvas) {
                     mainCanvas.style.display = 'block';
@@ -442,7 +445,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (backgroundVideo) {
                     backgroundVideo.style.display = 'block';
                     backgroundVideo.style.visibility = 'visible';
-                    // Phát video
+                    backgroundVideo.currentTime = 0;
                     backgroundVideo.play().catch(e => console.log('Video autoplay prevented:', e));
                 }
                 
@@ -460,6 +463,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Khởi động website
                 startWebsite();
+            } else {
+                // Chưa xoay ngang và đang xem trực tiếp ngoài iframe: hiển thị orientation lock
+                const orientationLock = document.getElementById('orientation-lock');
+                if (orientationLock) {
+                    orientationLock.style.display = 'flex';
+                    orientationLock.style.visibility = 'visible';
+                    orientationLock.style.opacity = '1';
+                }
             }
         });
     }

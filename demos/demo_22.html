@@ -62,11 +62,22 @@
             signature: sName
         };
         
-        if (data.music_url) {
+        if (photos.length > 0) {
+            if (window.dataChristmasTree && window.dataChristmasTree.data) {
+                window.dataChristmasTree.data.images = photos;
+            }
+            if (typeof window.__updateChristmasPhotos === 'function') {
+                window.__updateChristmasPhotos(photos);
+            }
+        }
+        
+        if (data.music_url && !data.preserve_demo_audio) {
             window.giftChristmasData.musicFile = data.music_url;
-            var audio = document.getElementById('bg-music') || document.querySelector('audio');
+            var audio = document.getElementById('christmasAudio') || document.getElementById('bg-music') || document.querySelector('audio');
             if (audio && audio.src !== data.music_url) {
                 audio.src = data.music_url;
+                audio.load();
+                audio.play().catch(function(){});
             }
         }
         
@@ -101,6 +112,9 @@
         <div class="orientation-message">
             <img src="assets/images/rotate.png" alt="Rotate" class="rotate-icon">
             <p>Vui lòng bật xoay ngang màn hình nhé người đẹp</p>
+            <button type="button" class="btn-skip-orientation" onclick="window.__skipOrientationLock=true; if(typeof checkOrientation==='function')checkOrientation();" style="margin-top:14px; padding:10px 20px; background:#fff; color:#c41535; font-weight:700; border-radius:24px; border:none; cursor:pointer; font-size:14px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+                Tiếp tục xem dọc &rarr;
+            </button>
         </div>
     </div>
 
@@ -116,8 +130,8 @@
 
     <!-- Music Control -->
     <div id="musicControl" class="music-control" title="Play Music" style="display: none;">▶</div>
-    <audio id="christmasAudio" loop>
-        <!-- Source sẽ được set động từ giftData hoặc để trống -->
+    <audio id="christmasAudio" loop preload="auto">
+        <source src="assets/musics/hoanhipgiangsinh.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Settings Script (define before index.js) -->

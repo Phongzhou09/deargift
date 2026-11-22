@@ -62,6 +62,38 @@ window.__xmasFix = function (html) {
 };
 window.giftChristmasData = {"recipientName":"Người thương","musicType":"","musicFile":"","letter":{"greeting":"Gửi Người thương thân mến,","content":"Chạm để khám phá hiệu ứng của mẫu quà này.","signature":"DearGift"},"photos":[],"vipGift":{"type":"photos","images":[]}};
 window.settings = {"countdown":10,"sequence":"MERRY|CHRISTMAS|2026","sequenceColor":"#ffffff","recipientName":"Người thương"};
+window.addEventListener('message', function(event) {
+    if (event.source !== window.parent || !event.data) return;
+    var isDG = event.data.type === 'DG_LIVE_PREVIEW_UPDATE' || event.data.type === 'LIVE_PREVIEW_UPDATE';
+    if (!isDG) return;
+    var data = event.data.payload || event.data.data || {};
+    var rName = data.recipient_name || 'Người thương';
+    var photos = Array.isArray(data.photos) ? data.photos : [];
+    window.giftChristmasData = window.giftChristmasData || {};
+    window.giftChristmasData.recipientName = rName;
+    window.giftChristmasData.photos = photos;
+    window.giftChristmasData.vipGift = { type: 'photos', images: photos };
+    if (photos.length > 0) {
+        if (window.dataChristmasTree && window.dataChristmasTree.data) {
+            window.dataChristmasTree.data.images = photos;
+        }
+        if (typeof window.__updateChristmasPhotos === 'function') {
+            window.__updateChristmasPhotos(photos);
+        }
+    }
+    if (data.music_url && !data.preserve_demo_audio) {
+        window.giftChristmasData.musicFile = data.music_url;
+        var audio = document.getElementById('christmasAudio') || document.querySelector('audio');
+        if (audio && audio.src !== data.music_url) {
+            audio.src = data.music_url;
+            audio.load();
+            audio.play().catch(function(){});
+        }
+    }
+});
+if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'DG_PREVIEW_READY' }, '*');
+}
 </script>
 
 <body>
@@ -80,6 +112,9 @@ window.settings = {"countdown":10,"sequence":"MERRY|CHRISTMAS|2026","sequenceCol
         <div class="orientation-message">
             <img src="../templates/christmas-gift/assets/images/rotate.png" alt="Rotate" class="rotate-icon">
             <p>Vui lòng bật xoay ngang màn hình nhé người đẹp</p>
+            <button type="button" class="btn-skip-orientation" onclick="window.__skipOrientationLock=true; if(typeof checkOrientation==='function')checkOrientation();" style="margin-top:14px; padding:10px 20px; background:#fff; color:#c41535; font-weight:700; border-radius:24px; border:none; cursor:pointer; font-size:14px; box-shadow:0 4px 15px rgba(0,0,0,0.3);">
+                Tiếp tục xem dọc &rarr;
+            </button>
         </div>
     </div>
 

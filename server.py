@@ -251,11 +251,18 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             cand_paths = [
                 os.path.join(DIRECTORY, 'assets', 'images', fname),
                 os.path.join(DIRECTORY, 'christmas-gift', 'assets', 'images', fname),
+                os.path.join(DIRECTORY, 'giang-sinh', 'assets', 'images', fname),
+                os.path.join(DIRECTORY, 'templates', 'christmas-gift', 'assets', 'images', fname),
+                os.path.join(DIRECTORY, 'troll-ny', fname),
+                os.path.join(DIRECTORY, 'demos', fname),
                 os.path.join(DIRECTORY, 'assets', 'music', fname),
                 os.path.join(DIRECTORY, 'assets', 'musics', fname),
+                os.path.join(DIRECTORY, 'christmas-gift', 'assets', 'musics', fname),
                 os.path.join(DIRECTORY, 'assets', 'audio', fname),
                 os.path.join(DIRECTORY, 'demos', 'assets', fname),
-                os.path.join(DIRECTORY, 'templates', 'mon-qua-nho-2010', 'app', 'assets', 'music', fname)
+                os.path.join(DIRECTORY, 'demos', 'music', fname),
+                os.path.join(DIRECTORY, 'templates', 'mon-qua-nho-2010', 'app', 'assets', 'music', fname),
+                os.path.join(DIRECTORY, 'templates', 'christmas-tree', fname)
             ]
             for cand in cand_paths:
                 if os.path.exists(cand) and os.path.isfile(cand):
@@ -931,6 +938,28 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             <script id="dg-universal-helper">
             (function() {{
                 window.IS_DEMO_MODE = true;
+
+                // Auto-bypass orientation locks inside iframes (e.g. gift builder or modal preview)
+                if (window.self !== window.top) {{
+                    window.__skipOrientationLock = true;
+                    window.__skipOrientationGate = true;
+                    var hideLocks = function() {{
+                        ['orientation-lock', 'orientation-gate', 'landscape-warning'].forEach(function(id) {{
+                            var el = document.getElementById(id);
+                            if (el) {{
+                                el.style.display = 'none';
+                                el.hidden = true;
+                            }}
+                        }});
+                    }};
+                    if (document.readyState === 'loading') {{
+                        document.addEventListener('DOMContentLoaded', hideLocks);
+                    }} else {{
+                        hideLocks();
+                    }}
+                    window.addEventListener('resize', hideLocks);
+                }}
+
                 var prefAudio = "{pref_audio}";
                 var fullAudioUrl = new URL(prefAudio, window.location.origin).href;
 
@@ -962,21 +991,79 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     }});
                 }}
 
-                // Stop previous audio completely when message received from parent
+                // Message handling: Audio control + Universal Photo/Data Live Preview Sync
                 window.addEventListener('message', function(evt) {{
                     if (!evt.data) return;
                     if (evt.data.type === 'DG_STOP_AUDIO' || evt.data.type === 'DG_PAUSE_AUDIO') {{
                         stopAllAudios();
                     }}
-                    if (evt.data.type === 'DG_CHANGE_MUSIC' || (evt.data.payload && evt.data.payload.music_url)) {{
-                        var newMusic = evt.data.music_url || evt.data.payload.music_url;
+                    var isDG = evt.data.type === 'DG_LIVE_PREVIEW_UPDATE' || evt.data.type === 'LIVE_PREVIEW_UPDATE';
+                    var payload = (evt.data.payload || evt.data.data) || {{}};
+
+                    // Audio update: ONLY change audio if user explicitly chose a new track AND not preserving original demo sound
+                    if (evt.data.type === 'DG_CHANGE_MUSIC' || (payload.music_url && !payload.preserve_demo_audio)) {{
+                        var newMusic = evt.data.music_url || payload.music_url;
                         if (newMusic) {{
                             stopAllAudios();
                             var targetAudio = document.querySelector('audio#dg-bg-music') || document.querySelector('audio');
                             if (targetAudio) {{
                                 targetAudio.src = newMusic;
                                 targetAudio.load();
+                                targetAudio.play().catch(function(){{}});
                             }}
+                        }}
+                    }}
+
+                    // Universal Photo Synchronization for all 52 templates
+                    if (isDG && payload.photos && Array.isArray(payload.photos) && payload.photos.length > 0) {{
+                        var photos = payload.photos;
+                        window.__dg_photos = photos;
+
+                        // 1. Christmas Gift (window.giftChristmasData / window.dataChristmasTree)
+                        if (window.giftChristmasData) {{
+                            window.giftChristmasData.photos = photos;
+                            window.giftChristmasData.vipGift = {{ type: 'photos', images: photos }};
+                        }}
+                        if (window.dataChristmasTree && window.dataChristmasTree.data) {{
+                            window.dataChristmasTree.data.images = photos;
+                        }}
+                        if (typeof window.__updateChristmasPhotos === 'function') {{
+                            try {{ window.__updateChristmasPhotos(photos); }} catch(e) {{}}
+                        }}
+
+                        // 2. 3D & WebGL custom template hooks
+                        if (typeof window.updatePhotos === 'function') {{
+                            try {{ window.updatePhotos(photos); }} catch(e) {{}}
+                        }}
+                        if (typeof window.updateSpherePhotos === 'function') {{
+                            try {{ window.updateSpherePhotos(photos); }} catch(e) {{}}
+                        }}
+                        if (window.config) {{
+                            if (Array.isArray(window.config.photos)) window.config.photos = photos;
+                            if (Array.isArray(window.config.sphereImages)) window.config.sphereImages = photos;
+                            if (Array.isArray(window.config.images)) window.config.images = photos;
+                        }}
+
+                        // 3. DOM Image injection for photo cards, albums, polaroids, heart grids, books
+                        var selectors = [
+                            '.photo-item img', '.photo-slot img', '.album-photo img',
+                            '.polaroid-item img', '.polaroid img', '.heart-photo img',
+                            '.box-photo img', '.box-face img', '.cube-face img',
+                            '.gallery-img', '.carousel-item img', '#photo-grid img',
+                            '#gift-photos img', '.photo-card img', '.memory-photo img',
+                            '.tree-photo img', '.photo-wrap img', '.sw-page__img img',
+                            '.sweet-page__img img', 'img[data-user-photo]', 'img.user-photo',
+                            'img.user-image', '.user-photo-img', '.frame-img img'
+                        ];
+                        var matchedImgs = document.querySelectorAll(selectors.join(','));
+                        if (matchedImgs.length > 0) {{
+                            matchedImgs.forEach(function(img, idx) {{
+                                var pUrl = photos[idx % photos.length];
+                                if (pUrl && img.src !== pUrl) {{
+                                    img.src = pUrl;
+                                    img.style.objectFit = 'cover';
+                                }}
+                            }});
                         }}
                     }}
                 }});

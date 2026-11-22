@@ -3940,14 +3940,23 @@ function sendLivePreviewUpdate() {
         var input = document.getElementById(id);
         return input && input.files && input.files[0] ? livePreviewObjectUrl(input.files[0]) : '';
     };
-    var musicUrl = (document.getElementById('music_url') ? document.getElementById('music_url').value : '').trim();
     var originalCard = document.querySelector('.music-card--original.selected');
-    if (!musicUrl && originalCard) musicUrl = originalCard.getAttribute('data-preview') || '';
-    // Nhạc tải lên luôn được ưu tiên khi tạo quà, nên demo cũng phải nghe đúng
-    // file đó thay vì vẫn phát bài mặc định đang được chọn trong thư viện.
+    var selectedNonOriginal = document.querySelector('.music-card.selected:not(.music-card--original)');
     var musicUpload = document.getElementById('music_upload');
-    if (musicUpload && musicUpload.files && musicUpload.files[0]) {
+    var hasCustomMusicUpload = !!(musicUpload && musicUpload.files && musicUpload.files[0]);
+    var musicUrl = '';
+    var preserveDemoAudio = true;
+
+    if (hasCustomMusicUpload) {
         musicUrl = livePreviewObjectUrl(musicUpload.files[0]);
+        preserveDemoAudio = false;
+    } else if (selectedNonOriginal && selectedNonOriginal.getAttribute('data-value')) {
+        musicUrl = (selectedNonOriginal.getAttribute('data-value') || '').trim();
+        preserveDemoAudio = false;
+    } else {
+        // Người dùng không đổi nhạc (giữ nguyên nhạc gốc của demo video)
+        musicUrl = '';
+        preserveDemoAudio = true;
     }
 
     var payload = {
@@ -3972,6 +3981,7 @@ function sendLivePreviewUpdate() {
         popup_message: popupMessage,
         wishes: wishes,
         music_url: musicUrl,
+        preserve_demo_audio: preserveDemoAudio,
         password: document.getElementById('password_value')?.value || '0000',
         val_chat_messages: valChatMessages,
         val_chat_theme: valChatTheme,
@@ -4049,6 +4059,22 @@ function refreshGiftPreview() {
     var urlParams = new URLSearchParams(window.location.search);
     var tplId = urlParams.get('id') || '69';
 
+    // Đẩy đồng bộ ngay lập tức tới khung đang hiển thị
+    if (typeof sendLivePreviewUpdate === 'function') {
+        sendLivePreviewUpdate();
+    }
+
+    // Đăng ký đồng bộ tự động khi iframe tải lại xong
+    var syncTries = [50, 250, 600, 1200, 2200];
+    var onFrameReload = function() {
+        syncTries.forEach(function(d) {
+            setTimeout(function() {
+                if (typeof sendLivePreviewUpdate === 'function') sendLivePreviewUpdate();
+            }, d);
+        });
+    };
+    frame.addEventListener('load', onFrameReload, { once: true });
+
     if (tplId === '69') {
         var baseUrl = frame.src.split(/[?&]_preview_refresh=/)[0] || 'templates/_v3/live.php?slug=mon-qua-nho-2010';
         var separator = baseUrl.indexOf('?') === -1 ? '?' : '&';
@@ -4056,7 +4082,6 @@ function refreshGiftPreview() {
     } else {
         frame.src = 'demo.php?id=' + tplId + '&_preview_refresh=' + Date.now();
     }
-    setTimeout(sendLivePreviewUpdate, 400);
 }
 
 function setPreviewMode(mode, button) {

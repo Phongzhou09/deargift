@@ -1,0 +1,1398 @@
+/* Font Face cho mobile - sử dụng font local */
+@font-face {
+    font-family: 'Dancing Script Local';
+    src: url('../assets/fonts/DancingScript-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Font Face cho Pacifico TTF - dùng cho tiêu đề */
+@font-face {
+    font-family: 'Pacifico Local';
+    src: url('../assets/fonts/Pacifico-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Font Face cho Knewave TTF - dùng cho tiêu đề */
+@font-face {
+    font-family: 'Knewave Local';
+    src: url('../assets/fonts/Knewave-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: block; /* Đổi từ swap sang block để đảm bảo font load xong mới hiển thị */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+/* Snowflakes Animation on Main Background */
+body::before {
+    content: '';
+    position: fixed;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    background-image: 
+        radial-gradient(3px 3px at 5% 10%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2.5px 2.5px at 15% 25%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3.5px 3.5px at 25% 5%, rgba(255, 255, 255, 0.95), transparent),
+        radial-gradient(2px 2px at 35% 20%, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(4px 4px at 45% 35%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2px 2px at 55% 15%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 65% 40%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(2.5px 2.5px at 75% 10%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(3px 3px at 85% 50%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(2px 2px at 95% 25%, rgba(255, 255, 255, 0.95), transparent),
+        radial-gradient(3.5px 3.5px at 10% 60%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(2.5px 2.5px at 20% 45%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 30% 70%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2px 2px at 40% 55%, rgba(255, 255, 255, 0.75), transparent),
+        radial-gradient(4px 4px at 50% 80%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2.5px 2.5px at 60% 65%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(3px 3px at 70% 90%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(2px 2px at 80% 75%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(3.5px 3.5px at 90% 95%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(2.5px 2.5px at 12% 30%, rgba(255, 255, 255, 0.8), transparent);
+    background-repeat: repeat;
+    background-size: 250px 250px;
+    animation: snowflakesFallMain 8s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    background-image: 
+        radial-gradient(2.5px 2.5px at 8% 18%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 18% 32%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(2px 2px at 28% 12%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(3.5px 3.5px at 38% 48%, rgba(255, 255, 255, 0.75), transparent),
+        radial-gradient(2.5px 2.5px at 48% 22%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(3px 3px at 58% 58%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(2px 2px at 68% 38%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(4px 4px at 78% 72%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(2.5px 2.5px at 88% 28%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 98% 62%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2px 2px at 13% 78%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(3.5px 3.5px at 23% 42%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(2.5px 2.5px at 33% 88%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(3px 3px at 43% 52%, rgba(255, 255, 255, 0.75), transparent),
+        radial-gradient(2px 2px at 53% 68%, rgba(255, 255, 255, 0.85), transparent);
+    background-repeat: repeat;
+    background-size: 220px 220px;
+    animation: snowflakesFallMain 10s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes snowflakesFallMain {
+    0% {
+        transform: translateY(-100vh) translateX(0);
+    }
+    100% {
+        transform: translateY(100vh) translateX(50px);
+    }
+}
+
+.gift-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    z-index: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    pointer-events: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+}
+
+/* Snowflakes layer - above background but below other elements */
+/* Ensure snowflakes are above background but below other elements */
+body::before,
+body::after {
+    z-index: 2;
+}
+
+/* Christmas Banner */
+.banner-text {
+    position: fixed;
+    top: 15px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 6;
+    pointer-events: none;
+    padding: 5px 10px;
+    font-family: 'Knewave Local', cursive !important;
+    font-size: 3.5rem;
+    font-weight: 900;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background: linear-gradient(135deg, 
+        #E0F7FA 0%, 
+        #B2EBF2 25%,
+        #80DEEA 50%,
+        #4DD0E1 75%,
+        #26C6DA 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 
+        0 0 5px rgba(255, 255, 255, 0.8),
+        0 0 10px rgba(176, 224, 230, 0.6),
+        0 1px 2px rgba(0, 0, 0, 0.3);
+    letter-spacing: 1px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Santa Flying */
+.santa-flying-container {
+    position: fixed;
+    top: 5%;
+    left: -300px;
+    z-index: 5;
+    animation: santaFly 8s ease-in-out forwards;
+}
+
+.santa-flying-image {
+    width: 300px;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+}
+
+/* Santa Rising (Nâng hộp quà) */
+.santa-rise-container {
+    position: fixed;
+    bottom: 5%;
+    left: 45%;
+    transform: translateX(-50%);
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    animation: santaRiseAppear 0.6s ease-out 4.4s forwards,
+               santaRiseLift 2s ease-in-out infinite 4.9s;
+}
+
+.santa-rise-image {
+    width: auto;
+    height: auto;
+    max-width: 220px;
+    max-height: 270px;
+    display: block;
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes santaRiseAppear {
+    0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+@keyframes santaRiseLift {
+    0%, 100% {
+        transform: translateX(-50%) translateY(0);
+    }
+    50% {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}
+
+/* Gift Box Falling */
+.gift-falling-container {
+    position: fixed;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.1);
+    z-index: 11;
+    opacity: 0;
+    pointer-events: none;
+    animation: giftFall 1s ease-in 4s forwards;
+}
+
+.gift-falling-container.ready {
+    pointer-events: auto;
+}
+
+.gift-box-image {
+    max-width: 120px;
+    max-height: 120px;
+    width: auto;
+    height: auto;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+    pointer-events: auto;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+    animation: giftGlow 1.2s ease-in-out infinite 5s, giftFloat 3s ease-in-out infinite 5s;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.gift-box-image:hover {
+    animation-play-state: paused;
+    filter: brightness(1.1) drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+}
+
+/* Animations */
+@keyframes santaFly {
+    0% {
+        left: -300px;
+        transform: translateY(0);
+    }
+    3.125% {
+        transform: translateY(-12px);
+    }
+    6.25% {
+        transform: translateY(-18px);
+    }
+    9.375% {
+        transform: translateY(-12px);
+    }
+    12.5% {
+        transform: translateY(0);
+    }
+    15.625% {
+        transform: translateY(12px);
+    }
+    18.75% {
+        transform: translateY(18px);
+    }
+    21.875% {
+        transform: translateY(12px);
+    }
+    25% {
+        transform: translateY(0);
+    }
+    28.125% {
+        transform: translateY(-12px);
+    }
+    31.25% {
+        transform: translateY(-18px);
+    }
+    34.375% {
+        transform: translateY(-12px);
+    }
+    37.5% {
+        transform: translateY(0);
+    }
+    40.625% {
+        transform: translateY(12px);
+    }
+    43.75% {
+        transform: translateY(18px);
+    }
+    46.875% {
+        transform: translateY(12px);
+    }
+    50% {
+        transform: translateY(0);
+    }
+    53.125% {
+        transform: translateY(-12px);
+    }
+    56.25% {
+        transform: translateY(-18px);
+    }
+    59.375% {
+        transform: translateY(-12px);
+    }
+    62.5% {
+        transform: translateY(0);
+    }
+    65.625% {
+        transform: translateY(12px);
+    }
+    68.75% {
+        transform: translateY(18px);
+    }
+    71.875% {
+        transform: translateY(12px);
+    }
+    75% {
+        transform: translateY(0);
+    }
+    78.125% {
+        transform: translateY(-12px);
+    }
+    81.25% {
+        transform: translateY(-18px);
+    }
+    84.375% {
+        transform: translateY(-12px);
+    }
+    87.5% {
+        transform: translateY(0);
+    }
+    90.625% {
+        transform: translateY(12px);
+    }
+    93.75% {
+        transform: translateY(18px);
+    }
+    96.875% {
+        transform: translateY(12px);
+    }
+    100% {
+        left: calc(100% + 300px);
+        transform: translateY(0);
+    }
+}
+
+@keyframes giftFall {
+    0% {
+        top: 5%;
+        transform: translateX(-50%) scale(0.1);
+        opacity: 0;
+    }
+    5% {
+        opacity: 1;
+    }
+    100% {
+        top: 65%;
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes giftGlow {
+    0% {
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) brightness(1);
+    }
+    10% {
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) brightness(1.1);
+    }
+    40% {
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) brightness(1.1);
+    }
+    50% {
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) brightness(1);
+    }
+    90% {
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) brightness(1);
+    }
+    100% {
+        filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3)) brightness(1);
+    }
+}
+
+@keyframes giftFloat {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+/* Right Bottom Decoration */
+.right-bottom-container {
+    position: fixed;
+    bottom: -3%;
+    right: 2%;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.right-bottom-image {
+    width: auto;
+    height: auto;
+    max-width: 200px;
+    max-height: 200px;
+    display: block;
+    filter: 
+        blur(0.3px)
+        brightness(0.96)
+        contrast(0.92)
+        saturate(0.98)
+        drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+    opacity: 0.92;
+}
+
+/* Snowman Decoration */
+.snowman-container {
+    position: fixed;
+    bottom: 2%;
+    left: -1%;
+    z-index: 4;
+    pointer-events: none;
+}
+
+.snowman-image {
+    width: auto;
+    height: auto;
+    max-width: 200px;
+    max-height: 250px;
+    display: block;
+    filter: 
+        blur(0.3px)
+        brightness(0.96)
+        contrast(0.92)
+        saturate(0.98)
+        drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+    opacity: 0.92;
+}
+
+/* Christmas Letter Modal */
+.letter-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(20, 40, 80, 0.3) 0%, rgba(10, 20, 40, 0.35) 100%);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    backdrop-filter: blur(3px);
+    overflow: hidden;
+}
+
+.letter-modal.show {
+    display: flex;
+    opacity: 1;
+}
+
+.letter-close-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    border-radius: 50%;
+    color: #FFFFFF;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 0 20px rgba(255, 255, 255, 0.5),
+        0 0 40px rgba(255, 255, 255, 0.3);
+    line-height: 1;
+    padding: 0;
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 1),
+        0 0 20px rgba(255, 255, 255, 0.8);
+}
+
+.letter-close-button:hover {
+    transform: scale(1.1) rotate(90deg);
+    border-color: rgba(255, 255, 255, 1);
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow: 
+        0 0 30px rgba(255, 255, 255, 0.8),
+        0 0 60px rgba(255, 255, 255, 0.5);
+}
+
+.letter-close-button:active {
+    transform: scale(0.95) rotate(90deg);
+}
+
+/* Snowflakes Animation - Multiple layers for better effect */
+.letter-modal::before {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    background-image: 
+        radial-gradient(3px 3px at 5% 10%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2.5px 2.5px at 15% 25%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3.5px 3.5px at 25% 5%, rgba(255, 255, 255, 0.95), transparent),
+        radial-gradient(2px 2px at 35% 20%, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(4px 4px at 45% 35%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2px 2px at 55% 15%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 65% 40%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(2.5px 2.5px at 75% 10%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(3px 3px at 85% 50%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(2px 2px at 95% 25%, rgba(255, 255, 255, 0.95), transparent),
+        radial-gradient(3.5px 3.5px at 10% 60%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(2.5px 2.5px at 20% 45%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 30% 70%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2px 2px at 40% 55%, rgba(255, 255, 255, 0.75), transparent),
+        radial-gradient(4px 4px at 50% 80%, rgba(255, 255, 255, 0.9), transparent);
+    background-repeat: repeat;
+    background-size: 250px 250px;
+    animation: snowflakesFall 7s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.letter-modal::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 200%;
+    background-image: 
+        radial-gradient(2.5px 2.5px at 8% 18%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 18% 32%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(2px 2px at 28% 12%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(3.5px 3.5px at 38% 48%, rgba(255, 255, 255, 0.75), transparent),
+        radial-gradient(2.5px 2.5px at 48% 22%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(3px 3px at 58% 58%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(2px 2px at 68% 38%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(4px 4px at 78% 72%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(2.5px 2.5px at 88% 28%, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(3px 3px at 98% 62%, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(2px 2px at 13% 78%, rgba(255, 255, 255, 0.85), transparent),
+        radial-gradient(3.5px 3.5px at 23% 42%, rgba(255, 255, 255, 0.8), transparent);
+    background-repeat: repeat;
+    background-size: 220px 220px;
+    animation: snowflakesFall 9s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes snowflakesFall {
+    0% {
+        transform: translateY(-100vh) translateX(0);
+    }
+    100% {
+        transform: translateY(100vh) translateX(40px);
+    }
+}
+
+.letter-container {
+    position: relative;
+    width: 90%;
+    max-width: 600px;
+    max-height: 90vh;
+    animation: letterSlideIn 0.6s ease-out;
+    z-index: 1;
+}
+
+@keyframes letterSlideIn {
+    from {
+        transform: translateY(-50px) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.letter-paper {
+    background: transparent;
+    backdrop-filter: none;
+    border-radius: 0;
+    padding: 40px 35px;
+    box-shadow: none;
+    position: relative;
+    overflow-y: auto;
+    max-height: 90vh;
+    border: none;
+}
+
+/* Hide scrollbar */
+.letter-paper::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+.letter-paper {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Snowflake decorations */
+.letter-paper::after {
+    content: '❄';
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 20px;
+    color: #FFFFFF;
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 1),
+        0 0 20px rgba(255, 255, 255, 0.8),
+        0 0 30px rgba(255, 255, 255, 0.6);
+    opacity: 0.7;
+    animation: snowflakeFloat 3s ease-in-out infinite;
+}
+
+@keyframes snowflakeFloat {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 0.3;
+    }
+    50% {
+        transform: translateY(-10px) rotate(180deg);
+        opacity: 0.6;
+    }
+}
+
+.letter-content {
+    position: relative;
+    z-index: 2;
+}
+
+.letter-header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+    position: relative;
+}
+
+.letter-header::before {
+    content: '🎄';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+    opacity: 0.8;
+}
+
+.letter-header::after {
+    content: '🎄';
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 24px;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+    opacity: 0.8;
+}
+
+.letter-title {
+    font-size: 48px;
+    color: #FFFFFF;
+    margin-bottom: 10px;
+    font-family: 'Knewave Local', cursive;
+    font-weight: 900;
+    opacity: 0;
+    visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.5),
+        0 0 20px rgba(255, 255, 255, 0.4),
+        0 0 30px rgba(255, 255, 255, 0.3),
+        0 0 40px rgba(255, 255, 255, 0.2),
+        0 0 50px rgba(255, 255, 255, 0.15);
+    position: relative;
+    animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    0% {
+        text-shadow: 
+            0 0 10px rgba(255, 255, 255, 0.5),
+            0 0 20px rgba(255, 255, 255, 0.4),
+            0 0 30px rgba(255, 255, 255, 0.3),
+            0 0 40px rgba(255, 255, 255, 0.2);
+    }
+    100% {
+        text-shadow: 
+            0 0 15px rgba(255, 255, 255, 0.6),
+            0 0 30px rgba(255, 255, 255, 0.5),
+            0 0 45px rgba(255, 255, 255, 0.4),
+            0 0 60px rgba(255, 255, 255, 0.3),
+            0 0 75px rgba(255, 255, 255, 0.2);
+    }
+}
+
+
+.letter-body {
+    line-height: 1.8;
+    color: #333;
+    font-size: 28px;
+    font-family: 'Pacifico Local', cursive;
+    font-weight: 700;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+.letter-greeting {
+    margin-bottom: 20px;
+    color: #FFFFFF;
+    font-size: 32px;
+    font-family: 'Pacifico Local', cursive;
+    font-weight: 700;
+    opacity: 0;
+    visibility: hidden;
+    position: relative;
+    padding-left: 25px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    text-shadow: 
+        0 0 8px rgba(255, 255, 255, 0.5),
+        0 0 16px rgba(255, 255, 255, 0.4),
+        0 0 24px rgba(255, 255, 255, 0.3);
+}
+
+.letter-greeting::before {
+    content: '🎁';
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-size: 16px;
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
+}
+
+.letter-text {
+    margin-bottom: 15px;
+    text-align: justify;
+    text-indent: 20px;
+    color: #FFFFFF;
+    line-height: 1.9;
+    font-family: 'Pacifico Local', cursive;
+    font-weight: 700;
+    font-size: 30px;
+    position: relative;
+    opacity: 0;
+    visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    text-shadow: 
+        0 0 5px rgba(255, 255, 255, 0.4),
+        0 0 10px rgba(255, 255, 255, 0.3),
+        0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Đảm bảo các từ trong hiệu ứng typing có font-weight nhất quán */
+.letter-text .fade-word,
+.letter-greeting .fade-word,
+.letter-signature .fade-word {
+    font-weight: 700 !important;
+    font-family: 'Pacifico Local', cursive !important;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* Chỉ đoạn đầu tiên mới có drop cap */
+.letter-body .letter-text:first-of-type::first-letter {
+    font-size: 1.5em;
+    color: #FFFFFF;
+    font-weight: bold;
+    float: left;
+    line-height: 1;
+    margin-right: 5px;
+    margin-top: 2px;
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 1),
+        0 0 20px rgba(255, 255, 255, 0.8),
+        0 0 30px rgba(255, 255, 255, 0.6);
+}
+
+.letter-signature {
+    margin-top: 30px;
+    text-align: right;
+    font-style: italic;
+    color: #FFFFFF;
+    font-family: 'Pacifico Local', cursive;
+    font-weight: 700;
+    font-size: 28px;
+    opacity: 0;
+    visibility: hidden;
+    position: relative;
+    padding-right: 30px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    text-shadow: 
+        0 0 5px rgba(255, 255, 255, 0.4),
+        0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.letter-signature::after {
+    content: '❄';
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 20px;
+    color: #FFFFFF;
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 1),
+        0 0 20px rgba(255, 255, 255, 0.8);
+    opacity: 0.7;
+    animation: snowflakeFloat 2s ease-in-out infinite;
+}
+
+.signature-name {
+    display: block;
+    margin-top: 10px;
+    font-size: 34px;
+    color: #FFFFFF;
+    font-family: 'Pacifico Local', cursive;
+    font-weight: 700;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    text-shadow: 
+        0 0 10px rgba(255, 255, 255, 0.5),
+        0 0 20px rgba(255, 255, 255, 0.4),
+        0 0 30px rgba(255, 255, 255, 0.3),
+        0 0 40px rgba(255, 255, 255, 0.2);
+}
+
+.letter-footer {
+    margin-top: 30px;
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid rgba(220, 20, 60, 0.2);
+}
+
+.letter-next-button {
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+        radial-gradient(circle at 60% 70%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+        radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.8) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(173, 216, 230, 0.3) 0%, rgba(135, 206, 250, 0.4) 50%, rgba(176, 224, 230, 0.3) 100%);
+    background-size: 15px 15px, 12px 12px, 18px 18px, 14px 14px, 100% 100%;
+    background-position: 0 0, 5px 5px, 10px 10px, 7px 7px, 0 0;
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 0 20px rgba(173, 216, 230, 0.6),
+        0 0 40px rgba(135, 206, 250, 0.4),
+        inset 0 0 15px rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    animation: snowFall 3s linear infinite, buttonGlow 1s ease-in-out infinite;
+}
+
+@keyframes snowFall {
+    0% {
+        background-position: 0 0, 5px 0, 10px 0, 7px 0, 0 0;
+    }
+    100% {
+        background-position: 0 60px, 5px 50px, 10px 70px, 7px 55px, 0 0;
+    }
+}
+
+@keyframes buttonGlow {
+    0%, 100% {
+        box-shadow: 
+            0 0 20px rgba(173, 216, 230, 0.6),
+            0 0 40px rgba(135, 206, 250, 0.4),
+            0 0 60px rgba(176, 224, 230, 0.3),
+            inset 0 0 15px rgba(255, 255, 255, 0.3);
+        border-color: rgba(255, 255, 255, 0.8);
+    }
+    50% {
+        box-shadow: 
+            0 0 40px rgba(173, 216, 230, 1),
+            0 0 80px rgba(135, 206, 250, 0.8),
+            0 0 120px rgba(176, 224, 230, 0.6),
+            0 0 160px rgba(255, 255, 255, 0.4),
+            inset 0 0 25px rgba(255, 255, 255, 0.6);
+        border-color: rgba(255, 255, 255, 1);
+    }
+}
+
+.letter-next-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: 
+        radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.9) 1px, transparent 1px),
+        radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.9) 1px, transparent 1px),
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.9) 1px, transparent 1px),
+        linear-gradient(135deg, rgba(173, 216, 230, 0.5) 0%, rgba(135, 206, 250, 0.6) 100%);
+    background-size: 10px 10px, 12px 12px, 8px 8px, 100% 100%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.letter-next-button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.letter-next-button:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 255, 255, 1);
+    box-shadow: 
+        0 0 30px rgba(173, 216, 230, 0.8),
+        0 0 60px rgba(135, 206, 250, 0.6),
+        0 0 90px rgba(176, 224, 230, 0.4),
+        inset 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+.letter-next-button:active {
+    transform: scale(0.95);
+}
+
+.arrow-icon {
+    font-size: 28px;
+    color: #FFFFFF;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease;
+    text-shadow: 
+        0 0 15px rgba(255, 255, 255, 1),
+        0 0 30px rgba(255, 255, 255, 1),
+        0 0 45px rgba(255, 255, 255, 0.9),
+        0 0 60px rgba(255, 255, 255, 0.7);
+    filter: brightness(1.2);
+}
+
+.letter-next-button:hover .arrow-icon {
+    transform: translateX(5px);
+    text-shadow: 
+        0 0 20px rgba(255, 255, 255, 1),
+        0 0 40px rgba(255, 255, 255, 1),
+        0 0 60px rgba(255, 255, 255, 1),
+        0 0 80px rgba(255, 255, 255, 0.9);
+    filter: brightness(1.3);
+}
+
+/* Desktop styles - màn hình lớn hơn 1368px (không phải mobile landscape) */
+@media (min-width: 1369px) {
+    .banner-text {
+        font-size: 3rem;
+        font-weight: 900;
+        font-family: 'Knewave Local', cursive;
+    }
+    
+    .santa-rise-image {
+        max-width: 220px;
+        max-height: 270px;
+    }
+}
+
+/* Desktop portrait - màn hình từ 769px đến 1368px nhưng không phải landscape */
+@media (min-width: 769px) and (max-width: 1368px) and (orientation: portrait) {
+    .banner-text {
+        font-size: 3rem;
+        font-weight: 900;
+        font-family: 'Knewave Local', cursive;
+    }
+    
+    .santa-rise-image {
+        max-width: 220px;
+        max-height: 270px;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .banner-text {
+        top: 10px;
+        padding: 4px 8px;
+        font-size: 2.5rem;
+        letter-spacing: 0.5px;
+        font-family: 'Knewave Local', cursive !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 900;
+    }
+    
+    .santa-rise-image {
+        max-width: 120px;
+        max-height: 150px;
+    }
+    
+    .letter-container {
+        width: 88%;
+        max-width: none;
+    }
+    
+    .letter-paper {
+        padding: 20px 18px;
+    }
+    
+    .letter-header {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+    }
+    
+    .letter-title {
+        font-size: 32px;
+        margin-bottom: 8px;
+        font-family: 'Knewave Local', cursive !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 900 !important;
+    }
+    
+    .letter-body {
+        font-size: 24px;
+        line-height: 1.7;
+        font-family: 'Pacifico Local', cursive !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 900 !important;
+    }
+    
+    /* Đảm bảo tất cả phần tử trong letter-body dùng font local */
+    .letter-body * {
+        font-family: 'Pacifico Local', cursive !important;
+        font-weight: 900 !important;
+    }
+    
+    .letter-greeting {
+        font-size: 28px;
+        margin-bottom: 15px;
+        padding-left: 20px;
+        font-family: 'Pacifico Local', cursive !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 900 !important;
+    }
+    
+    .letter-text {
+        font-size: 26px;
+        margin-bottom: 12px;
+        line-height: 1.8;
+        text-indent: 15px;
+        font-family: 'Pacifico Local', cursive !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 900 !important;
+    }
+    
+    .letter-signature {
+        margin-top: 20px;
+        padding-right: 25px;
+        font-size: 24px;
+        font-family: 'Pacifico Local', cursive !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 900 !important;
+    }
+    
+    .signature-name {
+        font-size: 30px;
+        margin-top: 8px;
+        font-family: 'Pacifico Local', cursive !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 900 !important;
+    }
+    
+    /* Override fade-word cho mobile */
+    .letter-text .fade-word,
+    .letter-greeting .fade-word,
+    .letter-signature .fade-word {
+        font-family: 'Pacifico Local', cursive !important;
+        font-weight: 900 !important;
+    }
+    
+    .letter-footer {
+        margin-top: 20px;
+        padding-top: 15px;
+    }
+    
+    .letter-next-button {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .arrow-icon {
+        font-size: 24px;
+    }
+    
+    .letter-close-button {
+        width: 45px;
+        height: 45px;
+        font-size: 28px;
+        top: 15px;
+        right: 15px;
+    }
+}
+
+/* Desktop landscape từ 1024px - 1368px */
+@media (min-width: 1024px) and (max-width: 1368px) and (orientation: landscape) {
+    .banner-text {
+        font-size: 3rem;
+        font-family: 'Knewave Local', cursive;
+        font-weight: 900;
+    }
+    
+    .santa-rise-image {
+        max-width: 140px;
+        max-height: 170px;
+    }
+    
+    /* Đảm bảo nội dung lá thư không bị nhỏ */
+    .letter-title {
+        font-size: 48px;
+        font-family: 'Knewave Local', cursive;
+        font-weight: 900;
+    }
+    
+    .letter-body {
+        font-size: 28px;
+        font-family: 'Pacifico Local', cursive;
+    }
+    
+    .letter-greeting {
+        font-size: 32px;
+        font-family: 'Pacifico Local', cursive;
+    }
+    
+    .letter-text {
+        font-size: 30px;
+        font-family: 'Pacifico Local', cursive;
+    }
+    
+    .letter-signature {
+        font-size: 28px;
+        font-family: 'Pacifico Local', cursive;
+    }
+    
+    .signature-name {
+        font-size: 34px;
+        font-family: 'Pacifico Local', cursive;
+    }
+}
+
+/* Mobile landscape - chỉ áp dụng cho màn hình nhỏ hơn 667px */
+@media (max-width: 666px) and (orientation: landscape) {
+    .banner-text {
+        top: 8px;
+        padding: 3px 8px;
+        font-size: 2.8rem;
+        letter-spacing: 0.5px;
+        font-family: 'Knewave Local', cursive !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 900;
+    }
+}
+
+/* Mobile landscape 667-1024px - size lớn hơn */
+@media (min-width: 667px) and (max-width: 1024px) and (orientation: landscape) {
+    .banner-text {
+        top: 8px;
+        padding: 3px 8px;
+        font-size: 3.2rem;
+        letter-spacing: 0.5px;
+        font-family: 'Knewave Local', cursive !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+        font-weight: 900;
+    }
+    
+    .letter-title {
+        font-size: 24px;
+        font-family: 'Knewave Local', cursive !important;
+        font-weight: 900 !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+    
+    .letter-body {
+        font-size: 18px;
+        font-family: 'Pacifico Local', cursive !important;
+        font-weight: 900 !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+    
+    /* Đảm bảo tất cả phần tử trong letter-body dùng font local */
+    .letter-body * {
+        font-family: 'Pacifico Local', cursive !important;
+        font-weight: 900 !important;
+    }
+    
+    .letter-greeting {
+        font-size: 20px;
+        font-family: 'Pacifico Local', cursive !important;
+        font-weight: 900 !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+    
+    .letter-text {
+        font-size: 19px;
+        font-family: 'Pacifico Local', cursive !important;
+        font-weight: 900 !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+    
+    .letter-signature {
+        font-size: 18px;
+        font-family: 'Pacifico Local', cursive !important;
+        font-weight: 900 !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+    
+    .signature-name {
+        font-size: 22px;
+        font-family: 'Pacifico Local', cursive !important;
+        font-weight: 900 !important;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+    
+    /* Override fade-word cho mobile landscape */
+    .letter-text .fade-word,
+    .letter-greeting .fade-word,
+    .letter-signature .fade-word {
+        font-family: 'Pacifico Local', cursive !important;
+        font-weight: 900 !important;
+    }
+}
+    
+    .santa-flying-container {
+        top: 15%;
+    }
+    
+    .santa-flying-image {
+        width: 220px;
+    }
+    
+    .gift-box-image {
+        max-width: 100px;
+        max-height: 100px;
+    }
+    
+    .santa-rise-image {
+        max-width: 100px;
+        max-height: 120px;
+    }
+    
+    .letter-paper {
+        padding: 15px 15px;
+        max-height: 85vh;
+    }
+    
+    .letter-header {
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+    }
+    
+    .letter-title {
+        font-size: 28px;
+        margin-bottom: 5px;
+        font-family: 'Knewave Local', cursive !important;
+        font-weight: 900 !important;
+    }
+    
+    .letter-body {
+        font-size: 20px;
+        line-height: 1.5;
+        font-family: 'Pacifico Local', cursive !important;
+    }
+    
+    .letter-greeting {
+        font-size: 22px;
+        margin-bottom: 12px;
+        padding-left: 18px;
+        font-family: 'Pacifico Local', cursive !important;
+    }
+    
+    .letter-text {
+        font-size: 20px;
+        margin-bottom: 10px;
+        line-height: 1.6;
+        text-indent: 12px;
+        font-family: 'Pacifico Local', cursive !important;
+    }
+    
+    .letter-signature {
+        margin-top: 15px;
+        padding-right: 20px;
+        font-size: 18px;
+        font-family: 'Pacifico Local', cursive !important;
+    }
+    
+    .signature-name {
+        font-size: 24px;
+        margin-top: 6px;
+        font-family: 'Pacifico Local', cursive !important;
+    }
+    
+    .letter-footer {
+        margin-top: 15px;
+        padding-top: 12px;
+    }
+
