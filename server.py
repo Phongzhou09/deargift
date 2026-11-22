@@ -250,17 +250,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     "settings": {
                         "senderName": "DearGift",
                         "receiverName": "Người thương",
-                        "letterMessage": "Có một chiếc đèn và vài lời nhắn gửi người thương trong đêm trăng rằm. Chạm để thắp sáng và mở thư.",
+                        "letterMessage": "Chạm để khám phá hiệu ứng của mẫu quà này.",
                         "frameId": "star",
-                        "paletteId": "pink",
-                        "music": "bg-music.mp3",
-                        "images": [
-                            "people/em-den-ong-sao.webp",
-                            "people/em-hang-den.webp",
-                            "people/pho-long-den.webp",
-                            "people/em-pho-co.webp",
-                            "people/den-long-dem.webp"
-                        ]
+                        "paletteId": "pink"
                     }
                 }
             }
