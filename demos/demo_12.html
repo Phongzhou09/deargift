@@ -673,7 +673,7 @@
                 popupImage:   "",
                 images:       [],
                 flyImages:    [],
-                music:        ""            };
+                music:        "/assets/music/givemeyourforever.mp3"            };
             window.__APP_CONFIG__ = cfg;
             window.__CONFIG_READY__ = Promise.resolve(cfg);
             apiDone = true;
@@ -765,7 +765,7 @@
 
     <script>
         (function setupMusicToggle() {
-            var SELECTED_MUSIC = "";
+            var SELECTED_MUSIC = "/assets/music/givemeyourforever.mp3";
             var audio = document.getElementById('bg-music');
             var btn = document.getElementById('musicToggle');
             var icon = btn.querySelector('i');

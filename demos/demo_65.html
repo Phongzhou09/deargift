@@ -551,7 +551,7 @@ body.tpl-body-valentine-deargift .gift-brand { position: fixed; left: 0; right: 
                             window.opener.focus();
                             window.close();
                         } else {
-                            window.location.href = 'config-editor.html';
+                            /* window.location.href = 'config-editor.html' */;
                         }
                     };
                 }
@@ -673,8 +673,8 @@ body.tpl-body-valentine-deargift .gift-brand { position: fixed; left: 0; right: 
             }
             
             // Nếu không có websiteId và không phải demo mode, redirect sang config-editor
-            if (!websiteId && !window.IS_DEMO_MODE) {
-                window.location.href = 'config-editor.html';
+            if (!websiteId && false) {
+                /* window.location.href = 'config-editor.html' */;
                 return;
             }
             

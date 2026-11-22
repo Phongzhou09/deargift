@@ -246,6 +246,11 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             for cand in cand_paths:
                 if os.path.exists(cand):
                     return self.serve_audio(cand, 'audio/mpeg' if fname.endswith('.mp3') else 'audio/wav')
+            
+            # Universal fallback if audio not found: serve givemeyourforever.mp3 so audio NEVER 404s
+            fallback = os.path.join(DIRECTORY, 'assets', 'music', 'givemeyourforever.mp3')
+            if os.path.exists(fallback):
+                return self.serve_audio(fallback, 'audio/mpeg')
 
         # Standard Page Routes
         if path in ['/', '/index.php', '/index.html']:
@@ -856,12 +861,18 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
     def serve_demo_template(self, tpl_id):
         demo_path = None
-        if os.path.exists(os.path.join(DIRECTORY, tpl_id)):
-            demo_path = os.path.join(DIRECTORY, tpl_id)
-        elif os.path.exists(os.path.join(DIRECTORY, 'demos', f'demo_{tpl_id}.html')):
-            demo_path = os.path.join(DIRECTORY, 'demos', f'demo_{tpl_id}.html')
-        elif os.path.exists(os.path.join(DIRECTORY, 'demos', f'{tpl_id}.html')):
-            demo_path = os.path.join(DIRECTORY, 'demos', f'{tpl_id}.html')
+        tpl_str = str(tpl_id).strip()
+        if tpl_str == '32':
+            if os.path.exists(os.path.join(DIRECTORY, 'demos', 'demo_32.html')):
+                demo_path = os.path.join(DIRECTORY, 'demos', 'demo_32.html')
+            elif os.path.exists(os.path.join(DIRECTORY, 'corazon-galactico', 'index.html')):
+                demo_path = os.path.join(DIRECTORY, 'corazon-galactico', 'index.html')
+        elif os.path.exists(os.path.join(DIRECTORY, tpl_str)):
+            demo_path = os.path.join(DIRECTORY, tpl_str)
+        elif os.path.exists(os.path.join(DIRECTORY, 'demos', f'demo_{tpl_str}.html')):
+            demo_path = os.path.join(DIRECTORY, 'demos', f'demo_{tpl_str}.html')
+        elif os.path.exists(os.path.join(DIRECTORY, 'demos', f'{tpl_str}.html')):
+            demo_path = os.path.join(DIRECTORY, 'demos', f'{tpl_str}.html')
         else:
             demo_path = os.path.join(DIRECTORY, 'demos', 'demo_69.html')
         
@@ -869,10 +880,90 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('X-Frame-Options', 'ALLOWALL')
             self.end_headers()
             with open(demo_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
             content = self.clean_asset_paths(content)
+
+            # Audio mapping matching each template's theme
+            audio_map = {
+                '21': '/demos/music/happybirtday_uia.mp3',
+                '25': '/demos/music/happybirtday_uia.mp3',
+                '26': '/demos/music/happybirtday_uia.mp3',
+                '28': '/demos/music/happybirtday_uia.mp3',
+                '42': '/demos/music/happybirtday_uia.mp3',
+                '50': '/demos/music/happybirtday_uia.mp3',
+                '53': '/demos/music/happybirtday_uia.mp3',
+                '59': '/demos/music/happybirtday_uia.mp3',
+                '60': '/demos/music/happybirtday_uia.mp3',
+                '9': '/assets/music/hoanhipgiangsinh.mp3',
+                '22': '/assets/music/hoanhipgiangsinh.mp3',
+                '47': '/assets/music/hoanhipgiangsinh.mp3',
+                '48': '/assets/music/hoanhipgiangsinh.mp3',
+                '37': '/assets/music/happy-new-year.mp3',
+                '7': '/assets/music/danhchoem.mp3',
+                '36': '/assets/music/danhchoem.mp3',
+                '68': '/assets/music/danhchoem.mp3',
+                '34': '/assets/music/nguoigieomamxanh.mp3',
+                '33': '/assets/music/bongtrang.mp3',
+                '64': '/assets/music/bongtrang.mp3',
+                '29': '/assets/music/messenger.mp3',
+                '65': '/assets/music/messenger.mp3'
+            }
+            pref_audio = audio_map.get(tpl_str, '/assets/music/givemeyourforever.mp3')
+
+            helper_script = f"""
+            <script id="dg-universal-helper">
+            (function() {{
+                window.IS_DEMO_MODE = true;
+                var prefAudio = "{pref_audio}";
+                var fullAudioUrl = new URL(prefAudio, window.location.origin).href;
+
+                function initAudio() {{
+                    var audio = document.querySelector('audio');
+                    if (!audio) {{
+                        audio = document.createElement('audio');
+                        audio.id = 'dg-bg-music';
+                        audio.loop = true;
+                        audio.preload = 'auto';
+                        document.body.appendChild(audio);
+                    }}
+                    if (!audio.src || audio.src === window.location.href || audio.src === 'about:blank' || audio.error) {{
+                        audio.src = fullAudioUrl;
+                    }}
+                    audio.addEventListener('error', function() {{
+                        if (audio.src !== fullAudioUrl) {{
+                            audio.src = fullAudioUrl;
+                            audio.play().catch(function(){{}});
+                        }}
+                    }});
+                    function tryPlay() {{
+                        if (audio.paused) {{
+                            var p = audio.play();
+                            if (p && p.catch) p.catch(function(){{}});
+                        }}
+                    }}
+                    tryPlay();
+                    ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(function(evt) {{
+                        window.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
+                        document.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
+                    }});
+                }}
+
+                if (document.readyState === 'loading') {{
+                    document.addEventListener('DOMContentLoaded', initAudio);
+                }} else {{
+                    initAudio();
+                }}
+            }})();
+            </script>
+            """
+            if '</body>' in content:
+                content = content.replace('</body>', f'{helper_script}</body>')
+            else:
+                content += helper_script
+
             self.wfile.write(content.encode('utf-8'))
         else:
             self.send_error(404, "Demo template not found")
@@ -1206,17 +1297,15 @@ setInterval(pollStatus, 2500);
         self.wfile.write(content.encode('utf-8'))
 
     def clean_asset_paths(self, content):
-        content = re.sub(r'<base\s+href="[^"]*"\s*/?>', '', content, flags=re.IGNORECASE)
-        content = content.replace('https://deargift.love/templates/', '/templates/')
-        content = content.replace('https://deargift.love/assets/', '/assets/')
-        content = content.replace('https://deargift.love/css/', '/css/')
-        content = content.replace('https://deargift.love/js/', '/js/')
+        # DO NOT strip <base> tags because templates rely on remote styles/scripts/images!
         content = content.replace('https://deargift.love/uploads/', '/uploads/')
-        content = content.replace('../templates/', '/templates/')
-        content = content.replace('../assets/', '/assets/')
-        content = content.replace('../css/', '/css/')
-        content = content.replace('../js/', '/js/')
         content = content.replace('../uploads/', '/uploads/')
+        content = content.replace('https://deargift.love/templates/mon-qua-nho-2010/', '/templates/mon-qua-nho-2010/')
+        content = content.replace('../templates/mon-qua-nho-2010/', '/templates/mon-qua-nho-2010/')
+        # Prevent any client-side redirect away from the demo/gift preview
+        content = content.replace("window.location.href = 'config-editor.html'", "/* redirect disabled */")
+        content = content.replace('window.location.href = "../templates.php"', "/* redirect disabled */")
+        content = re.sub(r'window\.location\.replace\(createPath\);', '// redirect disabled', content)
         return content
 
     def is_json_request(self):
