@@ -20,9 +20,9 @@
     // Không có cài đặt → success:false → app dùng nội dung mặc định của nó.
     if (window.fetch) {
         var origFetch = window.fetch;
-        var body = JSON.stringify(cfg && cfg.settings
-            ? { success: true, data: { settings: cfg.settings } }
-            : { success: false });
+        var defaultSettings = {"fromName": "DearGift", "toName": "bé ngốc", "pinCode": "1402", "title": "To my love", "cardCoverDeco": "✿ ❤ ✿", "message": "Chạm để khám phá hiệu ứng của mẫu quà này."};
+        var currentSettings = (cfg && cfg.settings) ? Object.assign({}, defaultSettings, cfg.settings) : defaultSettings;
+        var body = JSON.stringify({ success: true, data: { settings: currentSettings } });
         // Trả dữ liệu khi trang đã đọc xong HTML: vài trang fetch ngay trong <head> rồi ghi
         // vào phần tử nằm cuối trang — API thật chậm nên kịp, trả tức thì thì phần tử chưa có.
         // Chờ readyState rời 'loading' (trước khi chạy script defer/module), KHÔNG chờ

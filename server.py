@@ -202,6 +202,10 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
+    def end_headers(self):
+        self.send_header('Access-Control-Allow-Origin', '*')
+        super().end_headers()
+
     def get_request_user(self):
         cookie_header = self.headers.get('Cookie', '')
         username_or_email = None
@@ -929,7 +933,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('X-Frame-Options', 'ALLOWALL')
+            self.send_header('Content-Security-Policy', "frame-ancestors 'self' https://deargift.onrender.com https://*.onrender.com *")
             self.end_headers()
             with open(demo_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()

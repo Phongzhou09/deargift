@@ -20,9 +20,9 @@
     // Không có cài đặt → success:false → app dùng nội dung mặc định của nó.
     if (window.fetch) {
         var origFetch = window.fetch;
-        var body = JSON.stringify(cfg && cfg.settings
-            ? { success: true, data: { settings: cfg.settings } }
-            : { success: false });
+        var defaultSettings = {"recommend": "Cốc cốc, có quà cho em đây 💖", "title": "Gửi em yêu 🌷", "arrayText": ["Chúc em luôn xinh đẹp và vui vẻ", "Anh thương em nhiều lắm 💕"], "instructionText": "Chạm vào bó hoa nhé", "modalTitle": "Gửi em 💌", "modalContent": "Chạm để khám phá hiệu ứng của mẫu quà này.\n\n— DearGift", "music": "../templates/bo-hoa-tulip/app/media/tiktok-music-1780247017983-dx1cxk.mp3"};
+        var currentSettings = (cfg && cfg.settings) ? Object.assign({}, defaultSettings, cfg.settings) : defaultSettings;
+        var body = JSON.stringify({ success: true, data: { settings: currentSettings } });
         // Trả dữ liệu khi trang đã đọc xong HTML: vài trang fetch ngay trong <head> rồi ghi
         // vào phần tử nằm cuối trang — API thật chậm nên kịp, trả tức thì thì phần tử chưa có.
         // Chờ readyState rời 'loading' (trước khi chạy script defer/module), KHÔNG chờ

@@ -20,9 +20,9 @@
     // Không có cài đặt → success:false → app dùng nội dung mặc định của nó.
     if (window.fetch) {
         var origFetch = window.fetch;
-        var body = JSON.stringify(cfg && cfg.settings
-            ? { success: true, data: { settings: cfg.settings } }
-            : { success: false });
+        var defaultSettings = {"arrayText": ["Anh yêu em nhiều lắm! 💖💝", "Mãi mãi bên em! 💗💕", "Em là cả thế giới của anh! 💞💓"], "title": "Yêu Em 💖", "message": "Chạm để khám phá hiệu ứng của mẫu quà này.\n\n— DearGift", "image": ["../templates/trai-tim-nhip-dap/app/default2.jpeg", "../templates/trai-tim-nhip-dap/app/default3.jpeg", "../templates/trai-tim-nhip-dap/app/default4.jpeg"], "heartColor": "#fd9595"};
+        var currentSettings = (cfg && cfg.settings) ? Object.assign({}, defaultSettings, cfg.settings) : defaultSettings;
+        var body = JSON.stringify({ success: true, data: { settings: currentSettings } });
         // Trả dữ liệu khi trang đã đọc xong HTML: vài trang fetch ngay trong <head> rồi ghi
         // vào phần tử nằm cuối trang — API thật chậm nên kịp, trả tức thì thì phần tử chưa có.
         // Chờ readyState rời 'loading' (trước khi chạy script defer/module), KHÔNG chờ
