@@ -1146,7 +1146,8 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Content-Security-Policy', "frame-ancestors 'self' https://deargift.onrender.com https://*.onrender.com *")
+            self.send_header('Content-Security-Policy', "frame-ancestors *")
+            self.send_header('X-Frame-Options', 'ALLOWALL')
             self.end_headers()
             with open(demo_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
