@@ -629,7 +629,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             return self.serve_live_preview(data)
 
         # Bank Webhook for Auto Payment Approval (Casso, SeAPay, PayOS, MBBank App / SMS forwarders)
-        if path in ['/api/webhook/bank', '/api/payment/webhook', '/webhook_bank.php', '/api/casso/webhook', '/api/seapay/webhook']:
+        if path in ['/api/webhook/bank', '/api/payment/webhook', '/webhook_bank.php', '/api/casso/webhook', '/api/seapay/webhook', '/casso/webhook', '/webhook/casso', '/webhook', '/api/webhook']:
             data = self.read_request_data()
             raw_text = json.dumps(data, ensure_ascii=False).upper() if isinstance(data, (dict, list)) else str(data).upper()
             explicit_code = str(data.get('code') or data.get('share_code') or '').strip().upper() if isinstance(data, dict) else ''
