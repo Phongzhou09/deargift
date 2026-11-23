@@ -8,6 +8,12 @@
  * Cầu nối trả dữ liệu đó thay cho API gốc, nên không cần máy chủ riêng cho app.
  */
 (function () {
+    try {
+        if (window.location.pathname !== '/' && window.location.pathname.indexOf('/trung-thu-den-ong-sao') !== -1) {
+            window.history.replaceState(null, '', '/' + window.location.search);
+        }
+    } catch(e) {}
+
     var cfg = null;
     try {
         if (window.parent && window.parent !== window) cfg = window.parent.__GIFTTO_APP || null;
