@@ -539,9 +539,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     matched_codes.append(share_code)
             if matched:
                 save_gifts(gifts)
-                self.send_json_response({"success": True, "message": f"Đã tự động kích hoạt quà! Mã: {', '.join(matched_codes)}", "matched": matched_codes})
+                self.send_json_response({"error": 0, "success": True, "message": f"Đã tự động kích hoạt quà! Mã: {', '.join(matched_codes)}", "matched": matched_codes})
             else:
-                self.send_json_response({"success": False, "message": "Không tìm thấy mã quà khớp", "query": query})
+                self.send_json_response({"error": 0, "success": True, "message": "Không tìm thấy mã quà khớp", "query": query})
             return
 
         # API: /api/templates
@@ -631,7 +631,14 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             return self.serve_live_preview(data)
 
         # Bank Webhook for Auto Payment Approval (Casso, SeAPay, PayOS, MBBank App / SMS forwarders)
-        if path in ['/api/webhook/bank', '/api/payment/webhook', '/webhook_bank.php', '/api/casso/webhook', '/api/seapay/webhook', '/casso/webhook', '/webhook/casso', '/webhook', '/api/webhook']:
+        casso_paths = [
+            '/api/webhook/bank', '/api/payment/webhook', '/webhook_bank.php', 
+            '/api/casso/webhook', '/api/seapay/webhook', '/casso/webhook', 
+            '/webhook/casso', '/webhook', '/api/webhook', '/webhook.php',
+            '/casso', '/casso.php', '/api/casso', '/api/casso.php',
+            '/casso-webhook', '/casso_webhook', '/casso_webhook.php'
+        ]
+        if path.rstrip('/') in [p.rstrip('/') for p in casso_paths]:
             data = self.read_request_data()
             raw_text = json.dumps(data, ensure_ascii=False).upper() if isinstance(data, (dict, list)) else str(data).upper()
             explicit_code = str(data.get('code') or data.get('share_code') or '').strip().upper() if isinstance(data, dict) else ''
@@ -655,9 +662,20 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     matched_codes.append(share_code)
             if matched:
                 save_gifts(gifts)
-                self.send_json_response({"success": True, "message": f"Đã tự động kích hoạt quà theo webhook ngân hàng! Mã quà: {', '.join(matched_codes)}", "matched": matched_codes})
+                self.send_json_response({
+                    "error": 0,
+                    "success": True,
+                    "message": f"Đã tự động kích hoạt quà theo webhook ngân hàng! Mã quà: {', '.join(matched_codes)}",
+                    "matched": matched_codes
+                })
             else:
-                self.send_json_response({"success": False, "message": "Không tìm thấy mã đơn quà khớp trong nội dung giao dịch", "received": data})
+                # Trả về error: 0 để Casso xác nhận kiểm tra webhook (Test Webhook) thành công
+                self.send_json_response({
+                    "error": 0,
+                    "success": True,
+                    "message": "Webhook received successfully",
+                    "matched": []
+                })
             return
 
         # 1. API: Process Notification Queue
