@@ -34,6 +34,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800;900&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/templates/_v3/assets/css/gift.css?v=1794023395">
+<style>
+#loadingOverlay.hide, #loadingOverlay.dismissed {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+}
+</style>
 </head>
 <body class="gift-body tpl-body-valentine-deargift">
 
@@ -685,10 +693,11 @@ body.tpl-body-valentine-deargift .gift-brand { position: fixed; left: 0; right: 
                 var directEl = document.getElementById('directEntryContainer');
                 var chatEl = document.getElementById('chatContainer');
                 var sceneEl = document.getElementById('scene3d-root');
-                if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.style.flexDirection = 'column'; }
-                if (directEl) directEl.style.display = 'none';
-                if (chatEl) chatEl.style.display = 'none';
-                if (sceneEl) sceneEl.style.display = 'none';
+                // Nếu đã có cấu hình nhúng sẵn, ẩn ngay loadingOverlay không cần chờ fetch
+                if (window.__VAL_CONFIG && (window.__VAL_CONFIG.messages || window.__VAL_CONFIG.passcode)) {
+                    if (loadingEl) { loadingEl.style.display = 'none'; loadingEl.classList.add('hide'); }
+                    if (chatEl) chatEl.style.display = '';
+                }
                 try {
                     var apiBase = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
                         ? 'https://api.deargift.online/api/valentine1'
@@ -781,6 +790,7 @@ body.tpl-body-valentine-deargift .gift-brand { position: fixed; left: 0; right: 
                         }
                         if (sceneEl) sceneEl.style.display = '';
                     };
+                    if (loadingEl) { loadingEl.style.display = 'none'; loadingEl.classList.add('hide'); }
                     bgImg.src = bg;
                     } else {
                         if (loadingEl) loadingEl.style.display = 'none';
@@ -1346,5 +1356,35 @@ body.tpl-body-valentine-deargift .gift-brand { position: fixed; left: 0; right: 
 <script src="/templates/_v3/assets/js/gift.js?v=1792591738"></script>
 <script src="/js/security.js?v=1790434588" defer></script>
 <script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' crossorigin="anonymous"></script>
+<script>
+// Khắc phục triệt để lỗi xoay tròn (loadingOverlay): Tự động tắt lớp loading ngay khi trang sẵn sàng
+(function() {
+    function forceDismissLoading() {
+        var ov = document.getElementById('loadingOverlay');
+        if (ov) {
+            ov.style.setProperty('display', 'none', 'important');
+            ov.style.setProperty('opacity', '0', 'important');
+            ov.style.setProperty('pointer-events', 'none', 'important');
+            ov.classList.add('hide', 'dismissed');
+        }
+        var ch = document.getElementById('chatContainer');
+        if (ch) ch.style.display = '';
+        var de = document.getElementById('directEntryContainer');
+        if (de && (!window.APP_CONFIG || !window.APP_CONFIG.enableLockAndChat)) {
+            de.style.display = '';
+        }
+        var sc = document.getElementById('scene3d-root');
+        if (sc) sc.style.display = '';
+    }
+    // Kích hoạt nhiều nấc bảo hiểm để không bao giờ bị treo xoay tròn
+    forceDismissLoading();
+    setTimeout(forceDismissLoading, 100);
+    setTimeout(forceDismissLoading, 400);
+    setTimeout(forceDismissLoading, 800);
+    setTimeout(forceDismissLoading, 1500);
+    document.addEventListener('DOMContentLoaded', forceDismissLoading);
+    window.addEventListener('load', forceDismissLoading);
+})();
+</script>
 </body>
 </html>
