@@ -5,7 +5,7 @@
  */
 (function(){
 'use strict';
-// Cấu hình mặc định - sẽ được override nếu có config từ config-editor
-window.APP_CONFIG = window.APP_CONFIG || {};
-window.HEART_MESSAGE_CONFIG = window.APP_CONFIG.heart || {};
+// Cấu hình mặc định - sẽ được override nếu có config từ config-editor hoặc __VAL_CONFIG
+window.APP_CONFIG = (window.APP_CONFIG && Object.keys(window.APP_CONFIG).length > 0) ? window.APP_CONFIG : (window.__VAL_CONFIG || {});
+window.HEART_MESSAGE_CONFIG = window.APP_CONFIG.heart || (window.__VAL_CONFIG && window.__VAL_CONFIG.heart) || {};
 })();
