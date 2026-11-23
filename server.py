@@ -1832,8 +1832,10 @@ setInterval(pollStatus, 2500);
         content = content.replace('https://deargift.love/templates/mon-qua-nho-2010/', '/templates/mon-qua-nho-2010/')
         content = content.replace('../templates/mon-qua-nho-2010/', '/templates/mon-qua-nho-2010/')
         # Prevent any client-side redirect away from the demo/gift preview
-        content = content.replace("window.location.href = 'config-editor.html'", "/* redirect disabled */")
-        content = content.replace('window.location.href = "../templates.php"', "/* redirect disabled */")
+        content = re.sub(r'/\*+\s*window\.location\.href\s*=\s*[\'"]config-editor\.html[\'"]\s*;?\s*\*+/', '// redirect disabled', content)
+        content = re.sub(r'/\*+\s*window\.location\.href\s*=\s*[\'"]\.\./templates\.php[\'"]\s*;?\s*\*+/', '// redirect disabled', content)
+        content = content.replace("window.location.href = 'config-editor.html'", "// redirect disabled")
+        content = content.replace('window.location.href = "../templates.php"', "// redirect disabled")
         content = re.sub(r'window\.location\.replace\(createPath\);', '// redirect disabled', content)
         return content
 
