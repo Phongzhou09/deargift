@@ -1,7 +1,7 @@
 window.DG_TEMPLATES = {
   "69": {
     "id": "69",
-    "title": "Món Quà Nhỏ 3D · 19/11 &amp; Mọi Dịp Đặc Biệt 🎁",
+    "title": "Món Quà Nhỏ 3D · 19/11 & Mọi Dịp Đặc Biệt 🎁",
     "price": "50.000đ",
     "img_url": "https://deargift.love/templates/mon-qua-nho-2010/cover.webp?v=1794025288",
     "demo_url": "demo.php?id=69"
@@ -36,7 +36,7 @@ window.DG_TEMPLATES = {
   },
   "28": {
     "id": "28",
-    "title": "Chúc Mừng Sinh Nhật &amp; Tỏ Tình",
+    "title": "Chúc Mừng Sinh Nhật & Tỏ Tình",
     "price": "50.000đ",
     "img_url": "https://deargift.love/assets/thumbnails/hpbd-book.jpg",
     "demo_url": "demo.php?id=28"
@@ -120,7 +120,7 @@ window.DG_TEMPLATES = {
   },
   "42": {
     "id": "42",
-    "title": "Bánh Kem Sinh Nhật — Thổi Nến &amp; Ước 🎂",
+    "title": "Bánh Kem Sinh Nhật — Thổi Nến & Ước 🎂",
     "price": "Miễn phí",
     "img_url": "https://deargift.love/templates/banh-kem-sinh-nhat/cover.webp",
     "demo_url": "demo.php?id=42"
@@ -134,7 +134,7 @@ window.DG_TEMPLATES = {
   },
   "44": {
     "id": "44",
-    "title": "Vườn Hoa Nở &amp; Đom Đóm Đêm 🌸",
+    "title": "Vườn Hoa Nở & Đom Đóm Đêm 🌸",
     "price": "Miễn phí",
     "img_url": "https://deargift.love/templates/blooming-flowers/cover.webp",
     "demo_url": "demo.php?id=44"
@@ -169,7 +169,7 @@ window.DG_TEMPLATES = {
   },
   "49": {
     "id": "49",
-    "title": "Web tỏ tình &quot;Có/Không&quot;",
+    "title": "Web tỏ tình "Có/Không"",
     "price": "Miễn phí",
     "img_url": "https://deargift.love/templates/confession/cover.webp",
     "demo_url": "demo.php?id=49"
@@ -274,14 +274,14 @@ window.DG_TEMPLATES = {
   },
   "64": {
     "id": "64",
-    "title": "Trung Thu — Đèn Ông Sao &amp; Hoa 🏮",
+    "title": "Trung Thu — Đèn Ông Sao & Hoa 🏮",
     "price": "Miễn phí",
     "img_url": "https://deargift.love/templates/trung-thu-den-ong-sao/cover.webp",
     "demo_url": "demo.php?id=64"
   },
   "65": {
     "id": "65",
-    "title": "Valentine VIP (Thư Tình &amp; Vũ Trụ Heart 3D) 💖",
+    "title": "Valentine VIP (Thư Tình & Vũ Trụ Heart 3D) 💖",
     "price": "Miễn phí",
     "img_url": "https://deargift.love/templates/valentine-deargift/cover.webp",
     "demo_url": "demo.php?id=65"
@@ -311,7 +311,7 @@ window.DG_TEMPLATES = {
     "id": "9",
     "title": "Giáng Sinh 🎄",
     "price": "Miễn phí",
-    "img_url": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&amp;fit=crop&amp;q=80",
+    "img_url": "https://images.unsplash.com/photo-1544816155-12df9643f363?w=800&fit=crop&q=80",
     "demo_url": "demo.php?id=9"
   },
   "34": {

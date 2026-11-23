@@ -585,9 +585,22 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             slug = parts[0] if (len(parts) >= 2 and parts[-1] in ['gift.php', 'gift', 'view-gift.php']) else None
             return self.serve_custom_gift(uid, slug=slug)
 
+        # Route /_next/ to templates/trung-thu-den-ong-sao/app/_next/
+        if path.startswith('/_next/'):
+            self.path = '/templates/trung-thu-den-ong-sao/app' + path
+            return super().do_GET()
+
         # Fix double gift path like /gift/gift/gift.js -> /gift/gift.js
         if '/gift/gift/' in path:
             self.path = self.path.replace('/gift/gift/', '/gift/')
+            return super().do_GET()
+
+        # Root fallback for app music or icons
+        if path == '/bg-music.mp3':
+            self.path = '/templates/trung-thu-den-ong-sao/app/bg-music.mp3'
+            return super().do_GET()
+        if path in ['/icon', '/apple-icon']:
+            self.path = '/assets/images/logo-heart-180.png'
             return super().do_GET()
 
         return super().do_GET()
