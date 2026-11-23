@@ -25,7 +25,7 @@ from datetime import datetime
 
 PORT = int(os.environ.get('PORT', 8000))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
-CASSO_API_KEY = os.environ.get('CASSO_API_KEY', '').strip()
+CASSO_API_KEY = os.environ.get('CASSO_API_KEY', 'AK_CS.731c4690e73211f1a336b350062e06ec.fnn7zlR3fmIm8rCUy8Kr1I0rIJSQuZL80mEA0aL5UQ7mvncDXRoKYwLWRsybWRI9K4jlo3Or').strip()
 _last_casso_sync = 0
 
 def sync_casso_transactions():
