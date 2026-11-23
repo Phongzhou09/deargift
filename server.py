@@ -585,6 +585,11 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             slug = parts[0] if (len(parts) >= 2 and parts[-1] in ['gift.php', 'gift', 'view-gift.php']) else None
             return self.serve_custom_gift(uid, slug=slug)
 
+        # Fix double gift path like /gift/gift/gift.js -> /gift/gift.js
+        if '/gift/gift/' in path:
+            self.path = self.path.replace('/gift/gift/', '/gift/')
+            return super().do_GET()
+
         return super().do_GET()
 
     def do_POST(self):
@@ -1552,6 +1557,19 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             }
         }
 
+        tid = SLUG_TO_ID.get(slug, '69')
+        p1 = f'templates/{slug}/app/index.html'
+        p2 = f'templates/{slug}/index.html'
+        p3 = f'{slug}/index.html'
+        if os.path.exists(os.path.join(DIRECTORY, p1)):
+            frame_src = f'/{p1}?id=deargift'
+        elif os.path.exists(os.path.join(DIRECTORY, p2)):
+            frame_src = f'/{p2}?id=deargift'
+        elif os.path.exists(os.path.join(DIRECTORY, p3)):
+            frame_src = f'/{p3}?id=deargift'
+        else:
+            frame_src = f'/demo.php?id={tid}'
+
         html = f"""<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -1603,7 +1621,7 @@ try {{
     }}
 }} catch(e) {{}}
 </script>
-<iframe class="gift-app-frame" src="/templates/{slug}/app/index.html?id=deargift" title="Món Quà Nhỏ VIP" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>
+<iframe class="gift-app-frame" src="{frame_src}" title="Món Quà Nhỏ VIP" allow="autoplay; fullscreen; clipboard-write; web-share" allowfullscreen></iframe>
 </main>
 <script src="/templates/_v3/assets/js/effects.js"></script>
 <script src="/templates/_v3/assets/js/gift.js"></script>

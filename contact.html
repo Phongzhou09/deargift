@@ -35,7 +35,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/logo-heart-16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/logo-heart-180.png">
     <link rel="shortcut icon" href="assets/images/logo-heart-48.png">
-    <link rel="manifest" href="index.htmlsite.webmanifest">
+    <link rel="manifest" href="/site.webmanifest">
     <meta name="msapplication-TileImage" content="assets/images/logo-heart-192.png">
     <meta name="msapplication-TileColor" content="#e8589a">
     <meta name="theme-color" content="#e8589a">
