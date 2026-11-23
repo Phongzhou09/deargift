@@ -233,7 +233,8 @@ function handleGoogleLoginResponse(response) {
         localStorage.setItem('deargift_customer', JSON.stringify(d.user));
         localStorage.setItem('deargift_last_google_email', d.user.email || '');
       }
-      window.location.href = d.redirect || 'templates.php';
+      var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || d.redirect || 'templates.php';
+      window.location.href = redirectTarget;
     } else {
       alert(d.message || "Đăng nhập Google thất bại");
     }
@@ -276,7 +277,8 @@ function handleCustomerGoogleSubmit(e) {
         localStorage.setItem('deargift_customer', JSON.stringify(d.user));
         localStorage.setItem('deargift_last_google_email', email);
       }
-      window.location.href = d.redirect || 'templates.php';
+      var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || d.redirect || 'templates.php';
+      window.location.href = redirectTarget;
     } else {
       alert(d.message || 'Đăng nhập không thành công');
       if (btn) { btn.disabled = false; btn.innerHTML = 'Xác nhận đăng nhập'; }
@@ -290,6 +292,12 @@ function handleCustomerGoogleSubmit(e) {
 
 // Standard Login Form Handler
 document.addEventListener('DOMContentLoaded', function() {
+  var redirectParam = (new URLSearchParams(window.location.search)).get('redirect');
+  if (redirectParam) {
+    document.querySelectorAll('a[href*="register"]').forEach(function(a) {
+      a.href = 'register.html?redirect=' + encodeURIComponent(redirectParam);
+    });
+  }
   var savedEmail = localStorage.getItem('deargift_last_google_email');
   if (savedEmail) {
     var lbl = document.getElementById('googleBtnLabel');
@@ -319,7 +327,8 @@ document.addEventListener('DOMContentLoaded', function() {
           localStorage.setItem('deargift_user', JSON.stringify(user));
           localStorage.setItem('deargift_customer', JSON.stringify(user));
           btn.innerHTML = '✅ Đăng nhập thành công!';
-          setTimeout(() => { window.location.href = res.redirect || 'templates.php'; }, 400);
+          var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || res.redirect || 'templates.php';
+          setTimeout(() => { window.location.href = redirectTarget; }, 400);
         } else {
           alert(res.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!');
           btn.disabled = false;

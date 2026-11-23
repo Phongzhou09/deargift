@@ -3674,6 +3674,21 @@ function updateTotal() {
 
 // ─── Checkout flow ────────────────────────────────────────────────
 function handleCheckout() {
+    // Kiểm tra đăng nhập trước khi cho phép tạo quà và thanh toán
+    var hasUser = false;
+    try {
+        hasUser = !!(localStorage.getItem('deargift_user') || localStorage.getItem('deargift_customer') || (document.cookie && document.cookie.indexOf('currentUser=') !== -1));
+    } catch(e) {}
+
+    if (!hasUser) {
+        showToast('Vui lòng đăng nhập hoặc đăng ký tài khoản để tạo quà & thanh toán!', 'error');
+        setTimeout(function() {
+            var currentTpl = document.getElementById('hidden_template_id') ? document.getElementById('hidden_template_id').value : '69';
+            window.location.href = '/login.html?redirect=' + encodeURIComponent('/gift-builder.php?id=' + currentTpl);
+        }, 1200);
+        return;
+    }
+
     var v3RecInput = document.getElementById('v3_recipient_name');
     var recInput = document.getElementById('recipient_name');
     if (v3RecInput && recInput && v3RecInput.value.trim() !== '') {

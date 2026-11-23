@@ -347,7 +347,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         for u in users:
             if u.get('username', '').lower() == u_lower or u.get('email', '').lower() == u_lower:
                 return u
-        return None
+        return {"username": username_or_email, "full_name": username_or_email, "role": "customer"}
+
+    get_current_user = get_request_user
 
     def do_OPTIONS(self):
         self.send_response(200, "OK")
@@ -858,6 +860,22 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 8. API: Create Gift (handles /api/gifts/create and /gift-builder.php)
         if path in ['/api/gifts/create', '/gift-builder.php']:
+            user = self.get_current_user()
+            if not user:
+                tpl_id = str(query.get('id', ['69'])[0])
+                login_redirect = f"/login.html?redirect=/gift-builder.php?id={tpl_id}"
+                if self.is_json_request():
+                    self.send_json_response({
+                        "success": False,
+                        "status": "error",
+                        "require_login": True,
+                        "redirect": login_redirect,
+                        "message": "Vui lòng đăng ký hoặc đăng nhập tài khoản trước khi tạo quà và thanh toán!"
+                    }, status=401)
+                else:
+                    self.send_redirect(login_redirect)
+                return
+
             data = self.read_request_data()
             settings = get_settings()
 
@@ -944,6 +962,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 "transfer_content": transfer_content,
                 "status": status,
                 "paid": paid,
+                "username": user.get('username') if user else 'guest',
                 "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
 
@@ -1982,6 +2001,12 @@ setInterval(pollStatus, 2500);
             self.send_error(500, f"Range error: {e}")
 
     def serve_gift_builder(self, query):
+        tpl_id = query.get('id', ['69'])[0].strip()
+        user = self.get_current_user()
+        if not user:
+            self.send_redirect(f'/login.html?redirect=/gift-builder.php?id={tpl_id}')
+            return
+
         filepath = os.path.join(DIRECTORY, 'gift-builder.php')
         if not os.path.exists(filepath):
             self.send_error(404, 'gift-builder.php not found')
