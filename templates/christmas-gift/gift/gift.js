@@ -91,29 +91,29 @@
             // fallback 4.6s phòng khi trình duyệt không bắn animationend.
             this.attachEventListeners();
             const makeReady = () => {
-                if (this.isClickable) return;
                 this.isClickable = true;
-                this.giftContainer.classList.add('ready');
-                // Gợi ý "chạm để mở" để người dùng biết hộp quà đã sẵn sàng.
+                if (this.giftContainer) this.giftContainer.classList.add('ready');
                 if (!document.getElementById('giftTapHint')) {
                     const hint = document.createElement('div');
                     hint.id = 'giftTapHint';
                     hint.textContent = '🎁 Chạm vào hộp quà để mở';
-                    hint.style.cssText = 'position:fixed;left:50%;bottom:12%;transform:translateX(-50%);z-index:60;'
-                        + 'background:rgba(0,0,0,.45);color:#fff;padding:10px 18px;border-radius:999px;'
-                        + 'font:600 15px/1.2 system-ui,-apple-system,sans-serif;white-space:nowrap;'
-                        + 'pointer-events:none;backdrop-filter:blur(4px);animation:giftHintPulse 1.4s ease-in-out infinite;';
+                    hint.style.cssText = 'position:fixed;left:50%;bottom:12%;transform:translateX(-50%);z-index:9999;'
+                        + 'background:rgba(0,0,0,.65);color:#fff;padding:10px 20px;border-radius:999px;'
+                        + 'font:700 15px/1.2 system-ui,-apple-system,sans-serif;white-space:nowrap;'
+                        + 'cursor:pointer;backdrop-filter:blur(4px);box-shadow:0 0 15px rgba(255,255,255,0.4);animation:giftHintPulse 1.4s ease-in-out infinite;';
+                    hint.onclick = (e) => { e.preventDefault(); this.handleGiftClick(e); };
                     document.body.appendChild(hint);
                     if (!document.getElementById('giftTapHintCss')) {
                         const st = document.createElement('style');
                         st.id = 'giftTapHintCss';
-                        st.textContent = '@keyframes giftHintPulse{0%,100%{opacity:.65;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.06)}}';
+                        st.textContent = '@keyframes giftHintPulse{0%,100%{opacity:.85;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.06)}}';
                         document.head.appendChild(st);
                     }
                 }
             };
+            makeReady();
             this.giftContainer.addEventListener('animationend', makeReady, { once: true });
-            setTimeout(makeReady, 4600);
+            setTimeout(makeReady, 500);
             },
             
             /**
@@ -162,16 +162,21 @@
              */
             attachEventListeners() {
                 const clickHandler = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                    if (e && e.preventDefault) e.preventDefault();
+                    if (e && e.stopPropagation) e.stopPropagation();
                     this.handleGiftClick(e);
                 };
                 
-                // Click và touch events
-                this.giftBox.addEventListener('click', clickHandler, { passive: false });
-                this.giftBox.addEventListener('touchend', clickHandler, { passive: false });
-                this.giftContainer.addEventListener('click', clickHandler, { passive: false });
-                this.giftContainer.addEventListener('touchend', clickHandler, { passive: false });
+                const santaRise = document.querySelector('.santa-rise-container');
+                const santaImg = document.querySelector('.santa-rise-image');
+                const targets = [this.giftBox, this.giftContainer, santaRise, santaImg].filter(Boolean);
+                targets.forEach(el => {
+                    el.style.pointerEvents = 'auto';
+                    el.style.cursor = 'pointer';
+                    el.addEventListener('click', clickHandler, { passive: false });
+                    el.addEventListener('touchend', clickHandler, { passive: false });
+                    el.addEventListener('pointerup', clickHandler, { passive: false });
+                });
                 
                 // Hover effects (chỉ trên desktop)
                 this.giftBox.addEventListener('mouseenter', () => {
@@ -235,35 +240,42 @@
              */
             showLetter() {
                 if (this.letterModal) {
-                    // Ẩn nội dung ngay lập tức trước khi hiển thị modal
                     const titleEl = document.querySelector('.letter-title');
                     const dateEl = document.querySelector('.letter-date');
                     const greetingEl = document.querySelector('.letter-greeting');
                     const textEls = document.querySelectorAll('.letter-text');
                     const signatureEl = document.querySelector('.letter-signature');
                     
-                    // Ẩn tất cả nội dung ngay lập tức
-                    [titleEl, dateEl, greetingEl, ...Array.from(textEls), signatureEl].forEach(el => {
-                        if (el) {
-                            el.style.opacity = '0';
-                            el.style.visibility = 'hidden';
-                        }
-                    });
-                    
-                    // Hiển thị modal
                     this.letterModal.classList.add('show');
-                    // Ngăn scroll body khi modal mở
+                    this.letterModal.style.display = 'flex';
+                    this.letterModal.style.opacity = '1';
+                    this.letterModal.style.zIndex = '99999';
+                    this.letterModal.style.pointerEvents = 'auto';
                     document.body.style.overflow = 'hidden';
                     
-                    // Hiển thị nút close
                     const closeButton = document.getElementById('letterCloseButton');
                     if (closeButton) {
                         closeButton.style.display = 'flex';
                     }
                     
-                    // Bắt đầu typing effect ngay lập tức (không delay)
+                    const nextButton = document.getElementById('letterNextButton');
+                    if (nextButton) {
+                        nextButton.style.display = 'inline-flex';
+                        nextButton.style.opacity = '1';
+                    }
+                    
                     requestAnimationFrame(() => {
-                        this.startTypingEffect();
+                        try {
+                            this.startTypingEffect();
+                        } catch(err) {
+                            console.warn('Typing animation error, showing text directly:', err);
+                            [titleEl, dateEl, greetingEl, ...Array.from(textEls), signatureEl].forEach(el => {
+                                if (el) {
+                                    el.style.opacity = '1';
+                                    el.style.visibility = 'visible';
+                                }
+                            });
+                        }
                     });
                 }
             },
@@ -1117,34 +1129,36 @@
              */
             async loadFinalGiftFromFile() {
                 try {
-                    // Đường dẫn đến final_gift.html
-                    const currentPath = window.location.pathname;
-                    let finalGiftPath;
-                    
-                    if (currentPath.includes('/gift/')) {
-                        finalGiftPath = (window.__XMAS_BASE||'')+'/final_gift/final_gift.html';
-                    } else {
-                        finalGiftPath = (window.__XMAS_BASE||'')+'/final_gift/final_gift.html';
+                    let base = window.__XMAS_BASE || 'templates/christmas-gift';
+                    let candidates = [
+                        base.replace(/\/$/, '') + '/final_gift/final_gift.html',
+                        'templates/christmas-gift/final_gift/final_gift.html',
+                        '../templates/christmas-gift/final_gift/final_gift.html',
+                        '/templates/christmas-gift/final_gift/final_gift.html',
+                        'final_gift/final_gift.html'
+                    ];
+                    let html = null;
+                    for (let p of candidates) {
+                        try {
+                            let url = window.__xv ? window.__xv(p) : p;
+                            let res = await fetch(url);
+                            if (res && res.ok) {
+                                html = await res.text();
+                                break;
+                            }
+                        } catch(e) {}
                     }
+                    if (!html) throw new Error('Không thể load final_gift.html');
                     
-                    if (window.__xv) finalGiftPath = window.__xv(finalGiftPath);
-                    // Fetch HTML và extract script
-                    const response = await fetch(finalGiftPath);
-                    if (!response.ok) throw new Error('Không thể load final_gift.html');
-                    
-                    const html = await response.text();
                     const parser = new DOMParser();
                     const doc = parser.parseFromString(html, 'text/html');
                     
-                    // Load Font Awesome nếu chưa có
                     if (!document.querySelector('link[href*="font-awesome"]')) {
                         const fontAwesome = document.createElement('link');
                         fontAwesome.rel = 'stylesheet';
                         fontAwesome.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
                         document.head.appendChild(fontAwesome);
                     }
-                    
-                    // Load Google Fonts nếu chưa có
                     if (!document.querySelector('link[href*="fonts.googleapis.com"]')) {
                         const fonts = document.createElement('link');
                         fonts.rel = 'stylesheet';
@@ -1152,46 +1166,42 @@
                         document.head.appendChild(fonts);
                     }
                     
-                    // Lấy container final gift để append script vào đó
                     const finalGiftContainer = document.getElementById('final-gift-container');
                     
-                    // Load non-module scripts trước (data setup)
+                    // Load non-module scripts
                     const regularScripts = doc.querySelectorAll('script:not([type="module"]):not([type="importmap"])');
                     regularScripts.forEach(script => {
                         if (script.textContent.trim() && !script.src) {
-                            // Execute inline script ngay
                             const newScript = document.createElement('script');
                             newScript.textContent = script.textContent;
                             document.body.appendChild(newScript);
                         }
                     });
                     
-                    // Đợi một chút để đảm bảo data đã được set
+                    // Keep audio playing
+                    var bgAud = document.getElementById('christmasAudio') || document.querySelector('audio');
+                    if (bgAud && bgAud.paused) {
+                        bgAud.play().catch(function(){});
+                    }
+
                     setTimeout(() => {
-                        // Load và execute module scripts (phải load sau import map và shims)
                         const moduleScripts = doc.querySelectorAll('script[type="module"]');
                         moduleScripts.forEach(script => {
                             let scriptContent = script.textContent;
-                            
-                            // Sửa lại để renderer append vào final-gift-container thay vì body
                             if (finalGiftContainer) {
                                 scriptContent = scriptContent.replace(
                                     /document\.body\.appendChild\(renderer\.domElement\)/g,
                                     'document.getElementById("final-gift-container").appendChild(renderer.domElement)'
                                 );
                             }
-                            
                             const newScript = document.createElement('script');
                             newScript.type = 'module';
                             newScript.textContent = scriptContent;
-                            // Append vào body để script chạy đúng scope
                             document.body.appendChild(newScript);
                         });
                     }, 200);
-                    
-                } catch (error) {
+                } catch(error) {
                     console.error('Lỗi khi load final gift:', error);
-                    alert('Không thể load trang quà. Vui lòng thử lại.');
                 }
             }
         };

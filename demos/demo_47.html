@@ -28,6 +28,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800;900&family=Dancing+Script:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../templates/_v3/assets/css/gift.css?v=1794023395">
+<script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.151.3/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.151.3/examples/jsm/",
+        "gsap": "https://unpkg.com/gsap@3.11.5/index.js"
+    }
+}
+</script>
 </head>
 <body class="gift-body tpl-body-christmas-gift">
 
@@ -43,7 +53,7 @@ body.tpl-body-christmas-gift .gift-brand { position: fixed; left: 0; right: 0; b
 <link rel="stylesheet" href="../templates/christmas-gift/style.css?v=1792591470">
 
 <script>
-window.__XMAS_BASE = "../templates/christmas-gift";
+window.__XMAS_BASE = (window.location.pathname.indexOf('/demos/') !== -1) ? '../templates/christmas-gift' : 'templates/christmas-gift';
 window.__XMAS_VER = "1792591470";
 // Gắn ?v=version vào URL asset để luôn tải bản mới nhất.
 window.__xv = function (u) {
@@ -133,7 +143,11 @@ if (window.parent && window.parent !== window) {
     <!-- Music Control -->
     <div id="musicControl" class="music-control" title="Play Music" style="display: none;">▶</div>
     <!-- Nhạc nền: phát từ màn intro (được index.js gọi play sau cú "Sẵn sàng"). -->
-    <audio id="christmasAudio" loop src="../templates/christmas-gift/assets/music.mp3" preload="auto"></audio>
+    <audio id="christmasAudio" loop preload="auto">
+        <source src="templates/christmas-gift/assets/music.mp3" type="audio/mpeg">
+        <source src="../templates/christmas-gift/assets/music.mp3" type="audio/mpeg">
+        <source src="/assets/music/hoanhipgiangsinh.mp3" type="audio/mpeg">
+    </audio>
 
     <!-- Settings Script (define before index.js) -->
 <script src="../templates/christmas-gift/index.js?v=1792591470"></script>

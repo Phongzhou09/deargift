@@ -1173,12 +1173,10 @@ function loadGiftPage() {
     let audioWasPlaying = false;
     
     if (christmasAudio) {
-        // Lưu reference của element thật, không chỉ thông tin
         audioElement = christmasAudio;
         audioWasPlaying = !christmasAudio.paused;
-        
-        // Tạm thời move audio ra khỏi body để không bị xóa khi thay thế innerHTML
-        document.documentElement.appendChild(audioElement);
+        // Move audio into document.head so body replacements NEVER detach it!
+        try { document.head.appendChild(audioElement); } catch(e) {}
     }
     
     // Tạo overlay transition để fade out mượt mà
@@ -1298,28 +1296,11 @@ function loadGiftPage() {
             
             // Khôi phục audio element (dùng lại element cũ, không tạo mới - không bị khựng)
             if (audioElement) {
-                // Đảm bảo loop = true
                 audioElement.loop = true;
-                
-                // Move audio về lại body
-                document.body.appendChild(audioElement);
-                
-                // Tiếp tục phát nếu đang phát trước đó (audio vẫn đang phát, không cần play lại)
                 if (audioWasPlaying && audioElement.paused) {
-                    // Nếu bị pause do move element, play lại
-                    audioElement.play().catch(err => {
-                        console.log('Audio autoplay prevented, will play on user interaction');
-                        const playOnInteraction = () => {
-                            audioElement.play().catch(() => {});
-                            document.removeEventListener('click', playOnInteraction);
-                            document.removeEventListener('touchstart', playOnInteraction);
-                        };
-                        document.addEventListener('click', playOnInteraction, { once: true });
-                        document.addEventListener('touchstart', playOnInteraction, { once: true });
-                    });
+                    audioElement.play().catch(function() {});
                 }
-                
-                console.log('🎵 Audio element preserved (no interruption)');
+                console.log('🎵 Audio element preserved continuously in head');
             }
             
             // Đảm bảo body vẫn có pointer-events sau khi thay thế
