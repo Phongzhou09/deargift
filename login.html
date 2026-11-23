@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+<script>
+try {
+  localStorage.removeItem('deargift_last_google_email');
+} catch (e) {}
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Đăng nhập - DearGift 💖</title>
@@ -231,8 +236,8 @@ function handleGoogleLoginResponse(response) {
       if (d.user) {
         localStorage.setItem('deargift_user', JSON.stringify(d.user));
         localStorage.setItem('deargift_customer', JSON.stringify(d.user));
-        localStorage.setItem('deargift_last_google_email', d.user.email || '');
-      }
+        // clean
+}
       var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || d.redirect || 'templates.php';
       window.location.href = redirectTarget;
     } else {
@@ -245,64 +250,7 @@ function handleGoogleLoginResponse(response) {
 function openCustomerGoogleModal() {
   var modal = document.getElementById('customerGoogleModal');
   if (modal) modal.style.display = 'flex';
-  var savedEmail = localStorage.getItem('deargift_last_google_email');
-  if (savedEmail) {
-    var emailInput = document.getElementById('customerGoogleEmail');
-    if (emailInput && !emailInput.value) emailInput.value = savedEmail;
-  }
-}
-
-function closeCustomerGoogleModal() {
-  var modal = document.getElementById('customerGoogleModal');
-  if (modal) modal.style.display = 'none';
-}
-
-function handleCustomerGoogleSubmit(e) {
-  e.preventDefault();
-  var email = document.getElementById('customerGoogleEmail').value.trim();
-  var name = document.getElementById('customerGoogleName').value.trim() || email.split('@')[0];
-  var btn = document.getElementById('btnConfirmGoogle');
-  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang đăng nhập...'; }
-
-  fetch('auth_google.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email, name: name })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.success) {
-      if (d.user) {
-        localStorage.setItem('deargift_user', JSON.stringify(d.user));
-        localStorage.setItem('deargift_customer', JSON.stringify(d.user));
-        localStorage.setItem('deargift_last_google_email', email);
-      }
-      var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || d.redirect || 'templates.php';
-      window.location.href = redirectTarget;
-    } else {
-      alert(d.message || 'Đăng nhập không thành công');
-      if (btn) { btn.disabled = false; btn.innerHTML = 'Xác nhận đăng nhập'; }
-    }
-  })
-  .catch(() => {
-    alert('Lỗi kết nối. Vui lòng thử lại.');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'Xác nhận đăng nhập'; }
-  });
-}
-
-// Standard Login Form Handler
-document.addEventListener('DOMContentLoaded', function() {
-  var redirectParam = (new URLSearchParams(window.location.search)).get('redirect');
-  if (redirectParam) {
-    document.querySelectorAll('a[href*="register"]').forEach(function(a) {
-      a.href = 'register.html?redirect=' + encodeURIComponent(redirectParam);
-    });
-  }
-  var savedEmail = localStorage.getItem('deargift_last_google_email');
-  if (savedEmail) {
-    var lbl = document.getElementById('googleBtnLabel');
-    if (lbl) lbl.textContent = 'Tiếp tục với Google (' + savedEmail + ')';
-  }
+  // clean button
 
   var form = document.getElementById('loginForm');
   if (form) {

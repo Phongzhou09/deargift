@@ -2536,5 +2536,41 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
+
+<script>
+// Dynamic Real-time Stats Sync
+(function() {
+    function refreshRealStats() {
+        fetch('/api/stats')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                if (!d || !d.success) return;
+                var data = d.data;
+                // Update elements with stat selectors or counters
+                document.querySelectorAll('.stat-users, [data-stat="users"]').forEach(function(el) {
+                    el.textContent = data.users_count.toLocaleString() + ' người dùng';
+                });
+                document.querySelectorAll('.stat-gifts, [data-stat="gifts"]').forEach(function(el) {
+                    el.textContent = data.gifts_created.toLocaleString() + ' đơn hàng';
+                });
+                document.querySelectorAll('.stat-paid, [data-stat="paid"]').forEach(function(el) {
+                    el.textContent = data.gifts_paid.toLocaleString();
+                });
+                // In templates.php tm-hero__stats
+                var heroStatSpan = document.querySelector('.tm-hero__stats span:nth-child(2) strong');
+                if (heroStatSpan) {
+                    heroStatSpan.textContent = data.gifts_created.toLocaleString() + '+';
+                }
+            })
+            .catch(function() {});
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', refreshRealStats);
+    } else {
+        refreshRealStats();
+    }
+})();
+</script>
+
 </body>
 </html>

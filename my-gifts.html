@@ -512,6 +512,10 @@
       fetch('/api/my-gifts')
         .then(r => r.json())
         .then(data => {
+          if (data.require_login) {
+            window.location.href = '/login.html?redirect=/my-gifts.php';
+            return;
+          }
           allGifts = data.gifts || [];
           updateStats();
           renderGifts();

@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+<script>
+try {
+  localStorage.removeItem('deargift_last_google_email');
+} catch (e) {}
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Đăng ký tài khoản - DearGift 💖</title>
@@ -202,8 +207,8 @@ function handleCredentialResponse(response) {
       if (d.user) {
         localStorage.setItem('deargift_user', JSON.stringify(d.user));
         localStorage.setItem('deargift_customer', JSON.stringify(d.user));
-        localStorage.setItem('deargift_last_google_email', d.user.email || '');
-      }
+        // clean
+}
       var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || d.redirect || 'templates.php';
       window.location.href = redirectTarget;
     } else {
@@ -217,11 +222,7 @@ function openCustomerGoogleModal() {
   var modal = document.getElementById('customerGoogleModal');
   if (modal) {
     modal.style.display = 'flex';
-    var lastEmail = localStorage.getItem('deargift_last_google_email');
-    var emailInput = document.getElementById('customerGoogleEmail');
-    if (lastEmail && emailInput && !emailInput.value) {
-      emailInput.value = lastEmail;
-    }
+    // clean input
   }
 }
 
@@ -248,8 +249,8 @@ function handleCustomerGoogleSubmit(e) {
       if (d.user) {
         localStorage.setItem('deargift_user', JSON.stringify(d.user));
         localStorage.setItem('deargift_customer', JSON.stringify(d.user));
-        localStorage.setItem('deargift_last_google_email', email);
-      }
+        // clean
+}
       var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || d.redirect || 'templates.php';
       window.location.href = redirectTarget;
     } else {

@@ -214,20 +214,47 @@ def decode_jwt_payload(token):
 
 def process_google_auth(data, users):
     credential = str(data.get('credential', '')).strip()
-    jwt_data = decode_jwt_payload(credential) if credential else None
+    access_token = str(data.get('access_token', '')).strip()
     
-    if jwt_data:
-        email = str(jwt_data.get('email', '')).strip().lower()
-        full_name = str(jwt_data.get('name', '')).strip() or email.split('@')[0]
-        google_id = str(jwt_data.get('sub', ''))
-        avatar = str(jwt_data.get('picture', ''))
-    else:
-        email = str(data.get('email', credential)).strip().lower()
-        full_name = str(data.get('name') or data.get('full_name') or email.split('@')[0]).strip()
-        google_id = str(uuid.uuid4().hex[:12])
-        avatar = str(data.get('avatar', ''))
+    email = None
+    full_name = None
+    google_id = None
+    avatar = ""
 
-    if not email or '@' not in email:
+    # 1. Xác thực qua Google ID Token (JWT do Google One-Tap / Sign-In cấp)
+    if credential:
+        jwt_data = decode_jwt_payload(credential)
+        if jwt_data and jwt_data.get('email') and jwt_data.get('sub'):
+            # Kiểm tra phát hành bởi Google
+            iss = str(jwt_data.get('iss', ''))
+            if 'accounts.google.com' in iss or iss in ['https://accounts.google.com', 'accounts.google.com']:
+                email = str(jwt_data.get('email', '')).strip().lower()
+                full_name = str(jwt_data.get('name', '')).strip() or email.split('@')[0]
+                google_id = str(jwt_data.get('sub', ''))
+                avatar = str(jwt_data.get('picture', ''))
+
+    # 2. Xác thực qua Google Access Token nếu client gửi access_token
+    if not email and access_token:
+        try:
+            req = urllib.request.Request(
+                'https://www.googleapis.com/oauth2/v3/userinfo',
+                headers={'Authorization': f'Bearer {access_token}'}
+            )
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                if resp.status == 200:
+                    userinfo = json.loads(resp.read().decode('utf-8'))
+                    email = str(userinfo.get('email', '')).strip().lower()
+                    full_name = str(userinfo.get('name', '')).strip() or email.split('@')[0]
+                    google_id = str(userinfo.get('sub', ''))
+                    avatar = str(userinfo.get('picture', ''))
+        except Exception:
+            pass
+
+    # Nếu không có token xác thực từ Google, từ chối tài khoản ảo
+    if not email or not google_id:
+        return None, "Xác thực Google không hợp lệ! Vui lòng chọn tài khoản Google thật của bạn."
+
+    if '@' not in email or not (email.endswith('@gmail.com') or '.' in email.split('@')[1]):
         return None, "Địa chỉ email Google không hợp lệ!"
 
     username = email.split('@')[0]
@@ -589,6 +616,22 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         # API: /api/settings
+                # API: /api/stats (Real-time live system stats)
+        if path == '/api/stats':
+            users = get_users()
+            gifts = get_gifts()
+            paid_count = len([g for g in gifts if g.get('paid') or g.get('status') == 'active'])
+            self.send_json_response({
+                "success": True,
+                "data": {
+                    "users_count": len(users),
+                    "gifts_created": len(gifts),
+                    "gifts_paid": paid_count,
+                    "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                }
+            })
+            return
+
         if path == '/api/settings':
             settings = get_settings()
             safe_settings = {k: v for k, v in settings.items() if k != 'admin_password'}
@@ -605,10 +648,46 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response({"status": "guest", "logged_in": False, "user": None})
             return
 
-        # API: /api/my-gifts & /api/gifts (Filter by logged-in user if available)
+        # API: /api/my-gifts & /api/gifts (Strictly isolated by logged-in user / Google account)
         if path in ['/api/my-gifts', '/api/gifts']:
-            gifts = get_gifts()
-            self.send_json_response({"status": "success", "gifts": gifts})
+            user = self.get_current_user()
+            if not user:
+                # Nếu chưa đăng nhập, trả về mảng rỗng để không xem trộm quà của người khác
+                self.send_json_response({
+                    "status": "guest",
+                    "require_login": True,
+                    "gifts": []
+                })
+                return
+
+            u_id = str(user.get('id', '')).strip().lower()
+            u_name = str(user.get('username', '')).strip().lower()
+            u_email = str(user.get('email', '')).strip().lower()
+
+            all_gifts = get_gifts()
+            user_gifts = []
+            for g in all_gifts:
+                g_user = str(g.get('username', '')).strip().lower()
+                g_email = str(g.get('user_email', '')).strip().lower()
+                g_uid = str(g.get('user_id', '')).strip().lower()
+
+                # So khớp chính xác theo ID, email hoặc username của tài khoản đang đăng nhập
+                is_owner = False
+                if u_id and g_uid and u_id == g_uid:
+                    is_owner = True
+                elif u_email and g_email and u_email == g_email:
+                    is_owner = True
+                elif u_name and g_user and u_name == g_user:
+                    is_owner = True
+                elif u_email and g_user and u_email == g_user:
+                    is_owner = True
+                elif u_name and g_email and u_name == g_email:
+                    is_owner = True
+
+                if is_owner:
+                    user_gifts.append(g)
+
+            self.send_json_response({"status": "success", "user": u_name or u_email, "gifts": user_gifts})
             return
 
         # Route /demo.php, /<template_slug>/demo.php
@@ -1019,7 +1098,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 "transfer_content": transfer_content,
                 "status": status,
                 "paid": paid,
-                "username": user.get('username') if user else 'guest',
+                "user_id": user.get('id', '') if user else '',
+                "user_email": user.get('email', '') if user else '',
+                "username": user.get('username', '') if user else 'guest',
                 "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
 
