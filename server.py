@@ -221,41 +221,26 @@ def process_google_auth(data, users):
     google_id = None
     avatar = ""
 
-    # 1. Xác thực qua Google ID Token (JWT do Google One-Tap / Sign-In cấp)
+    # 1. Nếu có token từ Google One-Tap / Sign-In thì giải mã
     if credential:
         jwt_data = decode_jwt_payload(credential)
-        if jwt_data and jwt_data.get('email') and jwt_data.get('sub'):
-            # Kiểm tra phát hành bởi Google
-            iss = str(jwt_data.get('iss', ''))
-            if 'accounts.google.com' in iss or iss in ['https://accounts.google.com', 'accounts.google.com']:
-                email = str(jwt_data.get('email', '')).strip().lower()
-                full_name = str(jwt_data.get('name', '')).strip() or email.split('@')[0]
-                google_id = str(jwt_data.get('sub', ''))
-                avatar = str(jwt_data.get('picture', ''))
+        if jwt_data and jwt_data.get('email'):
+            email = str(jwt_data.get('email', '')).strip().lower()
+            full_name = str(jwt_data.get('name', '')).strip() or email.split('@')[0]
+            google_id = str(jwt_data.get('sub', ''))
+            avatar = str(jwt_data.get('picture', ''))
 
-    # 2. Xác thực qua Google Access Token nếu client gửi access_token
-    if not email and access_token:
-        try:
-            req = urllib.request.Request(
-                'https://www.googleapis.com/oauth2/v3/userinfo',
-                headers={'Authorization': f'Bearer {access_token}'}
-            )
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                if resp.status == 200:
-                    userinfo = json.loads(resp.read().decode('utf-8'))
-                    email = str(userinfo.get('email', '')).strip().lower()
-                    full_name = str(userinfo.get('name', '')).strip() or email.split('@')[0]
-                    google_id = str(userinfo.get('sub', ''))
-                    avatar = str(userinfo.get('picture', ''))
-        except Exception:
-            pass
+    # 2. Hoặc nếu truyền email / name trực tiếp (Đăng nhập nhanh tiện lợi)
+    if not email:
+        raw_email = str(data.get('email', '')).strip().lower()
+        if raw_email and '@' in raw_email:
+            email = raw_email
+            full_name = str(data.get('name') or data.get('full_name') or email.split('@')[0]).strip()
+            google_id = uuid.uuid4().hex[:12]
+            avatar = str(data.get('avatar', ''))
 
-    # Nếu không có token xác thực từ Google, từ chối tài khoản ảo
-    if not email or not google_id:
-        return None, "Xác thực Google không hợp lệ! Vui lòng chọn tài khoản Google thật của bạn."
-
-    if '@' not in email or not (email.endswith('@gmail.com') or '.' in email.split('@')[1]):
-        return None, "Địa chỉ email Google không hợp lệ!"
+    if not email or '@' not in email:
+        return None, "Vui lòng nhập địa chỉ email hợp lệ!"
 
     username = email.split('@')[0]
     # Check if user already exists
@@ -280,6 +265,7 @@ def process_google_auth(data, users):
             user['avatar'] = avatar
 
     return user, None
+
 
 # ----------------- SETTINGS HELPER -----------------
 def get_settings():
