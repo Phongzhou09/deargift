@@ -1104,7 +1104,7 @@ const musicControl = document.getElementById('musicControl');
 const christmasAudio = document.getElementById('christmasAudio');
 let isPlaying = false;
 
-christmasAudio.volume = 0.6;
+if (christmasAudio) { christmasAudio.volume = 0.8; }
 
 // Function để cập nhật icon khi audio phát
 function updateMusicIcon() {

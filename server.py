@@ -1240,17 +1240,20 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 var origPlay = HTMLMediaElement.prototype.play;
                 HTMLMediaElement.prototype.play = function() {{
                     var self = this;
-                    document.querySelectorAll('audio').forEach(function(a) {{
-                        if (a !== self && !a.paused) {{
-                            try {{ a.pause(); }} catch(e) {{}}
-                        }}
-                    }});
-                    window.__dg_audios.forEach(function(a) {{
-                        if (a !== self && !a.paused) {{
-                            try {{ a.pause(); }} catch(e) {{}}
-                        }}
-                    }});
-                    window.__dg_audios.add(self);
+                    // Only pause other audios if THIS element is an AUDIO element (never let background videos pause audio!)
+                    if (self && self.tagName === 'AUDIO') {{
+                        document.querySelectorAll('audio').forEach(function(a) {{
+                            if (a !== self && !a.paused) {{
+                                try {{ a.pause(); }} catch(e) {{}}
+                            }}
+                        }});
+                        window.__dg_audios.forEach(function(a) {{
+                            if (a !== self && !a.paused) {{
+                                try {{ a.pause(); }} catch(e) {{}}
+                            }}
+                        }});
+                        window.__dg_audios.add(self);
+                    }}
                     return origPlay.apply(this, arguments);
                 }};
 
