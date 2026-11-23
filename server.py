@@ -590,6 +590,14 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.path = '/templates/trung-thu-den-ong-sao/app' + path
             return super().do_GET()
 
+        # Route /people/ and /images/khung/ for Trung Thu template
+        if path.startswith('/people/'):
+            self.path = '/templates/trung-thu-den-ong-sao/app' + path
+            return super().do_GET()
+        if path.startswith('/images/khung/'):
+            self.path = '/templates/trung-thu-den-ong-sao/app' + path
+            return super().do_GET()
+
         # Fix double gift path like /gift/gift/gift.js -> /gift/gift.js
         if '/gift/gift/' in path:
             self.path = self.path.replace('/gift/gift/', '/gift/')
