@@ -25,6 +25,42 @@ from datetime import datetime
 
 PORT = int(os.environ.get('PORT', 8000))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+CASSO_API_KEY = os.environ.get('CASSO_API_KEY', '').strip()
+_last_casso_sync = 0
+
+def sync_casso_transactions():
+    global _last_casso_sync
+    api_key = os.environ.get('CASSO_API_KEY', '').strip() or CASSO_API_KEY
+    if not api_key:
+        return False
+    now = time.time()
+    if now - _last_casso_sync < 3:
+        return False
+    _last_casso_sync = now
+    try:
+        req = urllib.request.Request(
+            'https://oauth.casso.vn/v2/transactions?page=1&pageSize=20&sort=DESC',
+            headers={'Authorization': f'Apikey {api_key}', 'User-Agent': 'DearGift/1.0'}
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+        records = (data.get('data') or {}).get('records') or []
+        gifts = get_gifts()
+        matched = False
+        for rec in records:
+            desc = str(rec.get('description', '')).upper()
+            for g in gifts:
+                if g.get('status') != 'active':
+                    code = str(g.get('share_code', '')).upper()
+                    if code and (code in desc or f"DEAR {code}" in desc or f"DEAR{code}" in desc):
+                        g['status'] = 'active'
+                        g['paid'] = True
+                        matched = True
+        if matched:
+            save_gifts(gifts)
+        return matched
+    except Exception:
+        return False
 
 BUILDER_CONFIGS = {}
 try:
@@ -518,6 +554,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         if path == '/ajax_check_payment_status.php':
             code = query.get('code', [''])[0].strip()
             gift = get_gift(code)
+            if gift and not gift.get('paid', False):
+                sync_casso_transactions()
+                gift = get_gift(code)
             if gift and gift.get('status') == 'active':
                 self.send_json_response({"status": "active", "paid": True, "redirect": f"/gift.php?uid={gift['id']}"})
             else:
