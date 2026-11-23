@@ -1199,7 +1199,7 @@ body.tpl-body-valentine-deargift .gift-brand { position: fixed; left: 0; right: 
         updateLockTime();
         setInterval(updateLockTime, 1000);
 
-        messengerNotification.onclick = () => {
+        const triggerUnlock = () => {
             lockScreen.classList.add('hide');
             if (!enablePasscode) {
                 document.querySelector('.phone-content').classList.add('visible');
@@ -1211,6 +1211,8 @@ body.tpl-body-valentine-deargift .gift-brand { position: fixed; left: 0; right: 
                 updateBearPosition();
             }
         };
+        messengerNotification.onclick = (e) => { e.stopPropagation(); triggerUnlock(); };
+        lockScreen.onclick = () => { triggerUnlock(); };
 
         backBtn.onclick = () => {
             // Dừng auto-play khi back về lock screen
@@ -1251,6 +1253,17 @@ body.tpl-body-valentine-deargift .gift-brand { position: fixed; left: 0; right: 
         const bearLeft = document.getElementById('bearLeft');
         const bearRight = document.getElementById('bearRight');
 
+        if (passcodeSubtitle) {
+            passcodeSubtitle.textContent = 'Mở Messenger (Mật khẩu: ' + (PASSCODE || '1402') + ')';
+            passcodeSubtitle.style.cursor = 'pointer';
+            passcodeSubtitle.onclick = (e) => {
+                e.stopPropagation();
+                passcodeInput = PASSCODE || '1402';
+                updatePasscodeDots();
+                updateBearPosition();
+                setTimeout(openChat, 200);
+            };
+        }
         function updatePasscodeDots() {
             const dots = passcodeDots.querySelectorAll('.passcode-dot');
             dots.forEach((dot, i) => {
