@@ -51,6 +51,7 @@ body.tpl-body-christmas-gift .gift-stage { display: block; padding: 0; }
 body.tpl-body-christmas-gift .gift-brand { position: fixed; left: 0; right: 0; bottom: 0; z-index: 90; }
 </style>
 <link rel="stylesheet" href="../templates/christmas-gift/style.css?v=1792591470">
+<link rel="stylesheet" href="../templates/christmas-gift/gift/gift.css?v=1792591470">
 
 <script>
 window.__XMAS_BASE = (window.location.pathname.indexOf('/demos/') !== -1) ? '../templates/christmas-gift' : 'templates/christmas-gift';
@@ -132,8 +133,10 @@ if (window.parent && window.parent !== window) {
 
 
     <!-- Background Video -->
-    <video id="backgroundVideo" class="background-video" muted playsinline preload="auto" style="display: none;" oncontextmenu="return false;" controlslist="nodownload nofullscreen noremoteplayback">
-        <source src="assets/images/intro.mp4" type="video/mp4">
+    <video id="backgroundVideo" class="background-video" muted playsinline preload="auto" style="display: none; cursor: pointer;" oncontextmenu="return false;" controlslist="nodownload nofullscreen noremoteplayback">
+        <source src="../templates/christmas-gift/assets/images/intro.mp4" type="video/mp4">
+        <source src="templates/christmas-gift/assets/images/intro.mp4" type="video/mp4">
+        <source src="/assets/images/intro.mp4" type="video/mp4">
     </video>
 
     <!-- Main Canvas for Text Animation -->
@@ -143,10 +146,10 @@ if (window.parent && window.parent !== window) {
     <!-- Music Control -->
     <div id="musicControl" class="music-control" title="Play Music" style="display: none;">▶</div>
     <!-- Nhạc nền: phát từ màn intro (được index.js gọi play sau cú "Sẵn sàng"). -->
-    <audio id="christmasAudio" loop preload="auto">
-        <source src="templates/christmas-gift/assets/music.mp3" type="audio/mpeg">
-        <source src="../templates/christmas-gift/assets/music.mp3" type="audio/mpeg">
+    <audio id="christmasAudio" loop preload="auto" src="/assets/music/hoanhipgiangsinh.mp3">
         <source src="/assets/music/hoanhipgiangsinh.mp3" type="audio/mpeg">
+        <source src="../templates/christmas-gift/assets/music.mp3" type="audio/mpeg">
+        <source src="templates/christmas-gift/assets/music.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Settings Script (define before index.js) -->

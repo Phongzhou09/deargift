@@ -35,6 +35,19 @@ function checkOrientation() {
             if (christmasAudio) {
                 christmasAudio.play().catch(e => console.log('Audio autoplay prevented:', e));
             }
+            
+            // Enable tap anywhere on video/canvas during intro to skip directly to gift
+            var skipIntro = function() {
+                if (!window.__introSkipped) {
+                    window.__introSkipped = true;
+                    console.log('⏩ Intro skipped to gift page by user tap');
+                    loadGiftPage();
+                }
+            };
+            var vid = document.getElementById('backgroundVideo');
+            var cvs = document.querySelector('.canvas');
+            if (vid) { vid.style.cursor = 'pointer'; vid.onclick = skipIntro; vid.ontouchend = skipIntro; }
+            if (cvs) { cvs.style.cursor = 'pointer'; cvs.onclick = skipIntro; cvs.ontouchend = skipIntro; }
             startWebsite();
         }
         return;
@@ -1297,9 +1310,20 @@ function loadGiftPage() {
             // Khôi phục audio element (dùng lại element cũ, không tạo mới - không bị khựng)
             if (audioElement) {
                 audioElement.loop = true;
-                if (audioWasPlaying && audioElement.paused) {
-                    audioElement.play().catch(function() {});
+                if (!audioElement.src || audioElement.src === window.location.href) {
+                    audioElement.src = (window.__XMAS_BASE || 'templates/christmas-gift').replace(/\/$/, '') + '/assets/music.mp3';
                 }
+                audioElement.play().catch(function() {
+                    var resumeOnUserAct = function() {
+                        audioElement.play().catch(function(){});
+                        ['click', 'touchstart', 'touchend'].forEach(function(evt) {
+                            window.removeEventListener(evt, resumeOnUserAct);
+                        });
+                    };
+                    ['click', 'touchstart', 'touchend'].forEach(function(evt) {
+                        window.addEventListener(evt, resumeOnUserAct, { once: true, passive: true });
+                    });
+                });
                 console.log('🎵 Audio element preserved continuously in head');
             }
             
@@ -1313,9 +1337,15 @@ function loadGiftPage() {
                     // sai trên DearGift. Lấy path GỐC rồi ghép __XMAS_BASE cho đúng thư mục mẫu.
                     var rawSrc = scriptTag.getAttribute('src') || '';
                     const newScript = document.createElement('script');
-                    newScript.src = /^https?:\/\//.test(rawSrc)
-                        ? rawSrc
-                        : (window.__xv ? window.__xv((window.__XMAS_BASE || '') + '/' + rawSrc.replace(/^\.?\//, '')) : (window.__XMAS_BASE || '') + '/' + rawSrc.replace(/^\.?\//, ''));
+                    var resolvedSrc;
+                    if (/^https?:\/\//.test(rawSrc) || rawSrc.startsWith('/')) {
+                        resolvedSrc = rawSrc;
+                    } else if (rawSrc.startsWith('gift/')) {
+                        resolvedSrc = (window.__XMAS_BASE || 'templates/christmas-gift').replace(/\/$/, '') + '/' + rawSrc;
+                    } else {
+                        resolvedSrc = (window.__XMAS_BASE || 'templates/christmas-gift').replace(/\/$/, '') + '/gift/' + rawSrc;
+                    }
+                    newScript.src = window.__xv ? window.__xv(resolvedSrc) : resolvedSrc;
                     newScript.type = scriptTag.type || 'text/javascript';
                     newScript.async = scriptTag.async || false;
                     newScript.defer = scriptTag.defer || false;
@@ -1351,7 +1381,13 @@ function loadGiftPage() {
             }
             
             // Load CSS và JS của gift page
-            if (!document.querySelector('link[href*="gift/gift.css"]')) {
+            if (!document.querySelector('link[href*="gift.css"]')) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = window.__xv ? window.__xv((window.__XMAS_BASE||'templates/christmas-gift').replace(/\/$/, '')+'/gift/gift.css') : ((window.__XMAS_BASE||'templates/christmas-gift').replace(/\/$/, '')+'/gift/gift.css');
+                document.head.appendChild(link);
+            }
+            if (false) {
                 const link = document.createElement('link');
                 link.rel = 'stylesheet';
                 link.href = window.__xv((window.__XMAS_BASE||'')+'/gift/gift.css');

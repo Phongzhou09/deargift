@@ -197,11 +197,26 @@
              * Xử lý sự kiện click/touch vào hộp quà
              */
             handleGiftClick(e) {
-                if (!this.isClickable || this.hasClicked) {
-                        return;
+                if (this.hasClicked) {
+                    if (this.letterModal && !this.letterModal.classList.contains('show')) {
+                        this.showLetter();
                     }
+                    return;
+                }
                 
                 this.hasClicked = true;
+
+                // Đảm bảo âm thanh phát mượt mà khi người dùng tương tác
+                try {
+                    const audio = document.getElementById('christmasAudio') || document.querySelector('audio');
+                    if (audio) {
+                        if (!audio.src || audio.src === window.location.href) {
+                            audio.src = (window.__XMAS_BASE || 'templates/christmas-gift').replace(/\/$/, '') + '/assets/music.mp3';
+                        }
+                        audio.loop = true;
+                        audio.play().catch(function() {});
+                    }
+                } catch(err) {}
 
                 // Ẩn gợi ý "chạm để mở"
                 const hint = document.getElementById('giftTapHint');
@@ -210,10 +225,10 @@
                 // Thêm hiệu ứng khi click
                 this.applyClickEffect();
                 
-                // Đợi một chút để hiệu ứng scale hoàn thành rồi hiển thị bức thư
+                // Hiển thị bức thư
                 setTimeout(() => {
                     this.showLetter();
-                }, 300);
+                }, 200);
             },
             
             /**
@@ -327,11 +342,11 @@
                     }
                 });
                 
-                // Ẩn nút mũi tên
+                // Luôn hiển thị nút mũi tên để người dùng có thể mở quà ngay
                 const nextButton = document.getElementById('letterNextButton');
                 if (nextButton) {
-                    nextButton.style.opacity = '0';
-                    nextButton.style.display = 'none';
+                    nextButton.style.display = 'inline-flex';
+                    nextButton.style.opacity = '1';
                 }
                 
                 const typingSpeed = 70;
@@ -439,11 +454,11 @@
                     }
                 });
                 
-                // Ẩn nút mũi tên
+                // Luôn hiển thị nút mũi tên để người dùng có thể mở quà ngay
                 const nextButton = document.getElementById('letterNextButton');
                 if (nextButton) {
-                    nextButton.style.opacity = '0';
-                    nextButton.style.display = 'none';
+                    nextButton.style.display = 'inline-flex';
+                    nextButton.style.opacity = '1';
                 }
                 
                 const typingSpeed = 70;
@@ -852,11 +867,20 @@
              * Mở quà - Load UI final gift vào trang hiện tại
              */
             openGift() {
-                // Đóng modal bức thư trước
+                // Đóng modal bức thư
                 if (this.letterModal) {
                     this.letterModal.classList.remove('show');
+                    this.letterModal.style.display = 'none';
                     document.body.style.overflow = '';
                 }
+                
+                // Giữ nhạc phát liên tục
+                try {
+                    const audio = document.getElementById('christmasAudio') || document.querySelector('audio');
+                    if (audio && audio.paused) {
+                        audio.play().catch(function(){});
+                    }
+                } catch(e) {}
                 
                 // Ẩn tất cả các element hiện tại của gift page
                 this.hideGiftPageElements();
