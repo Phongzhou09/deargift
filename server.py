@@ -196,7 +196,11 @@ SLUG_TO_ID = {
     'phao-hoa-nam-moi': '37',
     'mua-tinh-yeu-3d': '38',
     'ky-niem-bo-me': '39',
-    'photo-bouquet': '68'
+    'photo-bouquet': '68',
+    'thiep-cuoi-sang-trong': '70',
+    'wedding-save-the-date': '70',
+    'tet-sum-vay-3d': '71',
+    'tet-sum-vay': '71'
 }
 
 # ----------------- JWT & GOOGLE HELPER -----------------

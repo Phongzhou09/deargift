@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<base href="/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thiệp Cưới 3D — Save The Date & Hạnh Phúc 💍</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Great+Vibes&family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root {
+  --gold: #d4af37;
+  --gold-light: #fbeea4;
+  --gold-dark: #997a15;
+  --rose: #e8589a;
+  --cream: #fffdfa;
+  --burgundy: #4a0e17;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: radial-gradient(circle at center, #2d0b13 0%, #150307 100%);
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+#petal-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+.music-toggle {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(212, 175, 55, 0.2);
+  border: 1px solid var(--gold);
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  animation: rotateMusic 6s linear infinite;
+}
+.music-toggle.paused { animation-play-state: paused; opacity: 0.7; }
+@keyframes rotateMusic { 100% { transform: rotate(360deg); } }
+
+.wedding-container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 30px 18px 80px;
+  position: relative;
+  z-index: 10;
+}
+
+/* Header */
+.wedding-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.sub-tag {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--gold-light);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.main-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: 46px;
+  color: var(--gold-light);
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+  margin-bottom: 4px;
+}
+.couples-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #fff;
+}
+.amp {
+  color: var(--gold);
+  font-style: italic;
+  font-family: 'Great Vibes', cursive;
+  font-size: 32px;
+  margin: 0 8px;
+}
+
+/* Countdown Clock */
+.countdown-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: 20px;
+  padding: 18px 14px;
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+}
+.cd-title {
+  text-align: center;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--gold-light);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.cd-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.cd-item {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 12px;
+  padding: 10px 4px;
+  text-align: center;
+}
+.cd-num {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+.cd-label {
+  font-size: 10px;
+  color: #d1c7b7;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+/* Photo Frame */
+.wedding-photo-card {
+  border-radius: 24px;
+  overflow: hidden;
+  border: 2px solid var(--gold);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+  position: relative;
+  margin-bottom: 24px;
+}
+.wedding-photo-card img {
+  width: 100%;
+  height: 380px;
+  object-fit: cover;
+  display: block;
+}
+.photo-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 30px 20px 16px;
+  background: linear-gradient(to top, rgba(20,2,6,0.95), transparent);
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--gold-light);
+}
+
+/* Details Card */
+.wedding-details {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 20px;
+  padding: 24px 20px;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.details-headline {
+  font-family: 'Cinzel', serif;
+  color: var(--gold);
+  font-size: 16px;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+}
+.event-info {
+  margin-bottom: 14px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #f3ede2;
+}
+.event-info i {
+  color: var(--gold);
+  margin-right: 6px;
+}
+.btn-map {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  color: #1a080c;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 10px 22px;
+  border-radius: 50px;
+  text-decoration: none;
+  margin-top: 8px;
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+}
+
+/* Gift & Wishes */
+.gift-rsvp-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  border-radius: 20px;
+  padding: 22px 18px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.qr-gift-box {
+  background: #fff;
+  padding: 12px;
+  border-radius: 16px;
+  display: inline-block;
+  margin: 14px 0;
+  border: 2px solid var(--gold);
+}
+.qr-gift-box img {
+  width: 170px;
+  height: 170px;
+  display: block;
+}
+.wishes-input-box textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  padding: 12px;
+  font-size: 13.5px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 10px;
+}
+.wishes-input-box button {
+  width: 100%;
+  background: linear-gradient(135deg, #e8589a, #db2777);
+  border: none;
+  color: #fff;
+  font-weight: 700;
+  padding: 12px;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(232, 88, 154, 0.4);
+}
+.wishes-list {
+  margin-top: 14px;
+  text-align: left;
+  max-height: 180px;
+  overflow-y: auto;
+  font-size: 12.5px;
+}
+.wish-item {
+  background: rgba(0,0,0,0.25);
+  border-left: 3px solid var(--gold);
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+.wish-name {
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+.gift-preview-flag {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  background: linear-gradient(135deg, #d4af37, #997a15);
+  color: #120407;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 5px 14px;
+  border-radius: 50px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+</style>
+</head>
+<body>
+<div class="gift-preview-flag">THIỆP CƯỚI 3D</div>
+
+<button class="music-toggle" id="musicBtn" title="Phát/Dừng nhạc">
+  <i class="fa-solid fa-music"></i>
+</button>
+<audio id="weddingAudio" src="/demos/music/happybirtday_uia.mp3" loop></audio>
+
+<canvas id="petal-canvas"></canvas>
+
+<div class="wedding-container">
+  <header class="wedding-header">
+    <div class="sub-tag">Save The Date · Trân Trọng Kính Mời</div>
+    <div class="main-title">Happy Wedding</div>
+    <div class="couples-name">
+      <span id="groomName">Quang Minh</span>
+      <span class="amp">&</span>
+      <span id="brideName">Thùy Tiên</span>
+    </div>
+  </header>
+
+  <!-- Countdown -->
+  <div class="countdown-box">
+    <div class="cd-title">Đếm ngược tới ngày trọng đại · <span id="weddingDateDisplay">25/12/2026</span></div>
+    <div class="cd-grid">
+      <div class="cd-item"><div class="cd-num" id="cdDays">00</div><div class="cd-label">Ngày</div></div>
+      <div class="cd-item"><div class="cd-num" id="cdHours">00</div><div class="cd-label">Giờ</div></div>
+      <div class="cd-item"><div class="cd-num" id="cdMins">00</div><div class="cd-label">Phút</div></div>
+      <div class="cd-item"><div class="cd-num" id="cdSecs">00</div><div class="cd-label">Giây</div></div>
+    </div>
+  </div>
+
+  <!-- Photo Card -->
+  <div class="wedding-photo-card">
+    <img id="weddingPhoto" src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&fit=crop&q=80" alt="Ảnh Cưới">
+    <div class="photo-caption" id="weddingQuote">
+      "Tình yêu không phải là tìm một ai đó hoàn hảo, mà là cùng nhau biến những điều bình dị thành điều kỳ diệu."
+    </div>
+  </div>
+
+  <!-- Details Card -->
+  <div class="wedding-details">
+    <div class="details-headline">LỄ THÀNH HÔN & TIỆC CƯỚI</div>
+    <div class="event-info">
+      <div><i class="fa-regular fa-clock"></i> <strong>Thời gian:</strong> <span id="weddingTime">11:00 Sáng</span></div>
+      <div><i class="fa-regular fa-calendar-check"></i> <strong>Ngày:</strong> <span id="weddingFullDate">Thứ Bảy, 25 Tháng 12, 2026</span></div>
+      <div><i class="fa-solid fa-location-dot"></i> <strong>Địa điểm:</strong> <span id="weddingVenue">Trung tâm Hội nghị Tiệc cưới The Adora Grand View</span></div>
+      <div style="font-size:12.5px; color:#d1c7b7; margin-top:4px;"><span id="weddingAddress">431 Hoàng Văn Thụ, Phường 4, Quận Tân Bình, TP. HCM</span></div>
+    </div>
+    <a href="https://maps.google.com" target="_blank" class="btn-map" id="mapLink">
+      <i class="fa-solid fa-diamond-turn-right"></i> Xem Bản Đồ Chỉ Đường
+    </a>
+  </div>
+
+  <!-- RSVP & Digital Gift -->
+  <div class="gift-rsvp-card">
+    <div class="details-headline" style="color:var(--rose);">HỘP MỪNG CƯỚI & LỜI CHÚC PHÚC</div>
+    <p style="font-size:13px; color:#e2d9cd; line-height:1.5;">
+      Sự hiện diện và lời chúc phúc của quý khách là niềm hạnh phúc to lớn nhất của chúng mình!
+    </p>
+    
+    <div class="qr-gift-box">
+      <img id="weddingQr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Chuc+Mung+Hanh+Phuc" alt="QR Mừng Cưới">
+      <div style="font-size:11px; font-weight:700; color:#333; margin-top:4px;">Gửi Mừng Cưới Tới Cô Dâu & Chú Rể</div>
+    </div>
+
+    <div class="wishes-input-box">
+      <textarea id="guestWish" rows="3" placeholder="Gửi lời chúc phúc ngọt ngào tới cô dâu & chú rể..."></textarea>
+      <button type="button" onclick="sendWish()"><i class="fa-solid fa-heart"></i> Gửi Lời Chúc Phúc</button>
+    </div>
+
+    <div class="wishes-list" id="wishesList">
+      <div class="wish-item"><span class="wish-name">Bạn thân:</span> Chúc hai bạn trăm năm hạnh phúc, sớm đón thiên thần nhỏ!</div>
+      <div class="wish-item"><span class="wish-name">Gia đình:</span> Chúc đôi uyên ương răng long đầu bạc, vạn sự cát tường!</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Canvas Floating Rose Petals
+(function() {
+  var canvas = document.getElementById('petal-canvas');
+  var ctx = canvas.getContext('2d');
+  var petals = [];
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  for (var i = 0; i < 35; i++) {
+    petals.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 8 + 6,
+      speedX: Math.random() * 1.5 - 0.75,
+      speedY: Math.random() * 1.2 + 0.8,
+      rotation: Math.random() * 360,
+      rotSpeed: Math.random() * 2 - 1,
+      color: Math.random() > 0.4 ? 'rgba(232, 88, 154, ' + (Math.random() * 0.4 + 0.3) + ')' : 'rgba(212, 175, 55, ' + (Math.random() * 0.4 + 0.25) + ')'
+    });
+  }
+
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    petals.forEach(function(p) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate((p.rotation * Math.PI) / 180);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, p.size, p.size * 0.6, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      p.x += p.speedX;
+      p.y += p.speedY;
+      p.rotation += p.rotSpeed;
+
+      if (p.y > canvas.height + 20) { p.y = -20; p.x = Math.random() * canvas.width; }
+      if (p.x > canvas.width + 20) p.x = -20;
+      if (p.x < -20) p.x = canvas.width + 20;
+    });
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+// Countdown Timer
+var targetDate = new Date('2026-12-25T11:00:00').getTime();
+function updateCountdown() {
+  var now = Date.now();
+  var diff = Math.max(0, targetDate - now);
+  var days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  var mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  var secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+  document.getElementById('cdDays').textContent = String(days).padStart(2, '0');
+  document.getElementById('cdHours').textContent = String(hours).padStart(2, '0');
+  document.getElementById('cdMins').textContent = String(mins).padStart(2, '0');
+  document.getElementById('cdSecs').textContent = String(secs).padStart(2, '0');
+}
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+// Audio toggle
+var audio = document.getElementById('weddingAudio');
+var musicBtn = document.getElementById('musicBtn');
+musicBtn.addEventListener('click', function() {
+  if (audio.paused) {
+    audio.play().then(function() {
+      musicBtn.classList.remove('paused');
+    }).catch(function() {});
+  } else {
+    audio.pause();
+    musicBtn.classList.add('paused');
+  }
+});
+document.body.addEventListener('click', function() {
+  if (audio.paused) {
+    audio.play().then(function() {
+      musicBtn.classList.remove('paused');
+    }).catch(function() {});
+  }
+}, { once: true });
+
+function sendWish() {
+  var input = document.getElementById('guestWish');
+  var text = input.value.trim();
+  if (!text) return;
+  var list = document.getElementById('wishesList');
+  var item = document.createElement('div');
+  item.className = 'wish-item';
+  item.innerHTML = '<span class="wish-name">Khách quý:</span> ' + text;
+  list.insertBefore(item, list.firstChild);
+  input.value = '';
+}
+
+// Live Preview Integration
+window.addEventListener('message', function(event) {
+  if (!event.data || (event.data.type !== 'DG_LIVE_PREVIEW_UPDATE' && event.data.type !== 'LIVE_PREVIEW_UPDATE')) return;
+  var p = event.data.payload || event.data.data || {};
+  
+  if (p.recipient_name) document.getElementById('brideName').textContent = p.recipient_name;
+  if (p.sender_name) document.getElementById('groomName').textContent = p.sender_name;
+  if (p.message) document.getElementById('weddingQuote').textContent = p.message;
+  if (p.photos && p.photos.length > 0) document.getElementById('weddingPhoto').src = p.photos[0];
+  
+  var day = parseInt(p.birthday_day || p.v3_calendar_day || 25, 10);
+  var month = parseInt(p.birthday_month || p.v3_calendar_month || 12, 10);
+  var year = 2026;
+  targetDate = new Date(year, month - 1, day, 11, 0, 0).getTime();
+  document.getElementById('weddingDateDisplay').textContent = day + '/' + month + '/' + year;
+  document.getElementById('weddingFullDate').textContent = 'Ngày ' + day + ' Tháng ' + month + ', ' + year;
+  updateCountdown();
+});
+
+try {
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'DG_PREVIEW_READY' }, '*');
+  }
+} catch(e) {}
+</script>
+</body>
+</html>

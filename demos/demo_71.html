@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<base href="/">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đầu Năm 🧧</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:wght@700;900&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root {
+  --tet-red: #c01920;
+  --tet-gold: #f8c024;
+  --tet-dark: #1f0507;
+  --gold-glow: #ffdf6d;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: radial-gradient(circle at center, #780d16 0%, var(--tet-dark) 100%);
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+#fireworks-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+.music-toggle {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(248, 192, 36, 0.25);
+  border: 1.5px solid var(--tet-gold);
+  color: var(--tet-gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  animation: rotateMusic 5s linear infinite;
+}
+.music-toggle.paused { animation-play-state: paused; opacity: 0.7; }
+@keyframes rotateMusic { 100% { transform: rotate(360deg); } }
+
+.gift-preview-flag {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  background: linear-gradient(135deg, var(--tet-gold), #d99a07);
+  color: #3b0609;
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 5px 14px;
+  border-radius: 50px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.tet-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 30px 18px 80px;
+  position: relative;
+  z-index: 10;
+}
+
+/* Header */
+.tet-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.tet-tag {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  color: var(--tet-gold);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.tet-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--tet-gold);
+  text-shadow: 0 0 25px rgba(248, 192, 36, 0.6);
+  line-height: 1.2;
+}
+.tet-sub {
+  font-family: 'Dancing Script', cursive;
+  font-size: 26px;
+  color: #fff;
+  margin-top: 4px;
+}
+
+/* Red Envelope Card (Lì Xì Tương Tác) */
+.lixi-interactive-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(248, 192, 36, 0.4);
+  border-radius: 24px;
+  padding: 24px 18px;
+  text-align: center;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.4);
+  backdrop-filter: blur(10px);
+}
+.lixi-envelope {
+  width: 170px;
+  height: 230px;
+  background: linear-gradient(135deg, #d31e28 0%, #9e0e15 100%);
+  border-radius: 16px;
+  margin: 0 auto 18px;
+  position: relative;
+  border: 2px solid var(--tet-gold);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.lixi-envelope:hover {
+  transform: translateY(-8px) scale(1.03);
+}
+.lixi-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe17d 0%, var(--tet-gold) 100%);
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: #8c0c14;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+}
+.lixi-text {
+  font-family: 'Dancing Script', cursive;
+  font-size: 22px;
+  color: var(--tet-gold);
+  margin-top: 14px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+.lixi-hint {
+  font-size: 12px;
+  color: #ffde94;
+  margin-top: 8px;
+}
+
+/* Fortune Popup Card */
+.fortune-box {
+  display: none;
+  background: rgba(0,0,0,0.4);
+  border: 1px dashed var(--tet-gold);
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 14px;
+  animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+.fortune-word {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--tet-gold);
+  margin-bottom: 4px;
+}
+.fortune-desc {
+  font-size: 13px;
+  color: #fff;
+  line-height: 1.5;
+}
+
+/* Greeting Letter */
+.letter-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(248, 192, 36, 0.35);
+  border-radius: 24px;
+  padding: 24px 20px;
+  margin-bottom: 24px;
+}
+.letter-header {
+  font-family: 'Playfair Display', serif;
+  color: var(--tet-gold);
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.letter-body {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #f7ede2;
+  white-space: pre-line;
+}
+.letter-sign {
+  margin-top: 16px;
+  text-align: right;
+  font-family: 'Dancing Script', cursive;
+  font-size: 22px;
+  color: var(--tet-gold);
+}
+
+/* Lucky QR Banking */
+.qr-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1.5px solid rgba(248, 192, 36, 0.35);
+  border-radius: 24px;
+  padding: 22px 18px;
+  text-align: center;
+}
+.qr-frame {
+  background: #fff;
+  padding: 12px;
+  border-radius: 16px;
+  display: inline-block;
+  margin: 12px 0;
+  border: 2px solid var(--tet-gold);
+}
+.qr-frame img {
+  width: 170px;
+  height: 170px;
+  display: block;
+}
+</style>
+</head>
+<body>
+<div class="gift-preview-flag">MẪU TẾT 3D</div>
+
+<button class="music-toggle" id="musicBtn" title="Phát/Dừng nhạc">
+  <i class="fa-solid fa-music"></i>
+</button>
+<audio id="tetAudio" src="/demos/music/happybirtday_uia.mp3" loop></audio>
+
+<canvas id="fireworks-canvas"></canvas>
+
+<div class="tet-container">
+  <header class="tet-header">
+    <div class="tet-tag">XUÂN GIÁP THÌN · NĂM MỚI BÌNH AN</div>
+    <div class="tet-title" id="tetTitle">TẾT SUM VẦY 2026</div>
+    <div class="tet-sub">Vạn Sự Như Ý — An Khang Thịnh Vượng</div>
+  </header>
+
+  <!-- Lì Xì Tương Tác -->
+  <div class="lixi-interactive-card">
+    <div class="lixi-envelope" onclick="openLixi()">
+      <div class="lixi-badge">LỘC</div>
+      <div class="lixi-text">Chúc Mừng Năm Mới</div>
+      <div class="lixi-hint">Chạm để Rút Quẻ & Khui Lộc</div>
+    </div>
+    
+    <div class="fortune-box" id="fortuneBox">
+      <div class="fortune-word" id="fortuneWord">✨ ĐẠI CÁT ĐẠI LỢI ✨</div>
+      <div class="fortune-desc" id="fortuneDesc">
+        Năm mới tấn tài tấn lộc, công thành danh toại, gia đạo bình an, vạn sự hanh thông rực rỡ!
+      </div>
+    </div>
+  </div>
+
+  <!-- Thiệp Chúc Tết -->
+  <div class="letter-card">
+    <div class="letter-header">
+      <i class="fa-solid fa-envelope-open-text"></i>
+      <span id="letterTitleDisplay">Thư Chúc Tết Thân Thương</span>
+    </div>
+    <div class="letter-body" id="letterBodyDisplay">
+      Gửi những người thương yêu nhất,
+
+      Năm cũ khép lại, mở ra một mùa xuân mới ngập tràn ánh nắng và hy vọng. Cảm ơn bạn vì đã luôn đồng hành, sẻ chia và mang đến thật nhiều tiếng cười trong suốt một năm qua.
+
+      Chúc bạn cùng toàn thể gia đình một năm mới dồi dào sức khỏe, vạn dặm bình an, tài lộc dồi dào và luôn mỉm cười hạnh phúc mỗi ngày!
+    </div>
+    <div class="letter-sign" id="letterSignDisplay">
+      Thương mến, Nguyễn Văn Phong
+    </div>
+  </div>
+
+  <!-- Lì xì mừng tuổi -->
+  <div class="qr-card">
+    <div style="font-family:'Playfair Display',serif; font-size:16px; color:var(--tet-gold); font-weight:700;">
+      🧧 GỬI LÌ XÌ MAY MẮN ĐẦU NĂM
+    </div>
+    <p style="font-size:12.5px; color:#f3dede; margin-top:6px;">
+      Món quà tài lộc đầu xuân gửi gắm may mắn, bình an cho cả năm sung túc.
+    </p>
+    <div class="qr-frame">
+      <img id="tetQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Chuc+Mung+Nam+Moi+Phat+Tai" alt="QR Lì Xì">
+    </div>
+    <div style="font-size:12px; color:var(--tet-gold); font-weight:700;">
+      Chúc Mừng Năm Mới 2026!
+    </div>
+  </div>
+</div>
+
+<script>
+// Canvas Fireworks & Apricot Petals
+(function() {
+  var canvas = document.getElementById('fireworks-canvas');
+  var ctx = canvas.getContext('2d');
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  var particles = [];
+  var petals = [];
+
+  for (var i = 0; i < 30; i++) {
+    petals.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 6 + 5,
+      speedX: Math.random() * 1.5 - 0.75,
+      speedY: Math.random() * 1.4 + 0.8,
+      color: Math.random() > 0.4 ? '#f8c024' : '#ff758c'
+    });
+  }
+
+  function launchFirework(x, y) {
+    var colors = ['#f8c024', '#ff4d4d', '#ffec99', '#ff99c8', '#ffffff'];
+    for (var i = 0; i < 45; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var speed = Math.random() * 5 + 2;
+      particles.push({
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        life: 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        radius: Math.random() * 2.5 + 1.5
+      });
+    }
+  }
+  window.launchFirework = launchFirework;
+
+  // Auto fireworks occasionally
+  setInterval(function() {
+    launchFirework(Math.random() * canvas.width, Math.random() * canvas.height * 0.5);
+  }, 2200);
+
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Petals
+    petals.forEach(function(p) {
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.fill();
+      p.x += p.speedX;
+      p.y += p.speedY;
+      if (p.y > canvas.height + 10) { p.y = -10; p.x = Math.random() * canvas.width; }
+    });
+
+    // Fireworks particles
+    for (var j = particles.length - 1; j >= 0; j--) {
+      var pt = particles[j];
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, pt.radius, 0, Math.PI * 2);
+      ctx.fillStyle = pt.color;
+      ctx.globalAlpha = pt.life;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+
+      pt.x += pt.vx;
+      pt.y += pt.vy;
+      pt.vy += 0.06; // gravity
+      pt.life -= 0.02;
+
+      if (pt.life <= 0) particles.splice(j, 1);
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+var fortunes = [
+  { word: "✨ ĐẠI CÁT ĐẠI LỢI ✨", desc: "Năm mới tiền vào như nước, công thành danh toại, vạn sự hanh thông!" },
+  { word: "🌸 BÌNH AN HẠNH PHÚC 🌸", desc: "Tâm hồn thanh thản, sức khỏe dồi dào, gia đình sum vầy ấm êm!" },
+  { word: "💎 PHÚ QUÝ VINH HOA 💎", desc: "Cơ hội rực rỡ gõ cửa, tài lộc khởi sắc, làm đâu thắng đó!" },
+  { word: "💖 DUYÊN LÀNH NHƯ Ý 💖", desc: "Tình cảm thăng hoa, gặp gỡ tri kỷ, ngập tràn yêu thương viên mãn!" }
+];
+
+function openLixi() {
+  var box = document.getElementById('fortuneBox');
+  var f = fortunes[Math.floor(Math.random() * fortunes.length)];
+  document.getElementById('fortuneWord').textContent = f.word;
+  document.getElementById('fortuneDesc').textContent = f.desc;
+  box.style.display = 'block';
+  if (window.launchFirework) {
+    window.launchFirework(window.innerWidth / 2, window.innerHeight * 0.4);
+  }
+}
+
+// Audio
+var audio = document.getElementById('tetAudio');
+var musicBtn = document.getElementById('musicBtn');
+musicBtn.addEventListener('click', function() {
+  if (audio.paused) {
+    audio.play().then(function() { musicBtn.classList.remove('paused'); }).catch(function() {});
+  } else {
+    audio.pause();
+    musicBtn.classList.add('paused');
+  }
+});
+document.body.addEventListener('click', function() {
+  if (audio.paused) {
+    audio.play().then(function() { musicBtn.classList.remove('paused'); }).catch(function() {});
+  }
+}, { once: true });
+
+// Live Preview Integration
+window.addEventListener('message', function(event) {
+  if (!event.data || (event.data.type !== 'DG_LIVE_PREVIEW_UPDATE' && event.data.type !== 'LIVE_PREVIEW_UPDATE')) return;
+  var p = event.data.payload || event.data.data || {};
+  if (p.recipient_name) document.getElementById('tetTitle').textContent = 'TẾT SUM VẦY · ' + p.recipient_name.toUpperCase();
+  if (p.sender_name) document.getElementById('letterSignDisplay').textContent = 'Thương mến, ' + p.sender_name;
+  if (p.message) document.getElementById('letterBodyDisplay').textContent = p.message;
+});
+
+try {
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'DG_PREVIEW_READY' }, '*');
+  }
+} catch(e) {}
+</script>
+</body>
+</html>
