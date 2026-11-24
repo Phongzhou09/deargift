@@ -751,6 +751,27 @@ document.addEventListener('keydown', function (event) {
 </div>
 </div>
 </article>
+<article class="tm-card" data-category-id="3" data-category-ids="1,3" data-category-name="Ngày Phụ Nữ" data-template-id="73">
+<a aria-label="Xem demo Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁" class="tm-card__media" data-demo-preview="" data-demo-title="Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁" href="demo.php?id=73" rel="nofollow noopener noreferrer" target="_blank">
+<img alt="Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁" loading="lazy" onerror="this.onerror=null; this.src='templates/mon-qua-nho-2010/cover.webp';" src="assets/boysday/uploads/img-mwdl2m5l-778cd5ec.webp"/>
+<span class="tm-card__price">Miễn phí</span>
+<span class="tm-card__preview"><i data-lucide="play"></i> Xem trải nghiệm</span>
+<span class="tm-card__usage"><i data-lucide="sparkles"></i> Mới ra mắt</span>
+</a>
+<div class="tm-card__body">
+<div class="tm-card__meta">
+<span>Boys Day 19/11</span>
+<span><i data-lucide="clock-3"></i> 2 phút tạo</span>
+</div>
+<h3>Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁</h3>
+<p>Món quà 3D tương tác độc quyền Boys Day 19/11: chú gấu kem đáng yêu, mini-game kết nối ảnh kỷ niệm, những mảnh ghép thương mến và lá thư chân thành.</p>
+<div class="tm-card__actions">
+<a class="tm-btn tm-btn--ghost" data-demo-preview="" data-demo-title="Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁" href="demo.php?id=73" rel="nofollow noopener noreferrer" target="_blank"><i data-lucide="eye"></i> Xem demo</a>
+<a class="tm-btn tm-btn--primary" href="gift-builder.php?id=73" rel="nofollow">Tạo quà <i data-lucide="arrow-up-right"></i></a>
+</div>
+</div>
+</article>
+
 <article class="tm-card" data-category-id="3" data-category-ids="1,3" data-category-name="Ngày Phụ Nữ" data-template-id="72">
 <a aria-label="Xem demo Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸" class="tm-card__media" data-demo-preview="" data-demo-title="Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸" href="demo.php?id=72" rel="nofollow noopener noreferrer" target="_blank">
 <img alt="Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸" loading="lazy" onerror="this.onerror=null; this.src='assets/thumbnails/photo-bouquet-thumb.jpg';" src="assets/thumbnails/vuon-hoa-3d.jpg"/>

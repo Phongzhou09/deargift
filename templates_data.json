@@ -1,5 +1,26 @@
 [
   {
+    "id": "73",
+    "is_featured": true,
+    "demo_url": "demo.php?id=73",
+    "demo_title": "Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁",
+    "img_url": "/assets/boysday/uploads/img-mwdl2m5l-778cd5ec.webp",
+    "price": "Miễn phí",
+    "usage": "Mới",
+    "category": "Ngày Phụ Nữ",
+    "duration": "2 phút tạo",
+    "title": "Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁",
+    "desc": "Món quà 3D tương tác độc quyền Boys Day 19/11: chú gấu kem đáng yêu, mini-game kết nối ảnh kỷ niệm, những mảnh ghép thương mến và lá thư chân thành gửi người thương.",
+    "tags": [
+      "#19/11",
+      "#BoysDay",
+      "#GấuKem3D",
+      "#NamGiới"
+    ],
+    "builder_url": "gift-builder.php?id=73",
+    "slug": "boys-day-19-11-gau-kem"
+  },
+  {
     "id": "72",
     "is_featured": true,
     "demo_url": "demo.php?id=72",
@@ -70,19 +91,18 @@
     "id": "69",
     "is_featured": true,
     "demo_url": "demo.php?id=69",
-    "demo_title": "Món Quà Nhỏ 3D · 19/11 &amp; Mọi Dịp Đặc Biệt 🎁",
+    "demo_title": "Món Quà Nhỏ 3D · 19/11 & Mọi Dịp Đặc Biệt 🎁",
     "img_url": "/templates/mon-qua-nho-2010/cover.webp",
     "price": "50.000đ",
     "usage": "139 lượt dùng",
     "category": "Ngày Phụ Nữ",
     "duration": "3 phút tạo",
-    "title": "Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁",
-    "desc": "Món quà 3D tương tác độc quyền Boys Day 19/11: chú gấu kem đáng yêu, mini-game kết nối ảnh kỷ niệm, những mảnh ghép thương mến và lá thư chân thành gửi người thương.",
+    "title": "Món Quà Nhỏ 3D · 19/11 (Quốc Tế Nam Giới) 🎁",
+    "desc": "Món quà 3D tương tác 7 cảnh độc quyền cho ngày Quốc tế Nam giới 19/11: tờ lịch 19/11, chữ hạt sáng, bó hoa 3D, quả cầu ảnh bay, phong thư sáp ong, thẻ cào bí mật và đêm pháo hoa.",
     "tags": [
       "#19/11",
-      "#BoysDay",
-      "#GấuKem3D",
-      "#NamGiới"
+      "#Nam giới",
+      "#Bó hoa 3D"
     ],
     "builder_url": "gift-builder.php?id=69"
   },
