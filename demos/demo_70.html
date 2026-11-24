@@ -21,12 +21,14 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: radial-gradient(ellipse at 50% 30%, #460f1b 0%, var(--wine-dark) 100%);
+  background: radial-gradient(ellipse at 50% 25%, #460f1b 0%, #20040a 60%, var(--wine-dark) 100%);
   color: var(--cream);
   font-family: 'Montserrat', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  user-select: none;
+  -webkit-user-select: none;
 }
 #fx-canvas {
   position: fixed;
@@ -34,7 +36,7 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Music Pill */
@@ -42,24 +44,24 @@ body {
   position: fixed;
   top: 18px;
   right: 18px;
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: rgba(223, 183, 70, 0.2);
-  border: 1.5px solid var(--gold);
+  background: rgba(223, 183, 70, 0.25);
+  border: 2px solid var(--gold);
   color: var(--gold-glow);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 100;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 20px rgba(223, 183, 70, 0.4);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 25px rgba(223, 183, 70, 0.45);
   animation: rotateDisc 7s linear infinite;
   transition: transform 0.2s;
 }
-.music-toggle:hover { transform: scale(1.1); }
-.music-toggle.paused { animation-play-state: paused; opacity: 0.6; }
+.music-toggle:hover { transform: scale(1.12); }
+.music-toggle.paused { animation-play-state: paused; opacity: 0.65; }
 @keyframes rotateDisc { 100% { transform: rotate(360deg); } }
 
 .gift-flag {
@@ -71,19 +73,56 @@ body {
   font-weight: 800;
   font-size: 11px;
   letter-spacing: 1.5px;
-  padding: 6px 16px;
+  padding: 7px 18px;
   border-radius: 50px;
   z-index: 100;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.55);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
+/* Floating Action Bar */
+.interactive-action-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+  background: rgba(25, 3, 8, 0.8);
+  border: 1.5px solid rgba(223, 183, 70, 0.45);
+  padding: 8px 14px;
+  border-radius: 50px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 35px rgba(0,0,0,0.65);
+}
+.act-btn {
+  background: linear-gradient(135deg, #e8589a, #9d174d);
+  border: 1px solid var(--gold);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  white-space: nowrap;
+}
+.act-btn:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 6px 18px rgba(232, 88, 154, 0.45);
+}
+.act-btn:active { transform: scale(0.95); }
+
 .wrap {
   max-width: 520px;
   margin: 0 auto;
-  padding: 30px 18px 90px;
+  padding: 30px 18px 110px;
   position: relative;
   z-index: 10;
 }
@@ -91,13 +130,13 @@ body {
 /* Envelope Interactive Intro */
 .envelope-gate {
   background: rgba(255, 255, 255, 0.05);
-  border: 1.5px solid rgba(223, 183, 70, 0.4);
+  border: 1.8px solid rgba(223, 183, 70, 0.45);
   border-radius: 28px;
-  padding: 30px 20px;
+  padding: 32px 20px;
   text-align: center;
   margin-bottom: 28px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-  backdrop-filter: blur(15px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.65);
+  backdrop-filter: blur(16px);
   position: relative;
   overflow: hidden;
 }
@@ -108,37 +147,37 @@ body {
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle, rgba(223,183,70,0.12) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(223,183,70,0.15) 0%, transparent 60%);
   pointer-events: none;
 }
 .wax-seal-btn {
-  width: 90px;
-  height: 90px;
-  margin: 18px auto;
+  width: 92px;
+  height: 92px;
+  margin: 20px auto 14px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #e63946, #800e13);
-  border: 3px solid #ffccd5;
-  box-shadow: 0 10px 30px rgba(230, 57, 70, 0.6), inset 0 2px 6px rgba(255,255,255,0.4);
+  background: radial-gradient(circle at 35% 35%, #e63946, #780016);
+  border: 3.5px solid #ffccd5;
+  box-shadow: 0 12px 32px rgba(230, 57, 70, 0.65), inset 0 2px 8px rgba(255,255,255,0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
 }
 .wax-seal-btn:hover {
-  transform: scale(1.08) rotate(5deg);
+  transform: scale(1.1) rotate(6deg);
 }
 .wax-seal-btn i {
-  font-size: 34px;
+  font-size: 36px;
   color: var(--gold-glow);
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,0.6));
 }
 .seal-pulse {
   position: absolute;
-  inset: -8px;
+  inset: -9px;
   border-radius: 50%;
-  border: 2px dashed rgba(223, 183, 70, 0.6);
+  border: 2px dashed rgba(223, 183, 70, 0.65);
   animation: spinSlow 12s linear infinite;
 }
 @keyframes spinSlow { 100% { transform: rotate(360deg); } }
@@ -154,21 +193,21 @@ body {
 }
 .hero-title {
   font-family: 'Great Vibes', cursive;
-  font-size: 50px;
+  font-size: 52px;
   color: var(--gold-glow);
-  text-shadow: 0 0 25px rgba(223, 183, 70, 0.6);
+  text-shadow: 0 0 28px rgba(223, 183, 70, 0.65);
   line-height: 1.1;
   margin-bottom: 10px;
 }
 .names-hero {
   font-family: 'Playfair Display', serif;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 800;
   letter-spacing: 1px;
 }
 .amp-gold {
   font-family: 'Great Vibes', cursive;
-  font-size: 38px;
+  font-size: 40px;
   color: var(--gold);
   margin: 0 8px;
   font-weight: 400;
@@ -185,19 +224,59 @@ body {
 }
 .rings-deco .line {
   height: 1px;
-  width: 50px;
+  width: 55px;
   background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+/* 3D Diamond Ring Interactive Box */
+.ring-box-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.8px solid rgba(223, 183, 70, 0.45);
+  border-radius: 28px;
+  padding: 24px 18px;
+  text-align: center;
+  margin-bottom: 26px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  backdrop-filter: blur(14px);
+}
+.ring-velvet-box {
+  width: 130px;
+  height: 130px;
+  margin: 14px auto 16px;
+  background: radial-gradient(circle at 40% 40%, #780016, #3c0914);
+  border-radius: 24px;
+  border: 2.5px solid var(--gold);
+  box-shadow: 0 14px 35px rgba(0,0,0,0.65), inset 0 2px 8px rgba(255,255,255,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+.ring-velvet-box:hover {
+  transform: scale(1.08) translateY(-4px);
+}
+.ring-sparkles-icon {
+  font-size: 48px;
+  color: #fff;
+  filter: drop-shadow(0 0 15px rgba(223, 183, 70, 0.9));
+  animation: pulseGlow 2.5s ease-in-out infinite alternate;
+}
+@keyframes pulseGlow {
+  0% { transform: scale(0.95); opacity: 0.85; }
+  100% { transform: scale(1.1); opacity: 1; filter: drop-shadow(0 0 25px rgba(255, 234, 167, 1)); }
 }
 
 /* Countdown Card */
 .cd-card {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(223, 183, 70, 0.35);
-  border-radius: 22px;
-  padding: 20px 16px;
+  border: 1.5px solid rgba(223, 183, 70, 0.35);
+  border-radius: 24px;
+  padding: 22px 16px;
   margin-bottom: 26px;
   text-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
 }
 .cd-head {
   font-size: 11.5px;
@@ -212,15 +291,15 @@ body {
   gap: 8px;
 }
 .cd-col {
-  background: rgba(18, 2, 6, 0.6);
-  border: 1px solid rgba(223, 183, 70, 0.25);
-  border-radius: 14px;
-  padding: 12px 6px;
-  box-shadow: inset 0 2px 6px rgba(0,0,0,0.4);
+  background: rgba(18, 2, 6, 0.65);
+  border: 1px solid rgba(223, 183, 70, 0.3);
+  border-radius: 16px;
+  padding: 14px 6px;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.45);
 }
 .cd-val {
   font-family: 'Cinzel', serif;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 800;
   color: #fff;
   line-height: 1;
@@ -232,24 +311,25 @@ body {
   margin-top: 5px;
 }
 
-/* Baroque Wedding Photo Frame */
+/* Baroque Wedding Photo Frame (With Local Fallback) */
 .photo-frame-wrap {
   border-radius: 26px;
   overflow: hidden;
-  border: 2.5px solid var(--gold);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 30px rgba(223, 183, 70, 0.25);
+  border: 2.8px solid var(--gold);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.7), 0 0 35px rgba(223, 183, 70, 0.3);
   position: relative;
   margin-bottom: 26px;
+  background: #190308;
 }
 .photo-frame-wrap img {
   width: 100%;
-  height: 400px;
+  height: 380px;
   object-fit: cover;
   display: block;
   transition: transform 0.6s ease;
 }
 .photo-frame-wrap:hover img {
-  transform: scale(1.03);
+  transform: scale(1.04);
 }
 .photo-overlay {
   position: absolute;
@@ -263,24 +343,25 @@ body {
 .photo-quote {
   font-family: 'Playfair Display', serif;
   font-style: italic;
-  font-size: 15px;
+  font-size: 15.5px;
   color: var(--gold-glow);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
-/* Event Info Box */
+/* Ceremony Details */
 .event-box {
   background: rgba(255, 255, 255, 0.04);
-  border: 1.5px solid rgba(223, 183, 70, 0.35);
-  border-radius: 24px;
+  border: 1.8px solid rgba(223, 183, 70, 0.4);
+  border-radius: 26px;
   padding: 26px 20px;
   text-align: center;
   margin-bottom: 26px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
 }
 .event-title {
   font-family: 'Cinzel', serif;
   color: var(--gold);
-  font-size: 17px;
+  font-size: 17.5px;
   letter-spacing: 2px;
   font-weight: 800;
   margin-bottom: 18px;
@@ -321,19 +402,20 @@ body {
 /* Digital Gift & RSVP */
 .rsvp-card {
   background: rgba(255, 255, 255, 0.04);
-  border: 1.5px solid rgba(232, 88, 154, 0.4);
-  border-radius: 24px;
+  border: 1.8px solid rgba(232, 88, 154, 0.45);
+  border-radius: 26px;
   padding: 26px 20px;
   text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
 }
 .qr-gold-box {
   background: #fff;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 20px;
   display: inline-block;
   margin: 16px 0;
-  border: 2px solid var(--gold);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 3px solid var(--gold);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.55);
 }
 .qr-gold-box img {
   width: 175px;
@@ -342,9 +424,9 @@ body {
 }
 .wish-form textarea {
   width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(223, 183, 70, 0.35);
-  background: rgba(0,0,0,0.45);
+  border-radius: 16px;
+  border: 1px solid rgba(223, 183, 70, 0.4);
+  background: rgba(0,0,0,0.5);
   color: #fff;
   padding: 14px;
   font-size: 13.5px;
@@ -358,16 +440,18 @@ body {
   border: none;
   color: #fff;
   font-weight: 800;
-  padding: 13px;
+  padding: 14px;
   border-radius: 50px;
   cursor: pointer;
   font-size: 14px;
-  box-shadow: 0 6px 20px rgba(232, 88, 154, 0.4);
+  box-shadow: 0 6px 22px rgba(232, 88, 154, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: transform 0.2s;
 }
+.wish-form button:hover { transform: scale(1.02); }
 .wish-feed {
   margin-top: 16px;
   text-align: left;
@@ -376,10 +460,10 @@ body {
   font-size: 13px;
 }
 .wish-bubble {
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.35);
   border-left: 3px solid var(--gold);
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 10px;
   margin-bottom: 8px;
 }
 </style>
@@ -393,6 +477,13 @@ body {
 <audio id="weddingAudio" src="/assets/music/givemeyourforever.mp3" loop></audio>
 
 <canvas id="fx-canvas"></canvas>
+
+<!-- Floating Action Bar -->
+<div class="interactive-action-bar">
+  <button class="act-btn" onclick="triggerFloatingHearts()"><i class="fa-solid fa-heart"></i> Thả Tim Yêu Thương</button>
+  <button class="act-btn" onclick="triggerRoseRain()"><i class="fa-solid fa-fan"></i> Mưa Cánh Hoa Hồng</button>
+  <button class="act-btn" onclick="openRingBox()"><i class="fa-solid fa-ring"></i> Hộp Nhẫn 3D</button>
+</div>
 
 <div class="wrap">
   <!-- Interactive Seal Box -->
@@ -412,11 +503,27 @@ body {
       <div class="line"></div>
     </div>
 
-    <div class="wax-seal-btn" onclick="openWeddingInvitation()">
+    <div class="wax-seal-btn" id="waxSealBtn" onclick="openWeddingInvitation()">
       <div class="seal-pulse"></div>
       <i class="fa-solid fa-envelope-open-text"></i>
     </div>
-    <div style="font-size:12.5px; color:var(--gold-glow); font-weight:600;">Chạm dấu sáp để mở thiệp & âm nhạc 💌</div>
+    <div style="font-size:12.5px; color:var(--gold-glow); font-weight:600;">Chạm dấu sáp hoàng gia để mở thiệp & âm nhạc 💌</div>
+  </div>
+
+  <!-- 3D Diamond Ring Interactive Box -->
+  <div class="ring-box-card">
+    <div style="font-family:'Cinzel',serif; font-size:16px; color:var(--gold); font-weight:800; letter-spacing:1px;">
+      KHOẢNH KHẮC THỀ NGUYỆN KIM CƯƠNG
+    </div>
+    <p style="font-size:12.5px; color:#f0d7de; margin-top:4px;">
+      Chạm mở hộp nhẫn đính hôn 3D
+    </p>
+    <div class="ring-velvet-box" id="velvetBox" onclick="openRingBox()">
+      <i class="fa-solid fa-gem ring-sparkles-icon"></i>
+    </div>
+    <div id="ringStatus" style="font-size:12.5px; color:var(--gold-glow); font-weight:700;">
+      ✨ "Vĩnh kết đồng tâm — Trọn đời gắn kết" ✨
+    </div>
   </div>
 
   <!-- Countdown -->
@@ -430,9 +537,9 @@ body {
     </div>
   </div>
 
-  <!-- Wedding Photo Frame -->
+  <!-- Wedding Photo Frame (With Local Fallback) -->
   <div class="photo-frame-wrap">
-    <img id="weddingPhoto" src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&fit=crop&q=80" alt="Ảnh Cưới">
+    <img id="weddingPhoto" src="assets/thumbnails/thiep-cuoi.jpg" onerror="this.onerror=null; this.src='assets/thumbnails/lovegift.jpg';" alt="Ảnh Cưới Hoàng Gia">
     <div class="photo-overlay">
       <div class="photo-quote" id="weddingQuote">
         "Tình yêu không phải là tìm một ai đó hoàn hảo, mà là cùng nhau biến những điều bình dị thành điều kỳ diệu."
@@ -460,7 +567,7 @@ body {
     </p>
 
     <div class="qr-gold-box">
-      <img id="weddingQr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Chuc+Mung+Hanh+Phuc" alt="QR Mừng Cưới">
+      <img id="weddingQr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Chuc+Mung+Hanh+Phuc" onerror="this.onerror=null; this.src='assets/thumbnails/thiep-cuoi.jpg';" alt="QR Mừng Cưới">
       <div style="font-size:11px; font-weight:700; color:#333; margin-top:5px;">Mừng cưới cô dâu & chú rể</div>
     </div>
 
@@ -477,7 +584,9 @@ body {
 </div>
 
 <script>
-// Floating Gold Particles & Rose Petals
+// ==========================================
+// 1. FLOATING PARTICLES (ROSE PETALS & HEARTS)
+// ==========================================
 (function() {
   var canvas = document.getElementById('fx-canvas');
   var ctx = canvas.getContext('2d');
@@ -486,50 +595,144 @@ body {
   resize();
 
   var items = [];
-  for (var i = 0; i < 40; i++) {
-    items.push({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      size: Math.random() * 8 + 4,
-      isPetal: Math.random() > 0.4,
-      speedX: Math.random() * 1.4 - 0.7,
-      speedY: Math.random() * 1.2 + 0.6,
-      rot: Math.random() * 360,
-      rotSpeed: Math.random() * 2 - 1,
-      color: Math.random() > 0.5 ? 'rgba(232, 88, 154, 0.45)' : 'rgba(223, 183, 70, 0.4)'
-    });
+  for (var i = 0; i < 50; i++) {
+    items.push(createParticle(true));
   }
+  function createParticle(randomY) {
+    var type = Math.random();
+    return {
+      x: Math.random() * canvas.width,
+      y: randomY ? Math.random() * canvas.height : -20,
+      size: Math.random() * 9 + 5,
+      type: type > 0.65 ? 'heart' : (type > 0.3 ? 'rose' : 'sparkle'),
+      vx: Math.random() * 1.5 - 0.75,
+      vy: Math.random() * 1.4 + 0.8,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.04,
+      color: type > 0.65 ? '#e8589a' : (type > 0.3 ? '#f43f5e' : '#f8c024')
+    };
+  }
+
+  function spawnBurst(x, y, count) {
+    for (var k = 0; k < count; k++) {
+      var angle = Math.random() * Math.PI * 2;
+      var spd = Math.random() * 6 + 2;
+      items.push({
+        x: x,
+        y: y,
+        size: Math.random() * 10 + 6,
+        type: 'heart',
+        vx: Math.cos(angle) * spd,
+        vy: Math.sin(angle) * spd - 3,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.08,
+        color: Math.random() > 0.5 ? '#e8589a' : '#f8c024',
+        isBurst: true,
+        alpha: 1
+      });
+    }
+  }
+  window.spawnBurst = spawnBurst;
 
   function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    items.forEach(function(it) {
+    for (var i = items.length - 1; i >= 0; i--) {
+      var it = items[i];
       ctx.save();
       ctx.translate(it.x, it.y);
-      ctx.rotate((it.rot * Math.PI) / 180);
+      ctx.rotate(it.rot);
       ctx.fillStyle = it.color;
-      ctx.beginPath();
-      if (it.isPetal) {
+      if (it.alpha !== undefined) ctx.globalAlpha = it.alpha;
+
+      if (it.type === 'heart') {
+        // Draw Heart Path
+        ctx.beginPath();
+        var h = it.size * 0.6;
+        ctx.moveTo(0, 0);
+        ctx.bezierCurveTo(-h, -h, -h * 2, h * 0.5, 0, h * 2);
+        ctx.bezierCurveTo(h * 2, h * 0.5, h, -h, 0, 0);
+        ctx.fill();
+      } else if (it.type === 'rose') {
+        // Draw Rose Petal
+        ctx.beginPath();
         ctx.ellipse(0, 0, it.size, it.size * 0.6, 0, 0, Math.PI * 2);
+        ctx.fill();
       } else {
+        // Sparkle Star
+        ctx.beginPath();
         ctx.arc(0, 0, it.size * 0.35, 0, Math.PI * 2);
+        ctx.fill();
       }
-      ctx.fill();
       ctx.restore();
 
-      it.x += it.speedX;
-      it.y += it.speedY;
+      it.x += it.vx;
+      it.y += it.vy;
       it.rot += it.rotSpeed;
 
-      if (it.y > canvas.height + 20) { it.y = -20; it.x = Math.random() * canvas.width; }
-      if (it.x > canvas.width + 20) it.x = -20;
-      if (it.x < -20) it.x = canvas.width + 20;
-    });
+      if (it.isBurst) {
+        it.vy += 0.1;
+        it.alpha -= 0.015;
+        if (it.alpha <= 0) items.splice(i, 1);
+      } else {
+        if (it.y > canvas.height + 20) Object.assign(it, createParticle(false));
+      }
+    }
     requestAnimationFrame(loop);
   }
   loop();
 })();
 
-// Audio & Invitation Trigger
+// ==========================================
+// 2. ROMANTIC SOUND SYNTHESIZER
+// ==========================================
+var audioCtx = null;
+function getAudioContext() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playRomanticChime() {
+  try {
+    var ac = getAudioContext();
+    var now = ac.currentTime;
+    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach(function(freq, i) {
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.08);
+      gain.gain.setValueAtTime(0.14, now + i * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 1.2);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now + i * 0.08);
+      osc.stop(now + i * 0.08 + 1.2);
+    });
+  } catch(e) {}
+}
+
+function playSparkleSound() {
+  try {
+    var ac = getAudioContext();
+    var now = ac.currentTime;
+    [1046.50, 1318.51, 1567.98, 2093.00].forEach(function(f, idx) {
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, now + idx * 0.06);
+      gain.gain.setValueAtTime(0.12, now + idx * 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.06 + 0.4);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now + idx * 0.06);
+      osc.stop(now + idx * 0.06 + 0.4);
+    });
+  } catch(e) {}
+}
+
+// ==========================================
+// 3. INTERACTIVE ACTIONS
+// ==========================================
 var audio = document.getElementById('weddingAudio');
 var musicBtn = document.getElementById('musicBtn');
 function playMusic() {
@@ -545,51 +748,32 @@ musicBtn.addEventListener('click', function() {
 
 function openWeddingInvitation() {
   playRomanticChime();
-
-// Web Audio Synth Romantic Chime
-var audioCtx = null;
-function playRomanticChime() {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    var now = audioCtx.currentTime;
-    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach(function(freq, i) {
-      var osc = audioCtx.createOscillator();
-      var gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + i * 0.08);
-      gain.gain.setValueAtTime(0.12, now + i * 0.08);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 1.2);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(now + i * 0.08);
-      osc.stop(now + i * 0.08 + 1.2);
-    });
-  } catch(e) {}
-}
-
-// Interactive 3D Card Tilt on Mouse/Touch
-document.querySelectorAll('.envelope-gate, .wedding-details, .photo-frame-wrap').forEach(function(card) {
-  card.addEventListener('mousemove', function(e) {
-    var rect = card.getBoundingClientRect();
-    var x = e.clientX - rect.left - rect.width / 2;
-    var y = e.clientY - rect.top - rect.height / 2;
-    card.style.transform = 'perspective(1000px) rotateX(' + (-y * 0.025) + 'deg) rotateY(' + (x * 0.025) + 'deg)';
-  });
-  card.addEventListener('mouseleave', function() {
-    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-    card.style.transition = 'transform 0.5s ease';
-  });
-  card.addEventListener('mouseenter', function() {
-    card.style.transition = 'none';
-  });
-});
-
   playMusic();
+  window.spawnBurst(window.innerWidth / 2, window.innerHeight * 0.35, 30);
   var gate = document.getElementById('envelopeGate');
   gate.style.transition = 'all 0.5s ease';
   gate.style.borderColor = 'var(--gold)';
-  gate.style.boxShadow = '0 0 40px rgba(223, 183, 70, 0.6)';
+  gate.style.boxShadow = '0 0 45px rgba(223, 183, 70, 0.7)';
+}
+
+function openRingBox() {
+  playSparkleSound();
+  var box = document.getElementById('velvetBox');
+  box.style.transform = 'scale(1.15) rotate(5deg)';
+  setTimeout(function() { box.style.transform = 'scale(1) rotate(0deg)'; }, 400);
+  window.spawnBurst(window.innerWidth / 2, window.innerHeight * 0.5, 25);
+  document.getElementById('ringStatus').textContent = '💎 Nhẫn Kim Cương Đã Trao Tay — Hạnh Phúc Viên Mãn 💎';
+}
+
+function triggerFloatingHearts() {
+  playRomanticChime();
+  window.spawnBurst(window.innerWidth / 2, window.innerHeight * 0.4, 35);
+}
+
+function triggerRoseRain() {
+  playSparkleSound();
+  window.spawnBurst(window.innerWidth * 0.3, window.innerHeight * 0.3, 20);
+  window.spawnBurst(window.innerWidth * 0.7, window.innerHeight * 0.3, 20);
 }
 
 // Countdown
@@ -612,6 +796,8 @@ function sendWish() {
   var input = document.getElementById('guestWish');
   var text = input.value.trim();
   if (!text) return;
+  playRomanticChime();
+  window.spawnBurst(window.innerWidth / 2, window.innerHeight * 0.8, 20);
   var list = document.getElementById('wishesList');
   var b = document.createElement('div');
   b.className = 'wish-bubble';
@@ -619,6 +805,23 @@ function sendWish() {
   list.insertBefore(b, list.firstChild);
   input.value = '';
 }
+
+// 3D Parallax Tilt
+document.querySelectorAll('.envelope-gate, .ring-box-card, .photo-frame-wrap, .event-box, .rsvp-card').forEach(function(card) {
+  card.addEventListener('mousemove', function(e) {
+    var rect = card.getBoundingClientRect();
+    var x = e.clientX - rect.left - rect.width / 2;
+    var y = e.clientY - rect.top - rect.height / 2;
+    card.style.transform = 'perspective(1000px) rotateX(' + (-y * 0.022) + 'deg) rotateY(' + (x * 0.022) + 'deg)';
+  });
+  card.addEventListener('mouseleave', function() {
+    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+    card.style.transition = 'transform 0.5s ease';
+  });
+  card.addEventListener('mouseenter', function() {
+    card.style.transition = 'none';
+  });
+});
 
 // Live preview sync
 window.addEventListener('message', function(event) {

@@ -4,27 +4,31 @@
 <base href="/">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đầu Năm 🧧</title>
+<title>Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đinh Mùi 2027 🧧</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@0,700;0,900;1,600&family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 :root {
-  --red-deep: #8a0c14;
-  --red-glow: #e61924;
+  --red-deep: #7a0910;
+  --red-crimson: #c81d25;
+  --red-glow: #ff2b38;
   --gold: #f8c024;
-  --gold-light: #ffe685;
+  --gold-light: #fff2a3;
   --gold-dark: #b8860b;
+  --gold-shine: #ffd700;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: radial-gradient(ellipse at 50% 20%, #a8131e 0%, #200407 100%);
+  background: radial-gradient(ellipse at 50% 15%, #b11622 0%, #3e0509 55%, #180104 100%);
   color: #fff;
   font-family: 'Montserrat', sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  user-select: none;
+  -webkit-user-select: none;
 }
 #fx-canvas {
   position: fixed;
@@ -32,7 +36,7 @@ body {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 2;
+  z-index: 3;
 }
 
 /* Music Pill */
@@ -40,24 +44,24 @@ body {
   position: fixed;
   top: 18px;
   right: 18px;
-  width: 46px;
-  height: 46px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   background: rgba(248, 192, 36, 0.25);
-  border: 1.5px solid var(--gold);
+  border: 2px solid var(--gold);
   color: var(--gold-light);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   z-index: 100;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 0 20px rgba(248, 192, 36, 0.4);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 0 25px rgba(248, 192, 36, 0.5);
   animation: rotateDisc 6s linear infinite;
   transition: transform 0.2s;
 }
-.music-toggle:hover { transform: scale(1.1); }
-.music-toggle.paused { animation-play-state: paused; opacity: 0.6; }
+.music-toggle:hover { transform: scale(1.12); }
+.music-toggle.paused { animation-play-state: paused; opacity: 0.65; }
 @keyframes rotateDisc { 100% { transform: rotate(360deg); } }
 
 .gift-flag {
@@ -66,49 +70,87 @@ body {
   left: 18px;
   background: linear-gradient(135deg, var(--gold), var(--gold-dark));
   color: #2b0407;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 11px;
-  letter-spacing: 1px;
-  padding: 6px 16px;
+  letter-spacing: 1.5px;
+  padding: 7px 18px;
   border-radius: 50px;
   z-index: 100;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.55);
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
+/* Floating Interactive Controls */
+.interactive-action-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 100;
+  background: rgba(20, 2, 5, 0.75);
+  border: 1.5px solid rgba(248, 192, 36, 0.45);
+  padding: 8px 14px;
+  border-radius: 50px;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 10px 35px rgba(0,0,0,0.6);
+}
+.act-btn {
+  background: linear-gradient(135deg, #d31e28, #870910);
+  border: 1px solid var(--gold);
+  color: var(--gold-light);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  white-space: nowrap;
+}
+.act-btn:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 6px 18px rgba(248, 192, 36, 0.4);
+}
+.act-btn:active { transform: scale(0.95); }
+
 /* Swaying Lanterns */
 .lantern-left, .lantern-right {
   position: fixed;
   top: 0;
-  width: 48px;
-  height: 90px;
+  width: 52px;
+  height: 98px;
   z-index: 20;
   pointer-events: none;
   transform-origin: top center;
-  animation: swingLantern 3.5s ease-in-out infinite alternate;
+  animation: swingLantern 3.8s ease-in-out infinite alternate;
 }
-.lantern-left { left: 18px; }
-.lantern-right { right: 70px; animation-delay: -1.7s; }
+.lantern-left { left: 16px; }
+.lantern-right { right: 75px; animation-delay: -1.9s; }
 @keyframes swingLantern {
-  0% { transform: rotate(-6deg); }
-  100% { transform: rotate(6deg); }
+  0% { transform: rotate(-7deg); }
+  100% { transform: rotate(7deg); }
 }
 .lantern-body {
-  width: 46px;
-  height: 54px;
-  background: radial-gradient(circle at 40% 40%, #ff4d4d, #990000);
-  border-radius: 20px;
+  width: 50px;
+  height: 58px;
+  background: radial-gradient(circle at 40% 40%, #ff3b30, #800000);
+  border-radius: 22px;
   border: 2px solid var(--gold);
-  box-shadow: 0 0 20px rgba(255, 77, 77, 0.8);
+  box-shadow: 0 0 25px rgba(255, 59, 48, 0.85);
   margin-top: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 20px;
   color: var(--gold-light);
   font-weight: 900;
+  text-shadow: 0 0 10px rgba(248, 192, 36, 0.8);
 }
 .lantern-rope {
   width: 2px;
@@ -118,16 +160,16 @@ body {
 }
 .lantern-tassel {
   width: 4px;
-  height: 22px;
+  height: 24px;
   background: var(--gold);
   margin: 0 auto;
-  box-shadow: 0 0 8px rgba(248, 192, 36, 0.7);
+  box-shadow: 0 0 10px rgba(248, 192, 36, 0.8);
 }
 
 .wrap {
-  max-width: 500px;
+  max-width: 520px;
   margin: 0 auto;
-  padding: 30px 18px 90px;
+  padding: 30px 18px 110px;
   position: relative;
   z-index: 10;
 }
@@ -136,7 +178,7 @@ body {
 .tet-hero {
   text-align: center;
   margin-bottom: 26px;
-  padding-top: 20px;
+  padding-top: 24px;
 }
 .tet-badge-tag {
   font-size: 11px;
@@ -145,147 +187,260 @@ body {
   color: var(--gold-light);
   text-transform: uppercase;
   margin-bottom: 8px;
-  text-shadow: 0 0 10px rgba(248, 192, 36, 0.6);
+  text-shadow: 0 0 12px rgba(248, 192, 36, 0.7);
+  display: inline-block;
+  padding: 4px 14px;
+  background: rgba(248, 192, 36, 0.12);
+  border-radius: 50px;
+  border: 1px solid rgba(248, 192, 36, 0.3);
 }
 .tet-main-title {
   font-family: 'Playfair Display', serif;
-  font-size: 36px;
+  font-size: 38px;
   font-weight: 900;
   color: var(--gold-light);
-  text-shadow: 0 0 30px rgba(248, 192, 36, 0.7), 0 2px 4px rgba(0,0,0,0.8);
+  text-shadow: 0 0 35px rgba(248, 192, 36, 0.8), 0 3px 6px rgba(0,0,0,0.9);
   line-height: 1.15;
 }
 .tet-cursive-sub {
   font-family: 'Dancing Script', cursive;
-  font-size: 28px;
+  font-size: 29px;
   color: #fff;
   margin-top: 6px;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.6);
 }
 
-/* Couplet Banners (Câu đối đỏ hai bên) */
+/* Couplets */
 .couplet-container {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 26px;
   gap: 12px;
 }
 .couplet-banner {
   flex: 1;
-  background: linear-gradient(180deg, #d31e28 0%, #870910 100%);
-  border: 1.5px solid var(--gold);
-  border-radius: 12px;
-  padding: 12px 8px;
+  background: linear-gradient(180deg, #d31e28 0%, #7d080e 100%);
+  border: 1.8px solid var(--gold);
+  border-radius: 14px;
+  padding: 14px 10px;
   text-align: center;
   font-family: 'Playfair Display', serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--gold-light);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  line-height: 1.4;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+  line-height: 1.45;
+  transition: transform 0.3s ease;
+}
+.couplet-banner:hover {
+  transform: translateY(-4px) scale(1.02);
 }
 
-/* Interactive Royal Red Envelope */
+/* 3D Bao Lì Xì (Interactive Flip Envelope) */
 .lixi-hero-box {
   background: rgba(255, 255, 255, 0.05);
-  border: 1.5px solid rgba(248, 192, 36, 0.45);
+  border: 1.8px solid rgba(248, 192, 36, 0.5);
   border-radius: 28px;
-  padding: 26px 20px;
+  padding: 28px 20px;
   text-align: center;
   margin-bottom: 26px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.65);
+  backdrop-filter: blur(16px);
   position: relative;
+  perspective: 1000px;
+}
+.lixi-envelope-wrapper {
+  width: 190px;
+  height: 265px;
+  margin: 0 auto 16px;
+  position: relative;
+  cursor: pointer;
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.lixi-envelope-wrapper:hover {
+  transform: translateY(-8px) scale(1.05) rotateZ(-1deg);
 }
 .lixi-envelope-card {
-  width: 180px;
-  height: 250px;
-  margin: 0 auto 16px;
-  background: linear-gradient(145deg, #e61924 0%, #990a12 100%);
-  border-radius: 20px;
-  border: 2px solid var(--gold);
-  box-shadow: 0 16px 36px rgba(0,0,0,0.6), 0 0 25px rgba(230, 25, 36, 0.4);
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(150deg, #e61924 0%, #85070e 100%);
+  border-radius: 22px;
+  border: 2.5px solid var(--gold);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.65), 0 0 30px rgba(230, 25, 36, 0.45);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   position: relative;
+  overflow: hidden;
 }
-.lixi-envelope-card:hover {
-  transform: translateY(-8px) scale(1.04);
+.lixi-pattern-bg {
+  position: absolute;
+  inset: 0;
+  opacity: 0.15;
+  background-image: radial-gradient(circle, var(--gold) 1.5px, transparent 1.5px);
+  background-size: 16px 16px;
+  pointer-events: none;
+}
+.lixi-flap-top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: linear-gradient(180deg, #ff2d3b 0%, #b80d17 100%);
+  border-bottom: 2.5px solid var(--gold);
+  border-radius: 20px 20px 50% 50%;
+  transform-origin: top center;
+  transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  z-index: 5;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+}
+.lixi-envelope-wrapper.opened .lixi-flap-top {
+  transform: rotateX(180deg);
 }
 .lixi-seal-disc {
-  width: 72px;
-  height: 72px;
+  width: 74px;
+  height: 74px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 35%, #fff2a3, var(--gold));
-  border: 3px solid #fff;
+  border: 3.5px solid #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Playfair Display', serif;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 900;
-  color: #8c0c14;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  color: #7d080e;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.45), 0 0 20px rgba(248, 192, 36, 0.8);
+  z-index: 6;
+  position: relative;
 }
 .lixi-callout {
   font-family: 'Dancing Script', cursive;
-  font-size: 24px;
+  font-size: 26px;
   color: var(--gold-light);
   margin-top: 14px;
-  text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  z-index: 4;
 }
 .lixi-sub-hint {
   font-size: 11.5px;
   color: #ffdeb0;
   margin-top: 6px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  z-index: 4;
 }
 
-/* Fortune Card Revealed */
+/* Fortune Reveal Popup */
 .fortune-popup {
   display: none;
-  background: rgba(18, 2, 5, 0.7);
-  border: 1.5px dashed var(--gold);
-  border-radius: 18px;
-  padding: 16px;
-  margin-top: 16px;
-  animation: popIn 0.4s ease;
+  background: rgba(18, 2, 5, 0.85);
+  border: 2px dashed var(--gold);
+  border-radius: 20px;
+  padding: 18px 16px;
+  margin-top: 18px;
+  animation: popIn 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 @keyframes popIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from { opacity: 0; transform: scale(0.9) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 .fortune-title {
   font-family: 'Playfair Display', serif;
-  font-size: 24px;
+  font-size: 23px;
   font-weight: 900;
-  color: var(--gold-light);
-  text-shadow: 0 0 15px rgba(248, 192, 36, 0.6);
-  margin-bottom: 6px;
+  color: var(--gold-shine);
+  text-shadow: 0 0 18px rgba(248, 192, 36, 0.8);
+  margin-bottom: 8px;
 }
 .fortune-text {
-  font-size: 13.5px;
+  font-size: 14px;
   color: #fff;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
-/* Royal Spring Scroll Letter */
+/* Ống Lắc Xăm Quẻ Đầu Năm (Interactive Fortune Shaker 3D) */
+.shaker-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.8px solid rgba(248, 192, 36, 0.45);
+  border-radius: 28px;
+  padding: 24px 18px;
+  text-align: center;
+  margin-bottom: 26px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+  backdrop-filter: blur(14px);
+}
+.bamboo-tube-wrap {
+  width: 90px;
+  height: 140px;
+  margin: 12px auto 16px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.bamboo-tube {
+  width: 76px;
+  height: 110px;
+  background: linear-gradient(135deg, #b45309, #78350f);
+  border-radius: 12px 12px 24px 24px;
+  border: 2.5px solid var(--gold);
+  margin: 25px auto 0;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6), inset 0 4px 8px rgba(255,255,255,0.25);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--gold-light);
+}
+.bamboo-sticks {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+}
+.stick-mini {
+  width: 8px;
+  height: 40px;
+  background: #fcd34d;
+  border-radius: 4px;
+  border: 1px solid #78350f;
+}
+.stick-mini:nth-child(2) { height: 48px; background: #fbbf24; }
+.stick-mini:nth-child(3) { height: 42px; background: #f59e0b; }
+.tube-shaking {
+  animation: shakeTube 0.6s ease-in-out infinite;
+}
+@keyframes shakeTube {
+  0% { transform: rotate(0deg) translateY(0); }
+  25% { transform: rotate(-12deg) translateY(-8px); }
+  50% { transform: rotate(10deg) translateY(-4px); }
+  75% { transform: rotate(-8deg) translateY(-6px); }
+  100% { transform: rotate(0deg) translateY(0); }
+}
+
+/* Thư Chúc Tết Hoàng Gia (Royal Spring Scroll) */
 .scroll-letter-box {
   background: rgba(255, 255, 255, 0.05);
-  border: 1.5px solid rgba(248, 192, 36, 0.4);
-  border-radius: 26px;
-  padding: 26px 20px;
+  border: 1.8px solid rgba(248, 192, 36, 0.45);
+  border-radius: 28px;
+  padding: 28px 22px;
   margin-bottom: 26px;
   position: relative;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
 }
 .scroll-head {
   font-family: 'Playfair Display', serif;
   color: var(--gold-light);
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 800;
   margin-bottom: 14px;
   display: flex;
@@ -293,8 +448,8 @@ body {
   gap: 10px;
 }
 .scroll-body {
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: 14.5px;
+  line-height: 1.8;
   color: #faede6;
   white-space: pre-line;
 }
@@ -302,26 +457,69 @@ body {
   margin-top: 18px;
   text-align: right;
   font-family: 'Dancing Script', cursive;
-  font-size: 24px;
+  font-size: 26px;
   color: var(--gold-light);
 }
 
-/* Digital Lucky Banking */
+/* Album Khoảnh Khắc Sum Vầy 2027 (Fixed Images with Fallbacks) */
+.gallery-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.8px solid rgba(248, 192, 36, 0.45);
+  border-radius: 28px;
+  padding: 24px 18px;
+  margin-bottom: 26px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+}
+.photo-frame-spring {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2.5px solid var(--gold);
+  box-shadow: 0 14px 36px rgba(0,0,0,0.6), 0 0 25px rgba(248, 192, 36, 0.25);
+  margin: 14px 0;
+  position: relative;
+  background: #2a0407;
+  cursor: pointer;
+}
+.photo-frame-spring img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+.photo-frame-spring:hover img {
+  transform: scale(1.05);
+}
+.photo-spring-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 14px 12px;
+  background: linear-gradient(to top, rgba(20,2,5,0.95), transparent);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+/* Digital Lucky Banking (QR) */
 .qr-lixi-box {
   background: rgba(255, 255, 255, 0.05);
-  border: 1.5px solid rgba(248, 192, 36, 0.4);
-  border-radius: 26px;
+  border: 1.8px solid rgba(248, 192, 36, 0.45);
+  border-radius: 28px;
   padding: 24px 18px;
   text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
 }
 .qr-gold-frame {
   background: #fff;
   padding: 14px;
-  border-radius: 18px;
+  border-radius: 20px;
   display: inline-block;
   margin: 14px 0;
-  border: 2.5px solid var(--gold);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 3px solid var(--gold);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.55);
 }
 .qr-gold-frame img {
   width: 175px;
@@ -331,7 +529,7 @@ body {
 </style>
 </head>
 <body>
-<div class="gift-flag">🧧 TẾT SUM VẦY 3D</div>
+<div class="gift-flag">🧧 TẾT SUM VẦY 2027</div>
 
 <!-- Swaying Lanterns -->
 <div class="lantern-left">
@@ -352,11 +550,18 @@ body {
 
 <canvas id="fx-canvas"></canvas>
 
+<!-- Floating Interactive Controls Bar -->
+<div class="interactive-action-bar">
+  <button class="act-btn" onclick="triggerMultiFireworks()"><i class="fa-solid fa-burst"></i> Bắn Pháo Hoa</button>
+  <button class="act-btn" onclick="triggerCoinShower()"><i class="fa-solid fa-coins"></i> Mưa Lộc Vàng</button>
+  <button class="act-btn" onclick="triggerSpringWind()"><i class="fa-solid fa-wind"></i> Gió Xuân</button>
+</div>
+
 <div class="wrap">
   <header class="tet-hero">
-    <div class="tet-badge-tag">XUÂN ẤT TỴ · TẾT SUM VẦY 2026</div>
-    <div class="tet-main-title" id="tetTitle">TẾT SUM VẦY 2026</div>
-    <div class="tet-cursive-sub">Vạn Sự Như Ý — An Khang Thịnh Vượng</div>
+    <div class="tet-badge-tag">XUÂN ĐINH MÙI · TẾT SUM VẦY 2027</div>
+    <div class="tet-main-title" id="tetTitle">TẾT SUM VẦY 2027</div>
+    <div class="tet-cursive-sub">Cung Chúc Tân Xuân — Vạn Sự Như Ý</div>
   </header>
 
   <!-- Câu đối đỏ -->
@@ -371,16 +576,59 @@ body {
 
   <!-- Bao Lì Xì Tương Tác 3D -->
   <div class="lixi-hero-box">
-    <div class="lixi-envelope-card" onclick="openRoyalLixi()">
-      <div class="lixi-seal-disc">LỘC</div>
-      <div class="lixi-callout">Chúc Mừng Năm Mới</div>
-      <div class="lixi-sub-hint">Chạm mở lì xì & bắn pháo hoa ✨</div>
+    <div class="lixi-envelope-wrapper" id="lixiWrapper" onclick="openRoyalLixi()">
+      <div class="lixi-envelope-card">
+        <div class="lixi-pattern-bg"></div>
+        <div class="lixi-flap-top"></div>
+        <div class="lixi-seal-disc">LỘC</div>
+        <div class="lixi-callout">Chúc Mừng Năm Mới</div>
+        <div class="lixi-sub-hint">Chạm mở bao lì xì 3D ✨</div>
+      </div>
     </div>
 
     <div class="fortune-popup" id="fortunePopup">
-      <div class="fortune-title" id="fortuneTitle">✨ ĐẠI CÁT ĐẠI LỢI ✨</div>
+      <div class="fortune-title" id="fortuneTitle">✨ ĐẠI CÁT ĐẠI LỢI 2027 ✨</div>
       <div class="fortune-text" id="fortuneText">
-        Năm mới tấn tài tấn lộc, công thành danh toại, gia đạo bình an hạnh phúc, vạn sự hanh thông như ý!
+        Năm Đinh Mùi 2027 tấn tài tấn lộc, công thành danh toại, gia đạo bình an sum vầy, vạn sự hanh thông như ý!
+      </div>
+    </div>
+  </div>
+
+  <!-- Ống Lắc Xăm Quẻ Đầu Năm (Interactive Bamboo Shaker) -->
+  <div class="shaker-card">
+    <div style="font-family:'Playfair Display',serif; font-size:18px; color:var(--gold-light); font-weight:800;">
+      🎋 XIN QUẺ ĐẦU NĂM ĐINH MÙI 2027
+    </div>
+    <p style="font-size:12.5px; color:#ffdeb0; margin-top:4px;">
+      Chạm vào ống xăm để rút quẻ đầu năm may mắn tài lộc
+    </p>
+
+    <div class="bamboo-tube-wrap" id="tubeWrap" onclick="shakeBambooTube()">
+      <div class="bamboo-sticks">
+        <div class="stick-mini"></div>
+        <div class="stick-mini"></div>
+        <div class="stick-mini"></div>
+      </div>
+      <div class="bamboo-tube">QUẺ</div>
+    </div>
+
+    <div class="fortune-popup" id="stickFortunePopup">
+      <div class="fortune-title" id="stickTitle">✨ QUẺ THƯỢNG THƯỢNG: PHÚ QUÝ CÁT TƯỜNG ✨</div>
+      <div class="fortune-text" id="stickText">
+        "Xuân đáo hoa khai lộc ngập tràn, vạn lý phong vân vững bước sang. Gia đạo an khang tình thắm thiết, công thành danh toại lộc cao sang."
+      </div>
+    </div>
+  </div>
+
+  <!-- Album Khoảnh Khắc Sum Vầy 2027 (Fixed Images) -->
+  <div class="gallery-card">
+    <div style="font-family:'Playfair Display',serif; font-size:18px; color:var(--gold-light); font-weight:800;">
+      📸 KHOẢNH KHẮC ĐOÀN VIÊN ĐÓN XUÂN
+    </div>
+    <div class="photo-frame-spring">
+      <img id="tetPhotoImg" src="assets/thumbnails/tet-sum-vay.jpg" onerror="this.onerror=null; this.src='assets/thumbnails/phao-hoa-nam-moi.jpg';" alt="Tết Sum Vầy 2027">
+      <div class="photo-spring-caption">
+        🎉 Chúc Mừng Năm Mới Đinh Mùi 2027 — Bình An & Sung Túc
       </div>
     </div>
   </div>
@@ -394,9 +642,9 @@ body {
     <div class="scroll-body" id="letterBodyDisplay">
       Gửi những người thương yêu nhất,
 
-      Năm cũ khép lại mở ra một mùa xuân mới ngập tràn ánh nắng và hy vọng rực rỡ. Cảm ơn bạn vì đã luôn đồng hành, sẻ chia và mang đến thật nhiều tiếng cười trong suốt một năm qua.
+      Năm cũ khép lại mở ra một mùa xuân Đinh Mùi 2027 ngập tràn ánh nắng và hy vọng rực rỡ. Cảm ơn bạn vì đã luôn đồng hành, sẻ chia và mang đến thật nhiều tiếng cười trong suốt chặng đường đã qua.
 
-      Chúc bạn cùng toàn thể gia đình một năm mới dồi dào sức khỏe, vạn dặm bình an, tài lộc khởi sắc và luôn ngập tràn tiếng cười hạnh phúc viên mãn!
+      Chúc bạn cùng toàn thể gia đình một năm mới 2027 dồi dào sức khỏe, vạn dặm bình an, tài lộc khởi sắc và luôn ngập tràn niềm vui sum họp ấm áp!
     </div>
     <div class="scroll-sign" id="letterSignDisplay">
       Thương mến, Nguyễn Văn Phong
@@ -406,110 +654,464 @@ body {
   <!-- Lì Xì Mừng Tuổi -->
   <div class="qr-lixi-box">
     <div style="font-family:'Playfair Display',serif; font-size:17px; color:var(--gold-light); font-weight:800;">
-      🧧 GỬI LÌ XÌ MAY MẮN ĐẦU XUÂN
+      🧧 GỬI LÌ XÌ MAY MẮN ĐẦU XUÂN 2027
     </div>
     <p style="font-size:13px; color:#f5e2e4; margin-top:6px; line-height:1.5;">
       Món quà tài lộc đầu năm gửi gắm muôn vàn may mắn, bình an cho cả năm sung túc.
     </p>
     <div class="qr-gold-frame">
-      <img id="tetQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Chuc+Mung+Nam+Moi+Phat+Tai" alt="QR Lì Xì">
+      <img id="tetQrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=Chuc+Mung+Nam+Moi+2027+Phat+Tai" onerror="this.onerror=null; this.src='assets/thumbnails/tet-sum-vay.jpg';" alt="QR Lì Xì">
     </div>
     <div style="font-size:12.5px; color:var(--gold-light); font-weight:700;">
-      Cung Chúc Tân Xuân 2026!
+      Cung Chúc Tân Xuân Đinh Mùi 2027!
     </div>
   </div>
 </div>
 
 <script>
-// Fireworks & Apricot/Peach Petals Canvas
+// ==========================================
+// 1. HIGH-PERFORMANCE PHYSICAL PARTICLE ENGINE
+// ==========================================
 (function() {
   var canvas = document.getElementById('fx-canvas');
   var ctx = canvas.getContext('2d');
-  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
   window.addEventListener('resize', resize);
   resize();
 
+  // Mouse repulsion & interaction
+  var mouse = { x: -1000, y: -1000, vx: 0, vy: 0 };
+  window.addEventListener('mousemove', function(e) {
+    mouse.vx = e.clientX - mouse.x;
+    mouse.vy = e.clientY - mouse.y;
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+  });
+  window.addEventListener('touchmove', function(e) {
+    if (e.touches.length > 0) {
+      mouse.vx = e.touches[0].clientX - mouse.x;
+      mouse.vy = e.touches[0].clientY - mouse.y;
+      mouse.x = e.touches[0].clientX;
+      mouse.y = e.touches[0].clientY;
+    }
+  });
+
+  // Particle Collections
   var petals = [];
+  var coins = [];
+  var lanterns = [];
   var fireworks = [];
 
-  for (var i = 0; i < 35; i++) {
-    petals.push({
+  // A. Petals (Mai vàng & Đào hồng) with 3D rotation & wind physics
+  for (var i = 0; i < 65; i++) {
+    petals.push(createPetal(true));
+  }
+  function createPetal(randomY) {
+    var isApricot = Math.random() > 0.45;
+    return {
+      x: Math.random() * canvas.width,
+      y: randomY ? Math.random() * canvas.height : -20,
+      r: Math.random() * 8 + 5,
+      angle: Math.random() * Math.PI * 2,
+      angularSpeed: (Math.random() - 0.5) * 0.05,
+      tilt: Math.random() * Math.PI,
+      tiltSpeed: Math.random() * 0.04 + 0.02,
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: Math.random() * 1.8 + 1.2,
+      isApricot: isApricot,
+      color: isApricot ? '#f8c024' : '#ff758c',
+      centerColor: isApricot ? '#d97706' : '#db2777',
+      oscillationFreq: Math.random() * 0.02 + 0.01,
+      oscillationAmp: Math.random() * 1.8 + 0.8
+    };
+  }
+
+  // B. Floating Sky Lanterns (Thiên Đăng)
+  for (var l = 0; l < 8; l++) {
+    lanterns.push({
       x: Math.random() * canvas.width,
       y: Math.random() * canvas.height,
-      size: Math.random() * 7 + 4,
-      speedX: Math.random() * 1.5 - 0.75,
-      speedY: Math.random() * 1.3 + 0.7,
-      color: Math.random() > 0.4 ? '#f8c024' : '#ff758c'
+      size: Math.random() * 16 + 18,
+      speedY: -(Math.random() * 0.45 + 0.25),
+      sway: Math.random() * Math.PI * 2,
+      swaySpeed: Math.random() * 0.02 + 0.01,
+      alpha: Math.random() * 0.4 + 0.45
     });
   }
 
+  // C. Gold Coin Physics
+  function spawnCoin(x, y, burst) {
+    var angle = burst ? Math.random() * Math.PI * 2 : (Math.random() - 0.5) * 0.8;
+    var speed = burst ? (Math.random() * 9 + 4) : (Math.random() * 2 + 1);
+    coins.push({
+      x: x || Math.random() * canvas.width,
+      y: y || -20,
+      r: Math.random() * 6 + 10,
+      vx: Math.cos(angle) * speed,
+      vy: burst ? Math.sin(angle) * speed - 6 : Math.random() * 2 + 3,
+      gravity: 0.35,
+      rotation: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 0.15,
+      tilt: Math.random() * Math.PI,
+      tiltSpeed: Math.random() * 0.1 + 0.05,
+      bounces: 0,
+      maxBounces: Math.floor(Math.random() * 3) + 2
+    });
+  }
+
+  // D. Multi-Stage Fireworks
   function launchFirework(x, y) {
-    var palette = ['#f8c024', '#ff4d4d', '#ffec99', '#ff99c8', '#ffffff', '#00f2fe'];
-    for (var i = 0; i < 50; i++) {
+    var palette = ['#f8c024', '#ff3b30', '#ffd700', '#ff6b8b', '#00f2fe', '#ffffff', '#4cd137'];
+    var baseColor = palette[Math.floor(Math.random() * palette.length)];
+    var count = 75;
+    for (var i = 0; i < count; i++) {
       var angle = Math.random() * Math.PI * 2;
-      var speed = Math.random() * 6 + 2;
+      var speed = Math.random() * 7 + 2;
       fireworks.push({
         x: x,
         y: y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         alpha: 1,
-        color: palette[Math.floor(Math.random() * palette.length)],
-        r: Math.random() * 2.5 + 1.5
+        decay: Math.random() * 0.018 + 0.012,
+        color: Math.random() > 0.3 ? baseColor : '#ffffff',
+        r: Math.random() * 2.8 + 1.2,
+        hasTrail: Math.random() > 0.5
       });
     }
   }
+
   window.launchFirework = launchFirework;
+  window.spawnCoin = spawnCoin;
 
   // Auto firework bursts
   setInterval(function() {
-    launchFirework(Math.random() * canvas.width, Math.random() * canvas.height * 0.45);
-  }, 2400);
+    launchFirework(Math.random() * canvas.width, Math.random() * (canvas.height * 0.4) + 60);
+  }, 2200);
 
+  // Animation Loop
   function loop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Falling petals
+    // 1. Draw Floating Lanterns
+    for (var li = 0; li < lanterns.length; li++) {
+      var lt = lanterns[li];
+      lt.y += lt.speedY;
+      lt.sway += lt.swaySpeed;
+      lt.x += Math.sin(lt.sway) * 0.4;
+      if (lt.y < -50) { lt.y = canvas.height + 40; lt.x = Math.random() * canvas.width; }
+
+      ctx.save();
+      ctx.globalAlpha = lt.alpha;
+      // Lantern Glow
+      var g = ctx.createRadialGradient(lt.x, lt.y, lt.size * 0.2, lt.x, lt.y, lt.size * 1.5);
+      g.addColorStop(0, 'rgba(255, 120, 50, 0.6)');
+      g.addColorStop(1, 'transparent');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(lt.x, lt.y, lt.size * 1.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Lantern Silhouette
+      ctx.fillStyle = '#b91c1c';
+      ctx.beginPath();
+      ctx.ellipse(lt.x, lt.y, lt.size * 0.7, lt.size, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#f8c024';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Flame center
+      ctx.fillStyle = '#fef08a';
+      ctx.beginPath();
+      ctx.arc(lt.x, lt.y + lt.size * 0.3, lt.size * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 2. Falling Flower Petals with Wind & 3D Tilt
     petals.forEach(function(p) {
+      p.tilt += p.tiltSpeed;
+      p.angle += p.angularSpeed;
+      p.x += p.vx + Math.sin(p.tilt) * p.oscillationAmp;
+      p.y += p.vy;
+
+      // Mouse repulsion blast
+      var dx = p.x - mouse.x;
+      var dy = p.y - mouse.y;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 100 && dist > 0) {
+        var force = (100 - dist) / 100;
+        p.x += (dx / dist) * force * 12;
+        p.y += (dy / dist) * force * 12;
+      }
+
+      if (p.y > canvas.height + 20) {
+        Object.assign(p, createPetal(false));
+      }
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.scale(Math.cos(p.tilt), 1);
+
+      // Draw 5-lobed petal
       ctx.fillStyle = p.color;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+      ctx.ellipse(0, 0, p.r * 1.3, p.r * 0.75, 0, 0, Math.PI * 2);
       ctx.fill();
-      p.x += p.speedX;
-      p.y += p.speedY;
-      if (p.y > canvas.height + 10) { p.y = -10; p.x = Math.random() * canvas.width; }
+
+      // Center stamen
+      ctx.fillStyle = p.centerColor;
+      ctx.beginPath();
+      ctx.arc(0, 0, p.r * 0.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     });
 
-    // Fireworks
+    // 3. Falling Gold Coins with Ground Bounce Physics
+    for (var c = coins.length - 1; c >= 0; c--) {
+      var coin = coins[c];
+      coin.vy += coin.gravity;
+      coin.x += coin.vx;
+      coin.y += coin.vy;
+      coin.tilt += coin.tiltSpeed;
+      coin.rotation += coin.rotSpeed;
+
+      // Floor bounce
+      if (coin.y >= canvas.height - 20) {
+        coin.y = canvas.height - 20;
+        coin.vy = -coin.vy * 0.55;
+        coin.vx *= 0.8;
+        coin.bounces++;
+      }
+
+      ctx.save();
+      ctx.translate(coin.x, coin.y);
+      ctx.rotate(coin.rotation);
+      ctx.scale(Math.cos(coin.tilt), 1);
+
+      // Outer gold circle
+      ctx.fillStyle = '#f8c024';
+      ctx.beginPath();
+      ctx.arc(0, 0, coin.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#b45309';
+      ctx.stroke();
+
+      // Square inner cutout
+      var sq = coin.r * 0.35;
+      ctx.fillStyle = '#78350f';
+      ctx.fillRect(-sq, -sq, sq * 2, sq * 2);
+      ctx.restore();
+
+      if (coin.bounces > coin.maxBounces || coin.y > canvas.height + 50) {
+        coins.splice(c, 1);
+      }
+    }
+
+    // 4. Fireworks Sparks
     for (var j = fireworks.length - 1; j >= 0; j--) {
       var fw = fireworks[j];
+      ctx.save();
       ctx.beginPath();
       ctx.arc(fw.x, fw.y, fw.r, 0, Math.PI * 2);
       ctx.fillStyle = fw.color;
       ctx.globalAlpha = fw.alpha;
+      ctx.shadowColor = fw.color;
+      ctx.shadowBlur = 8;
       ctx.fill();
-      ctx.globalAlpha = 1;
+      ctx.restore();
 
       fw.x += fw.vx;
       fw.y += fw.vy;
-      fw.vy += 0.05;
-      fw.alpha -= 0.02;
+      fw.vy += 0.06; // gravity
+      fw.vx *= 0.985;
+      fw.alpha -= fw.decay;
 
       if (fw.alpha <= 0) fireworks.splice(j, 1);
     }
+
     requestAnimationFrame(loop);
   }
   loop();
 })();
 
+// ==========================================
+// 2. WEB AUDIO SYNTHESIZERS (Coins & Boom)
+// ==========================================
+var fwAudioCtx = null;
+function getAudioContext() {
+  if (!fwAudioCtx) fwAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (fwAudioCtx.state === 'suspended') fwAudioCtx.resume();
+  return fwAudioCtx;
+}
+
+function playCoinChime() {
+  try {
+    var ac = getAudioContext();
+    var now = ac.currentTime;
+    [1318, 1567, 2093].forEach(function(freq, idx) {
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+      gain.gain.setValueAtTime(0.2, now + idx * 0.07);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.35);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now + idx * 0.07);
+      osc.stop(now + idx * 0.07 + 0.35);
+    });
+  } catch(e) {}
+}
+
+function playFireworkBoom() {
+  try {
+    var ac = getAudioContext();
+    var now = ac.currentTime;
+    // Deep Sub Boom
+    var osc = ac.createOscillator();
+    var gain = ac.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.exponentialRampToValueAtTime(35, now + 0.4);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+    osc.connect(gain);
+    gain.connect(ac.destination);
+    osc.start(now);
+    osc.stop(now + 0.4);
+
+    // Crackle Noise
+    var bufferSize = ac.sampleRate * 0.3;
+    var noiseBuffer = ac.createBuffer(1, bufferSize, ac.sampleRate);
+    var output = noiseBuffer.getChannelData(0);
+    for (var i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+    var whiteNoise = ac.createBufferSource();
+    whiteNoise.buffer = noiseBuffer;
+    var filter = ac.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1400;
+    var noiseGain = ac.createGain();
+    noiseGain.gain.setValueAtTime(0.18, now + 0.05);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+    whiteNoise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(ac.destination);
+    whiteNoise.start(now + 0.05);
+    whiteNoise.stop(now + 0.35);
+  } catch(e) {}
+}
+
+function playBambooShakeSound() {
+  try {
+    var ac = getAudioContext();
+    var now = ac.currentTime;
+    for (var i = 0; i < 4; i++) {
+      var osc = ac.createOscillator();
+      var gain = ac.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(320 + Math.random() * 150, now + i * 0.09);
+      gain.gain.setValueAtTime(0.15, now + i * 0.09);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.06);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start(now + i * 0.09);
+      osc.stop(now + i * 0.09 + 0.06);
+    }
+  } catch(e) {}
+}
+
+// ==========================================
+// 3. INTERACTIVE TRIGGER FUNCTIONS
+// ==========================================
 var fortunes = [
-  { title: "✨ ĐẠI CÁT ĐẠI LỢI ✨", text: "Năm mới tiền vào như nước, công thành danh toại, vạn sự hanh thông rực rỡ!" },
-  { title: "🌸 BÌNH AN HẠNH PHÚC 🌸", text: "Tâm hồn thanh thản, sức khỏe dồi dào, gia đình sum vầy ấm êm cát tường!" },
-  { title: "💎 PHÚ QUÝ VINH HOA 💎", text: "Cơ hội rực rỡ gõ cửa, tài lộc khởi sắc, kinh doanh phát đạt, làm đâu thắng đó!" },
-  { title: "💖 VẠN SỰ NHƯ Ý 💖", text: "Gặp nhiều quý nhân phù trợ, may mắn song hành, vạn điều ước đều trở thành hiện thực!" }
+  { title: "✨ ĐẠI CÁT ĐẠI LỢI 2027 ✨", text: "Năm Đinh Mùi tiền vào như nước, công thành danh toại, vạn sự hanh thông như ý!" },
+  { title: "🌸 BÌNH AN THỊNH VƯỢNG 2027 🌸", text: "Gia đình đầm ấm sum vầy, sức khỏe dồi dào, phúc lộc trường tồn muôn năm!" },
+  { title: "💎 PHÚ QUÝ VINH HOA 2027 💎", text: "Kinh doanh phát đạt, sự nghiệp thăng hoa, cầu tài đắc tài, cầu lộc đắc lộc!" },
+  { title: "🧧 THẦN TÀI GÕ CỬA 2027 🧧", text: "Cơ duyên rực rỡ đón chào, quý nhân phù trợ, mở lối thành công đại thắng!" }
 ];
 
-// Audio
+var stickFortunes = [
+  { title: "🎋 QUẺ THƯỢNG THƯỢNG: ĐẠI CÁT VẠN SỰ", text: "Xuân sang hoa nở rạng ngời trời, tài lộc dồi dào thắm nụ cười. Năm mới Đinh Mùi muôn điều thuận, vinh hoa phú quý rạng danh đời." },
+  { title: "🎋 QUẺ ĐỆ NHẤT: THẦN TÀI GIÁ ĐÁO", text: "Vàng bạc đầy nhà lộc chứa chan, muôn dặm bình an tiếng hát vang. Công danh toại ý duyên như mộng, sum họp chan hòa đón phúc an." },
+  { title: "🎋 QUẺ CÁT TƯỜNG: VẠN PHÚC TỀ GIA", text: "Gió xuân mơn man lộc biếc cành, người hiền tích đức gặp duyên lành. Gia đạo bình an tâm thanh thản, xuân mới sum vầy vẹn chữ thanh." }
+];
+
+function openRoyalLixi() {
+  var wrapper = document.getElementById('lixiWrapper');
+  wrapper.classList.toggle('opened');
+  playCoinChime();
+  playFireworkBoom();
+
+  // Burst coins
+  for (var i = 0; i < 24; i++) {
+    window.spawnCoin(window.innerWidth / 2, window.innerHeight * 0.45, true);
+  }
+
+  // Launch celebratory fireworks
+  window.launchFirework(window.innerWidth * 0.35, window.innerHeight * 0.3);
+  window.launchFirework(window.innerWidth * 0.65, window.innerHeight * 0.3);
+
+  var popup = document.getElementById('fortunePopup');
+  var f = fortunes[Math.floor(Math.random() * fortunes.length)];
+  document.getElementById('fortuneTitle').textContent = f.title;
+  document.getElementById('fortuneText').textContent = f.text;
+  popup.style.display = 'block';
+
+  playMusic();
+}
+
+function shakeBambooTube() {
+  var wrap = document.getElementById('tubeWrap');
+  wrap.classList.add('tube-shaking');
+  playBambooShakeSound();
+
+  setTimeout(function() {
+    wrap.classList.remove('tube-shaking');
+    playCoinChime();
+    var popup = document.getElementById('stickFortunePopup');
+    var sf = stickFortunes[Math.floor(Math.random() * stickFortunes.length)];
+    document.getElementById('stickTitle').textContent = sf.title;
+    document.getElementById('stickText').textContent = sf.text;
+    popup.style.display = 'block';
+
+    window.launchFirework(window.innerWidth / 2, window.innerHeight * 0.4);
+  }, 650);
+}
+
+function triggerMultiFireworks() {
+  playFireworkBoom();
+  for (var i = 0; i < 5; i++) {
+    setTimeout(function() {
+      window.launchFirework(Math.random() * window.innerWidth, Math.random() * (window.innerHeight * 0.5) + 50);
+    }, i * 220);
+  }
+}
+
+function triggerCoinShower() {
+  playCoinChime();
+  for (var i = 0; i < 30; i++) {
+    setTimeout(function() {
+      window.spawnCoin(Math.random() * window.innerWidth, -10, false);
+    }, i * 50);
+  }
+}
+
+function triggerSpringWind() {
+  playCoinChime();
+  window.launchFirework(window.innerWidth / 2, window.innerHeight * 0.35);
+  for (var i = 0; i < 20; i++) {
+    window.spawnCoin(window.innerWidth / 2, window.innerHeight * 0.35, true);
+  }
+}
+
+// 4. Music Player
 var audio = document.getElementById('tetAudio');
 var musicBtn = document.getElementById('musicBtn');
 function playMusic() {
@@ -523,60 +1125,13 @@ musicBtn.addEventListener('click', function() {
   if (audio.paused) playMusic(); else pauseMusic();
 });
 
-function openRoyalLixi() {
-  playFireworkSound();
-
-// Web Audio Firework Sound Synthesizer (Realistic launch + crackle boom)
-var fwAudioCtx = null;
-function playFireworkSound() {
-  try {
-    if (!fwAudioCtx) fwAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (fwAudioCtx.state === 'suspended') fwAudioCtx.resume();
-    var now = fwAudioCtx.currentTime;
-
-    // 1. Boom sound (deep sine wave drop)
-    var osc = fwAudioCtx.createOscillator();
-    var gain = fwAudioCtx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(140, now);
-    osc.frequency.exponentialRampToValueAtTime(30, now + 0.35);
-    gain.gain.setValueAtTime(0.25, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-    osc.connect(gain);
-    gain.connect(fwAudioCtx.destination);
-    osc.start(now);
-    osc.stop(now + 0.35);
-
-    // 2. Crackle pop (noise buffer)
-    var bufferSize = fwAudioCtx.sampleRate * 0.25;
-    var noiseBuffer = fwAudioCtx.createBuffer(1, bufferSize, fwAudioCtx.sampleRate);
-    var output = noiseBuffer.getChannelData(0);
-    for (var i = 0; i < bufferSize; i++) {
-      output[i] = Math.random() * 2 - 1;
-    }
-    var whiteNoise = fwAudioCtx.createBufferSource();
-    whiteNoise.buffer = noiseBuffer;
-    var filter = fwAudioCtx.createBiquadFilter();
-    filter.type = 'bandpass';
-    filter.frequency.value = 1200;
-    var noiseGain = fwAudioCtx.createGain();
-    noiseGain.gain.setValueAtTime(0.12, now + 0.05);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-    whiteNoise.connect(filter);
-    filter.connect(noiseGain);
-    noiseGain.connect(fwAudioCtx.destination);
-    whiteNoise.start(now + 0.05);
-    whiteNoise.stop(now + 0.3);
-  } catch(e) {}
-}
-
-// Interactive 3D Card Tilt on Mouse/Touch for Tet
-document.querySelectorAll('.lixi-hero-box, .scroll-letter-box, .qr-lixi-box').forEach(function(card) {
+// 5. 3D Parallax Tilt for Cards
+document.querySelectorAll('.lixi-hero-box, .shaker-card, .gallery-card, .scroll-letter-box, .qr-lixi-box').forEach(function(card) {
   card.addEventListener('mousemove', function(e) {
     var rect = card.getBoundingClientRect();
     var x = e.clientX - rect.left - rect.width / 2;
     var y = e.clientY - rect.top - rect.height / 2;
-    card.style.transform = 'perspective(1000px) rotateX(' + (-y * 0.025) + 'deg) rotateY(' + (x * 0.025) + 'deg)';
+    card.style.transform = 'perspective(1000px) rotateX(' + (-y * 0.022) + 'deg) rotateY(' + (x * 0.022) + 'deg)';
   });
   card.addEventListener('mouseleave', function() {
     card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
@@ -587,28 +1142,14 @@ document.querySelectorAll('.lixi-hero-box, .scroll-letter-box, .qr-lixi-box').fo
   });
 });
 
-  playMusic();
-  var popup = document.getElementById('fortunePopup');
-  var f = fortunes[Math.floor(Math.random() * fortunes.length)];
-  document.getElementById('fortuneTitle').textContent = f.title;
-  document.getElementById('fortuneText').textContent = f.text;
-  popup.style.display = 'block';
-  if (window.launchFirework) {
-    window.launchFirework(window.innerWidth / 2, window.innerHeight * 0.35);
-    setTimeout(function() {
-      window.launchFirework(window.innerWidth * 0.3, window.innerHeight * 0.25);
-      window.launchFirework(window.innerWidth * 0.7, window.innerHeight * 0.25);
-    }, 200);
-  }
-}
-
-// Live preview sync
+// 6. Live preview sync
 window.addEventListener('message', function(event) {
   if (!event.data || (event.data.type !== 'DG_LIVE_PREVIEW_UPDATE' && event.data.type !== 'LIVE_PREVIEW_UPDATE')) return;
   var p = event.data.payload || event.data.data || {};
-  if (p.recipient_name) document.getElementById('tetTitle').textContent = 'TẾT SUM VẦY · ' + p.recipient_name.toUpperCase();
-  if (p.sender_name) document.getElementById('letterSignDisplay').textContent = 'Thương mến, ' + p.sender_name;
-  if (p.message) document.getElementById('letterBodyDisplay').textContent = p.message;
+  if (p.tet_title) document.getElementById('tetTitle').textContent = p.tet_title.toUpperCase();
+  if (p.tet_recipient) document.getElementById('letterTitleDisplay').textContent = 'Thư Chúc Tết · ' + p.tet_recipient;
+  if (p.tet_wishes) document.getElementById('letterBodyDisplay').textContent = p.tet_wishes;
+  if (p.tet_sign) document.getElementById('letterSignDisplay').textContent = 'Thương mến, ' + p.tet_sign;
 });
 
 try {
