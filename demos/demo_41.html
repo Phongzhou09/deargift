@@ -715,72 +715,79 @@ body.tpl-body-bakery-mixtape .gift-brand { padding: 10px 16px 18px; }
             }
         }
 
-        var bi = imgs.basket;
-        if (bi && bi.complete && bi.naturalWidth > 0) {
-            var bw = basket.w, bh = bw * (bi.naturalHeight / bi.naturalWidth);
-            basket.h = bh;
-            ctx2d.drawImage(bi, bx - bw / 2, H - bh, bw, bh);
-        } else {
-            // High-detail vector picnic basket fallback so basket is ALWAYS visible and interactive
-            var bw = basket.w || 96, bh = basket.h || 76;
-            ctx2d.save();
-            ctx2d.translate(bx, H - bh * 0.7);
-            
-            // Basket handle
-            ctx2d.beginPath();
-            ctx2d.arc(0, -bh * 0.45, bw * 0.38, Math.PI, 0, false);
-            ctx2d.lineWidth = 6;
-            ctx2d.strokeStyle = "#8d5b32";
-            ctx2d.stroke();
-            ctx2d.beginPath();
-            ctx2d.arc(0, -bh * 0.45, bw * 0.38, Math.PI, 0, false);
-            ctx2d.lineWidth = 3;
-            ctx2d.strokeStyle = "#d4a373";
-            ctx2d.stroke();
+        // Always draw ultra cute high-visibility picnic basket with red gingham lining
+        var bw = Math.min(W * 0.28, 108);
+        var bh = bw * 0.78;
+        basket.w = bw;
+        basket.h = bh;
+        var basketY = H - bh - 12;
 
-            // Basket body
-            ctx2d.beginPath();
-            ctx2d.moveTo(-bw * 0.45, -bh * 0.1);
-            ctx2d.lineTo(bw * 0.45, -bh * 0.1);
-            ctx2d.lineTo(bw * 0.36, bh * 0.65);
-            ctx2d.lineTo(-bw * 0.36, bh * 0.65);
-            ctx2d.closePath();
-            ctx2d.fillStyle = "#b07d4b";
-            ctx2d.fill();
-            ctx2d.lineWidth = 3.5;
-            ctx2d.strokeStyle = "#5c3d1e";
-            ctx2d.stroke();
+        ctx2d.save();
+        ctx2d.translate(bx, basketY);
 
-            // Gingham cloth napkin draped over rim
-            ctx2d.beginPath();
-            ctx2d.moveTo(-bw * 0.42, -bh * 0.1);
-            ctx2d.quadraticCurveTo(-bw * 0.2, bh * 0.2, 0, -bh * 0.05);
-            ctx2d.quadraticCurveTo(bw * 0.2, bh * 0.18, bw * 0.42, -bh * 0.1);
-            ctx2d.lineTo(bw * 0.46, -bh * 0.22);
-            ctx2d.lineTo(-bw * 0.46, -bh * 0.22);
-            ctx2d.closePath();
-            ctx2d.fillStyle = "#fff";
-            ctx2d.fill();
-            ctx2d.strokeStyle = "#e8589a";
-            ctx2d.lineWidth = 2;
-            ctx2d.stroke();
+        // 1. Quai giỏ mây uốn cong
+        ctx2d.beginPath();
+        ctx2d.arc(0, bh * 0.1, bw * 0.38, Math.PI, 0, false);
+        ctx2d.lineWidth = 7;
+        ctx2d.strokeStyle = "#8d532d";
+        ctx2d.stroke();
+        ctx2d.beginPath();
+        ctx2d.arc(0, bh * 0.1, bw * 0.38, Math.PI, 0, false);
+        ctx2d.lineWidth = 4;
+        ctx2d.strokeStyle = "#e6a86c";
+        ctx2d.stroke();
 
-            // Basket woven pattern lines
-            ctx2d.beginPath();
-            for (var lx = -bw * 0.3; lx <= bw * 0.3; lx += 14) {
-                ctx2d.moveTo(lx, 0);
-                ctx2d.lineTo(lx * 0.85, bh * 0.6);
-            }
-            ctx2d.moveTo(-bw * 0.38, bh * 0.2);
-            ctx2d.lineTo(bw * 0.38, bh * 0.2);
-            ctx2d.moveTo(-bw * 0.36, bh * 0.42);
-            ctx2d.lineTo(bw * 0.36, bh * 0.42);
-            ctx2d.strokeStyle = "rgba(92, 61, 30, 0.45)";
-            ctx2d.lineWidth = 2;
-            ctx2d.stroke();
+        // 2. Thân giỏ mây đan (Bóng đổ nhẹ)
+        ctx2d.shadowColor = "rgba(109, 19, 39, 0.28)";
+        ctx2d.shadowBlur = 12;
+        ctx2d.shadowOffsetY = 6;
+        ctx2d.beginPath();
+        ctx2d.moveTo(-bw * 0.48, bh * 0.25);
+        ctx2d.lineTo(bw * 0.48, bh * 0.25);
+        ctx2d.quadraticCurveTo(bw * 0.42, bh * 0.95, bw * 0.34, bh);
+        ctx2d.lineTo(-bw * 0.34, bh);
+        ctx2d.quadraticCurveTo(-bw * 0.42, bh * 0.95, -bw * 0.48, bh * 0.25);
+        ctx2d.closePath();
+        ctx2d.fillStyle = "#c58852";
+        ctx2d.fill();
+        ctx2d.shadowColor = "transparent";
+        ctx2d.lineWidth = 3;
+        ctx2d.strokeStyle = "#683b1a";
+        ctx2d.stroke();
 
-            ctx2d.restore();
+        // 3. Khăn caro đỏ phủ miệng giỏ
+        ctx2d.beginPath();
+        ctx2d.moveTo(-bw * 0.46, bh * 0.24);
+        ctx2d.quadraticCurveTo(-bw * 0.22, bh * 0.48, 0, bh * 0.28);
+        ctx2d.quadraticCurveTo(bw * 0.22, bh * 0.48, bw * 0.46, bh * 0.24);
+        ctx2d.lineTo(bw * 0.48, bh * 0.14);
+        ctx2d.lineTo(-bw * 0.48, bh * 0.14);
+        ctx2d.closePath();
+        ctx2d.fillStyle = "#fff5ea";
+        ctx2d.fill();
+        ctx2d.lineWidth = 2.5;
+        ctx2d.strokeStyle = "#c0392b";
+        ctx2d.stroke();
+
+        // Họa tiết nơ caro đỏ
+        ctx2d.fillStyle = "#e74c3c";
+        for (var rx = -bw * 0.36; rx <= bw * 0.36; rx += 14) {
+            ctx2d.fillRect(rx, bh * 0.16, 7, 7);
         }
+
+        // 4. Các đường đan mây của giỏ
+        ctx2d.beginPath();
+        for (var lx = -bw * 0.32; lx <= bw * 0.32; lx += 16) {
+            ctx2d.moveTo(lx, bh * 0.35);
+            ctx2d.lineTo(lx * 0.85, bh * 0.92);
+        }
+        ctx2d.moveTo(-bw * 0.42, bh * 0.52); ctx2d.lineTo(bw * 0.42, bh * 0.52);
+        ctx2d.moveTo(-bw * 0.38, bh * 0.74); ctx2d.lineTo(bw * 0.38, bh * 0.74);
+        ctx2d.strokeStyle = "rgba(78, 42, 18, 0.45)";
+        ctx2d.lineWidth = 2.2;
+        ctx2d.stroke();
+
+        ctx2d.restore();
     }
 
     function movePointer(clientX) {
