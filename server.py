@@ -91,6 +91,9 @@ PROTECTED_SYSTEM_FILES = {
 
 def is_protected_system_file(path_str):
     clean = path_str.strip('/').split('?')[0].lower()
+    # Allow public asset data (e.g. assets/data/*.json, templates/*.json)
+    if clean.startswith('assets/'):
+        return False
     fname = os.path.basename(clean)
     if fname in PROTECTED_SYSTEM_FILES:
         return True
