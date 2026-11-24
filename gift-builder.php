@@ -927,6 +927,44 @@ input:checked+.slider { background:var(--primary); } input:checked+.slider:befor
                 <span style="font-size:11px; color:var(--text-muted);">Tên này sẽ xuất hiện trên tiêu đề thư và nền 3D.</span>
             </div>
 
+            <!-- KHỐI CHỈNH SỬA NGÀY SINH NHẬT -->
+            <div class="form-group" id="group_birthday_date" style="background: linear-gradient(135deg, #fff5f8 0%, #fdf2f8 100%); border: 1.5px solid #fbcfe8; border-radius: 16px; padding: 14px 16px; margin-bottom: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 20px;">🎂</span>
+                        <label class="form-label" style="font-size: 14px; font-weight: 700; color: #db2777; margin: 0;">Ngày sinh nhật (Tờ lịch cuộn tới)</label>
+                    </div>
+                    <span style="font-size: 11px; background: #fce7f3; color: #db2777; font-weight: 700; padding: 2px 8px; border-radius: 12px;">Đặc biệt</span>
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    <div style="flex: 1;">
+                        <label class="form-label" for="birthday_day" style="font-size: 12px; font-weight: 600; color: #475569;">Ngày (1 – 31)</label>
+                        <input class="form-input" type="number" id="birthday_day" name="birthday_day" min="1" max="31" value="19" style="font-weight: 700; color: #db2777; text-align: center; font-size: 16px;" oninput="if(typeof syncBirthdayInputs === 'function') syncBirthdayInputs(this); if(typeof sendLivePreviewUpdate === 'function') sendLivePreviewUpdate();">
+                    </div>
+                    <div style="flex: 1.2;">
+                        <label class="form-label" for="birthday_month" style="font-size: 12px; font-weight: 600; color: #475569;">Tháng sinh</label>
+                        <select class="form-input" id="birthday_month" name="birthday_month" style="font-weight: 700; color: #db2777; font-size: 14px;" onchange="if(typeof syncBirthdayInputs === 'function') syncBirthdayInputs(this); if(typeof sendLivePreviewUpdate === 'function') sendLivePreviewUpdate();">
+                            <option value="1">Tháng 1</option>
+                            <option value="2">Tháng 2</option>
+                            <option value="3">Tháng 3</option>
+                            <option value="4">Tháng 4</option>
+                            <option value="5">Tháng 5</option>
+                            <option value="6">Tháng 6</option>
+                            <option value="7">Tháng 7</option>
+                            <option value="8">Tháng 8</option>
+                            <option value="9">Tháng 9</option>
+                            <option value="10">Tháng 10</option>
+                            <option value="11" selected>Tháng 11</option>
+                            <option value="12">Tháng 12</option>
+                        </select>
+                    </div>
+                </div>
+                <span style="font-size: 11.5px; color: #64748b; display: block; margin-top: 8px; line-height: 1.4;">
+                    ✨ Tờ lịch sẽ cuộn tới đúng ngày tháng sinh nhật này, chiếc bánh kem sinh nhật hiện ra để người nhận nhấn giữ thổi nến và chọn điều ước!
+                </span>
+            </div>
+
+
             <div style="display:none;">
                 <div class="form-group" style="flex:1;">
                     <label class="form-label" for="morph_text_1">Chữ bay thứ nhất</label>
@@ -3983,6 +4021,8 @@ function sendLivePreviewUpdate() {
     }
 
     var payload = {
+        birthday_day: (document.getElementById('birthday_day')?.value || document.getElementById('v3_calendar_day')?.value || '19').trim(),
+        birthday_month: (document.getElementById('birthday_month')?.value || document.getElementById('v3_calendar_month')?.value || '11').trim(),
         photos: photoUrls,
         cutouts: cutouts,
         fly_photos: flyPhotoUrls,
@@ -4778,6 +4818,29 @@ window.DG_BUILDER_LANGUAGE = "vi";
         initDynamicTemplate();
     }
     
+</script>
+
+
+<script>
+function syncBirthdayInputs(src) {
+    var dayInput = document.getElementById('birthday_day');
+    var monthInput = document.getElementById('birthday_month');
+    var v3Day = document.getElementById('v3_calendar_day');
+    var v3Month = document.getElementById('v3_calendar_month');
+    if (dayInput && v3Day) v3Day.value = dayInput.value;
+    if (monthInput && v3Month) v3Month.value = monthInput.value;
+}
+(function() {
+    var urlParams = new URLSearchParams(window.location.search);
+    var tplId = urlParams.get('id') || '69';
+    var birthdayGroup = document.getElementById('group_birthday_date');
+    var birthdayTpls = ['42', '21', '25', '26', '28', '50', '53', '59', '60', 'banh-kem-sinh-nhat'];
+    if (birthdayGroup) {
+        if (birthdayTpls.indexOf(tplId) !== -1 || /sinh-nhat|birthday|banh-kem/i.test(document.title || '')) {
+            birthdayGroup.style.display = 'block';
+        }
+    }
+})();
 </script>
 
 </body>

@@ -1002,6 +1002,15 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             settings = get_settings()
 
             recipient_name = data.get('recipient_name') or data.get('v3_recipient_name') or "Người thương"
+            birthday_day = data.get('birthday_day') or data.get('v3_calendar_day') or (data.get('v3', {}).get('calendar_day') if isinstance(data.get('v3'), dict) else None) or 19
+            if isinstance(birthday_day, list): birthday_day = birthday_day[0]
+            try: birthday_day = int(birthday_day)
+            except Exception: birthday_day = 19
+
+            birthday_month = data.get('birthday_month') or data.get('v3_calendar_month') or (data.get('v3', {}).get('calendar_month') if isinstance(data.get('v3'), dict) else None) or 11
+            if isinstance(birthday_month, list): birthday_month = birthday_month[0]
+            try: birthday_month = int(birthday_month)
+            except Exception: birthday_month = 11
             if isinstance(recipient_name, list): recipient_name = recipient_name[0]
             letter_title = data.get('letter_title') or "Gửi người thương!"
             if isinstance(letter_title, list): letter_title = letter_title[0]
@@ -1073,6 +1082,8 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 "template_id": template_id,
                 "template_slug": template_slug,
                 "recipient_name": recipient_name,
+                "birthday_day": birthday_day,
+                "birthday_month": birthday_month,
                 "letter_title": letter_title,
                 "letter_content": letter_content,
                 "letter_signature": letter_signature,
@@ -1931,29 +1942,47 @@ setInterval(pollStatus, 2500);
         )
 
         # Inject override script
+        b_day = gift.get('birthday_day', 19)
+        b_month = gift.get('birthday_month', 11)
+
         override_js = f"""
         <script>
         (function() {{
             try {{
-                if (window.__GIFTTO_APP && window.__GIFTTO_APP.config) {{
-                    var cfg = window.__GIFTTO_APP.config;
-                    cfg.recipientName = {json.dumps(rec_name, ensure_ascii=False)};
-                    cfg.appTitle = {json.dumps(f"Món Quà Nhỏ dành tặng {rec_name} 🎁", ensure_ascii=False)};
-                    cfg.heartName = {json.dumps(rec_name, ensure_ascii=False)};
-                    if (cfg.letter) {{
-                        cfg.letter.title = {json.dumps(let_title, ensure_ascii=False)};
-                        cfg.letter.text = {json.dumps(let_content, ensure_ascii=False)};
-                        cfg.letter.signature = {json.dumps(let_sig, ensure_ascii=False)};
-                    }}
-                    if ({json.dumps(bool(photos))}) {{
-                        cfg.sphereImages = {json.dumps(photos, ensure_ascii=False)};
+                if (window.__GIFTTO_APP) {{
+                    if (window.__GIFTTO_APP.config) {{
+                        var cfg = window.__GIFTTO_APP.config;
+                        cfg.recipientName = {json.dumps(rec_name, ensure_ascii=False)};
+                        cfg.appTitle = {json.dumps(f"Món Quà Nhỏ dành tặng {rec_name} 🎁", ensure_ascii=False)};
+                        cfg.heartName = {json.dumps(rec_name, ensure_ascii=False)};
                         if (cfg.letter) {{
-                            cfg.letter.image = {first_photo_json};
+                            cfg.letter.title = {json.dumps(let_title, ensure_ascii=False)};
+                            cfg.letter.text = {json.dumps(let_content, ensure_ascii=False)};
+                            cfg.letter.signature = {json.dumps(let_sig, ensure_ascii=False)};
+                        }}
+                        if ({json.dumps(bool(photos))}) {{
+                            cfg.sphereImages = {json.dumps(photos, ensure_ascii=False)};
+                            if (cfg.letter) {{
+                                cfg.letter.image = {first_photo_json};
+                            }}
+                        }}
+                        if ({json.dumps(bool(passcode))}) {{
+                            cfg.enablePasscode = true;
+                            cfg.passcode = {json.dumps(passcode)};
                         }}
                     }}
-                    if ({json.dumps(bool(passcode))}) {{
-                        cfg.enablePasscode = true;
-                        cfg.passcode = {json.dumps(passcode)};
+                    if (window.__GIFTTO_APP.cake) {{
+                        var cake = window.__GIFTTO_APP.cake;
+                        cake.day = {int(b_day)};
+                        cake.month = {int(b_month)};
+                        cake.receiverName = {json.dumps(rec_name, ensure_ascii=False)};
+                        cake.senderName = {json.dumps(let_sig, ensure_ascii=False)};
+                        if ({json.dumps(bool(let_content))}) {{
+                            cake.letterBody = {json.dumps(let_content, ensure_ascii=False)};
+                        }}
+                        if ({json.dumps(bool(photos))}) {{
+                            cake.photos = {json.dumps(photos, ensure_ascii=False)};
+                        }}
                     }}
                 }}
             }} catch(e) {{}}
