@@ -1,0 +1,749 @@
+<div class="gb-section active" id="sec-v3">
+                        <style>
+            .v3-occasion-box {
+                background: linear-gradient(135deg, #fff5f8 0%, #f5f3ff 100%);
+                border: 1.5px solid #f3d0e0;
+                border-radius: 16px;
+                padding: 13px 14px;
+                margin-bottom: 14px;
+            }
+            .v3-occasion-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-bottom: 9px;
+            }
+            .v3-occasion-title {
+                font-size: 13px;
+                font-weight: 800;
+                color: #b82b63;
+            }
+            .v3-occasion-note {
+                font-size: 11px;
+                color: #6b5b7b;
+                background: #fff;
+                padding: 3px 9px;
+                border-radius: 99px;
+                border: 1px solid #ead5e4;
+                font-weight: 600;
+            }
+            .v3-occasion-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 7px;
+            }
+            .v3-occasion-btn {
+                border: 1.5px solid #e6d4e2;
+                background: #fff;
+                color: #4a3f5c;
+                border-radius: 11px;
+                padding: 7px 11px;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all .18s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .v3-occasion-btn:hover {
+                border-color: #e8589a;
+                background: #fff7fa;
+            }
+            .v3-occasion-btn.active {
+                background: linear-gradient(135deg, #e8589a, #7c4dff);
+                color: #fff;
+                border-color: transparent;
+                box-shadow: 0 4px 12px rgba(232,88,154,.25);
+            }
+            .v3-scene-filter {
+                display: flex;
+                gap: 6px;
+                overflow-x: auto;
+                padding-bottom: 8px;
+                margin-bottom: 12px;
+                scrollbar-width: thin;
+            }
+            .v3-filter-pill {
+                white-space: nowrap;
+                border: 1px solid #e7d9e6;
+                background: #fff;
+                color: #5a4e6d;
+                border-radius: 999px;
+                padding: 6px 12px;
+                font-size: 11.5px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all .15s;
+            }
+            .v3-filter-pill.active {
+                background: #3d3551;
+                color: #fff;
+                border-color: #3d3551;
+            }
+            .v3-scene-card {
+                background: #fff;
+                border: 1.5px solid #efe3ec;
+                border-radius: 16px;
+                margin-bottom: 14px;
+                overflow: hidden;
+                transition: border-color .2s, box-shadow .2s;
+            }
+            .v3-scene-card:hover {
+                border-color: #e6c6d9;
+                box-shadow: 0 4px 14px rgba(61,53,81,0.05);
+            }
+            .v3-scene-card.is-disabled {
+                opacity: 0.68;
+                background: #faf8fb;
+            }
+            .v3-scene-card.is-disabled .v3-scene-body {
+                display: none;
+            }
+            .v3-scene-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 12px 15px;
+                background: linear-gradient(90deg, #fff9fc 0%, #fcfaff 100%);
+                border-bottom: 1px solid #f4eaf1;
+            }
+            .v3-scene-title {
+                font-size: 13.5px;
+                font-weight: 800;
+                color: #3d3551;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .v3-scene-desc {
+                font-size: 11.5px;
+                color: #7a7090;
+                margin-top: 3px;
+                line-height: 1.45;
+            }
+            .v3-scene-body {
+                padding: 14px 15px 6px;
+            }
+            .v3-single-img-box {
+                border: 1.5px dashed #e2bed1;
+                border-radius: 13px;
+                padding: 11px 12px;
+                background: #fffbfd;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .v3-single-img-thumb {
+                width: 68px;
+                height: 68px;
+                border-radius: 10px;
+                object-fit: cover;
+                border: 1px solid #ead8e3;
+                background: #f6eef3;
+                display: none;
+            }
+            .v3-single-img-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                align-items: center;
+            }
+            .v3-btn-pick {
+                padding: 8px 13px;
+                border-radius: 10px;
+                background: #fff0f6;
+                color: #d63384;
+                border: 1px solid #f5c2da;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            .v3-btn-pick:hover {
+                background: #fce4ec;
+            }
+            .v3-btn-clear {
+                padding: 7px 10px;
+                border-radius: 9px;
+                background: #f8f9fa;
+                color: #666;
+                border: 1px solid #ddd;
+                font-size: 11.5px;
+                font-weight: 600;
+                cursor: pointer;
+                display: none;
+            }
+            </style>
+
+            <div style="margin-bottom:12px;">
+                <span style="font-size:15px; font-weight:800; color:#3d3551;">🎁 Tùy chỉnh kịch bản theo từng cảnh</span>
+                <p style="font-size:12px; color:#7a7090; margin:4px 0 0; line-height:1.5;">Mỗi cảnh là một khung riêng biệt: bạn có thể <b>Bật/Tắt từng cảnh</b>, sửa <b>chữ</b> hoặc <b>chọn ảnh riêng cho đúng cảnh đó</b>. Để trống thì mẫu tự dùng nội dung gợi ý sẵn.</p>
+            </div>
+
+                        <div class="v3-occasion-box">
+                <div class="v3-occasion-head">
+                    <span class="v3-occasion-title">🎯 Chọn nhanh chủ đề / dịp tặng quà (1 chạm đổi toàn bộ câu chữ gợi ý)</span>
+                    <span class="v3-occasion-note">Tự động theo ngày thực tế sau khi qua lễ</span>
+                </div>
+                <div class="v3-occasion-grid" id="v3OccasionBar">
+                                        <button type="button" class="v3-occasion-btn " data-occasion="19-11" onclick="applyV3OccasionPreset(&quot;19-11&quot;, this)">
+                        <span>🤵 19/11 · Quốc tế Nam giới</span>
+                    </button>
+                                        <button type="button" class="v3-occasion-btn active" data-occasion="everyday" onclick="applyV3OccasionPreset(&quot;everyday&quot;, this)">
+                        <span>💖 Ngày thường · Kỷ niệm &amp; Tỏ tình</span>
+                    </button>
+                                        <button type="button" class="v3-occasion-btn " data-occasion="birthday" onclick="applyV3OccasionPreset(&quot;birthday&quot;, this)">
+                        <span>🎂 Sinh nhật</span>
+                    </button>
+                                        <button type="button" class="v3-occasion-btn " data-occasion="20-11" onclick="applyV3OccasionPreset(&quot;20-11&quot;, this)">
+                        <span>👩‍🏫 20/11 · Ngày Nhà giáo</span>
+                    </button>
+                                        <button type="button" class="v3-occasion-btn " data-occasion="20-10" onclick="applyV3OccasionPreset(&quot;20-10&quot;, this)">
+                        <span>🌸 20/10 · Phụ nữ Việt Nam</span>
+                    </button>
+                                        <button type="button" class="v3-occasion-btn " data-occasion="8-3" onclick="applyV3OccasionPreset(&quot;8-3&quot;, this)">
+                        <span>🌷 8/3 · Quốc tế Phụ nữ</span>
+                    </button>
+                                        <button type="button" class="v3-occasion-btn " data-occasion="14-2" onclick="applyV3OccasionPreset(&quot;14-2&quot;, this)">
+                        <span>💘 14/2 · Lễ Tình Nhân Valentine</span>
+                    </button>
+                                    </div>
+                <div id="v3OccasionBadge" style="margin-top:8px; font-size:11.5px; color:#5a4e6d;">
+                    💡 Đang áp dụng bộ gợi ý: <b id="v3OccasionBadgeText">Mọi ngày</b> — Bạn vẫn có thể sửa lại bất kỳ câu chữ hay ngày tháng nào bên dưới.
+                </div>
+            </div>
+            
+            <div class="v3-scene-filter" id="v3SceneFilterBar">
+                <button type="button" class="v3-filter-pill active" onclick="filterV3SceneCards('all', this)">📋 Xem tất cả (9 phần)</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-1', this)">👤 Thông tin chung</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-2', this)">🔒 Mở đầu · Màn khóa mật mã 2 chú gấu</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-3', this)">📅 Cảnh 1 · Tờ lịch ngày đặc biệt</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-4', this)">✨ Cảnh 2 · Chữ hạt sáng &amp; Ảnh hạt</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-5', this)">🌹 Cảnh 3 · Bó hoa 3D không bao giờ tàn</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-6', this)">🔮 Cảnh 4 · Quả cầu ảnh &amp; Ảnh bay bóng bay</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-7', this)">💌 Cảnh 5 · Phong bì sáp ong &amp; Lá thư tay</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-8', this)">🎁 Cảnh 6 · Hộp quà 3D &amp; Thẻ cào bí mật</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-9', this)">🎆 Cảnh 7 · Đêm pháo hoa &amp; Đếm ngày bên nhau</button>
+                            </div>
+
+                        <div class="v3-scene-card " id="scene-card-1">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">0. 👤 Thông tin chung</div>
+                                                <div class="v3-scene-desc">Tên người nhận hiển thị trên thẻ quà cào (&quot;Món quà dành cho …&quot;) và màn pháo hoa cuối.</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_recipient_name">Tên người nhận quà (ngắn gọn)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_recipient_name" name="v3[recipient_name]" value="Người Thương"
+                            maxlength="24"                                                                                    oninput="var r=document.getElementById('recipient_name'); if(r){r.value=this.value;}">
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: Anh Yêu, Minh Tuấn, Em Yêu, Vợ Yêu, Mẹ Yêu...</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_title">Tiêu đề trang web (hiện trên tab trình duyệt &amp; khi gửi link Zalo/FB)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_title" name="v3[title]" value="Món Quà Nhỏ - Dành riêng cho người thương 💖"
+                            maxlength="80"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; background:#faf7fb; padding:9px 12px; border-radius:11px; border:1px solid #f0e4ec;">
+                            <span style="font-size:12.5px; font-weight:700; color:#3d3551;">Tự động chuyển qua các cảnh sau lần chạm mở quà đầu tiên</span>
+                            <span class="switch" style="flex-shrink:0;">
+                                <input type="hidden" name="v3[auto_play]" value="0">
+                                <input type="checkbox" class="v3-input" id="v3_auto_play" name="v3[auto_play]" value="1" >
+                                <span class="slider round"></span>
+                            </span>
+                        </label>
+                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card is-disabled" id="scene-card-2">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">1. 🔒 Mở đầu · Màn khóa mật mã 2 chú gấu</div>
+                                                <div class="v3-scene-desc">Hai chú gấu đứng chờ hai bên ổ khóa trái tim. Mỗi số bấm đúng hai chú gấu lại tiến gần nhau hơn, đủ 4 số khóa bật mở và ôm nhau.</div>
+                                            </div>
+                                        <div style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                        <span class="v3-scene-status-badge" style="font-size:11px; font-weight:700; color:#9ca3af;">
+                            Đang tắt                        </span>
+                        <label class="switch" title="Bật màn khóa mật khẩu 4 số (2 chú gấu &amp; ổ khóa trái tim)">
+                            <input type="hidden" name="v3[enable_passcode]" value="0">
+                            <input type="checkbox" class="v3-input v3-scene-toggle" id="v3_enable_passcode" name="v3[enable_passcode]" value="1"  onchange="toggleV3SceneCard(this)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_passcode">Mật khẩu mở quà (đúng 4 chữ số)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_passcode" name="v3[passcode]" value="2411"
+                            maxlength="4"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: 1911 (ngày 19/11), ngày sinh nhật, hoặc 0000.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_passcode_title">Dòng tiêu đề trên bảng bấm số</label>
+                                                <input class="form-input v3-input" type="text" id="v3_passcode_title" name="v3[passcode_title]" value="Nhập mật khẩu"
+                            maxlength="40"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_passcode_subtitle">Câu gợi ý mật khẩu (để người nhận đoán ra 4 số)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_passcode_subtitle" name="v3[passcode_subtitle]" value="Gợi ý: Ngày hôm nay (4 chữ số)"
+                            maxlength="80"                                                                                    >
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-3">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">2. 📅 Cảnh 1 · Tờ lịch ngày đặc biệt</div>
+                                                <div class="v3-scene-desc">Người nhận chạm để xé từng tờ lịch đếm ngược (&quot;Còn 3 ngày nữa…&quot;, &quot;Ngày mai rồi…&quot;) cho tới tờ ngày đặc biệt màu đỏ được bút đỏ khoanh trái tim.</div>
+                                            </div>
+                                        <div style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                        <span class="v3-scene-status-badge" style="font-size:11px; font-weight:700; color:#16a34a;">
+                            Đang bật                        </span>
+                        <label class="switch" title="Bật Cảnh 1: Tờ lịch bloc xé tới ngày đặc biệt">
+                            <input type="hidden" name="v3[enable_calendar]" value="0">
+                            <input type="checkbox" class="v3-input v3-scene-toggle" id="v3_enable_calendar" name="v3[enable_calendar]" value="1" checked onchange="toggleV3SceneCard(this)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_calendar_day">Ngày trên tờ lịch (1 – 31)</label>
+                                                <input class="form-input v3-input" type="number" id="v3_calendar_day" name="v3[calendar_day]" value="24"
+                                                        min="1" max="31"                                                        >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: 19 (cho ngày 19/11), hoặc bất kỳ ngày kỷ niệm / sinh nhật / ngày thường nào.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_calendar_month">Tháng trên tờ lịch (1 – 12)</label>
+                                                <select class="form-input v3-input" id="v3_calendar_month" name="v3[calendar_month]">
+                                                        <option value="1" >Tháng 1</option>
+                                                        <option value="2" >Tháng 2</option>
+                                                        <option value="3" >Tháng 3</option>
+                                                        <option value="4" >Tháng 4</option>
+                                                        <option value="5" >Tháng 5</option>
+                                                        <option value="6" >Tháng 6</option>
+                                                        <option value="7" >Tháng 7</option>
+                                                        <option value="8" >Tháng 8</option>
+                                                        <option value="9" >Tháng 9</option>
+                                                        <option value="10" >Tháng 10</option>
+                                                        <option value="11" selected>Tháng 11</option>
+                                                        <option value="12" >Tháng 12</option>
+                                                    </select>
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_calendar_title">Dòng chữ đỏ trên tờ lịch (tên ngày lễ / ngày kỷ niệm)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_calendar_title" name="v3[calendar_title]" value="Ngày Đặc Biệt Của Chúng Mình"
+                            maxlength="40"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: Ngày Quốc tế Nam giới · Ngày Đặc Biệt Của Chúng Mình · Sinh Nhật Của Anh</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_calendar_caption">Dòng chữ viết tay bên dưới tờ lịch</label>
+                                                <input class="form-input v3-input" type="text" id="v3_calendar_caption" name="v3[calendar_caption]" value="Dành tặng người thương ♥"
+                            maxlength="40"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: Ngày của anh ♥ · Dành tặng người thương · Happy Birthday</span>
+                                                                    </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-4">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">3. ✨ Cảnh 2 · Chữ hạt sáng &amp; Ảnh hạt</div>
+                                                <div class="v3-scene-desc">Hàng nghìn hạt sáng cuộn thành trái tim đang đập (có tên ở giữa), lần lượt xếp thành các dòng chữ của bạn, rồi tụ lại thành bức ảnh trong khung.</div>
+                                            </div>
+                                        <div style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                        <span class="v3-scene-status-badge" style="font-size:11px; font-weight:700; color:#16a34a;">
+                            Đang bật                        </span>
+                        <label class="switch" title="Bật Cảnh 2: Dải ngân hà hạt sáng biến hình chữ &amp; trái tim 3D">
+                            <input type="hidden" name="v3[enable_morph]" value="0">
+                            <input type="checkbox" class="v3-input v3-scene-toggle" id="v3_enable_morph" name="v3[enable_morph]" value="1" checked onchange="toggleV3SceneCard(this)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_morph_texts">Các dòng chữ biến hình bằng hạt sáng (mỗi dòng 1 câu ngắn ≤ 25 ký tự)</label>
+                                                <textarea class="form-input v3-input" id="v3_morph_texts" name="v3[morph_texts]" rows="4" maxlength="300">Gửi người thương
+Một món quà nhỏ
+Dành riêng cho bạn
+Mãi bên nhau nhé</textarea>
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Mỗi dòng sẽ lần lượt hiện lên từ hàng nghìn hạt sáng lấp lánh.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_heart_name">Chữ / Tên nằm giữa trái tim 3D đang đập</label>
+                                                <input class="form-input v3-input" type="text" id="v3_heart_name" name="v3[heart_name]" value="Thương"
+                            maxlength="16"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: Anh Yêu, Tuấn, Em Yêu, 19/11... (để trống nếu muốn trái tim không có chữ).</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_particle_color">Tông màu hạt sáng chủ đạo</label>
+                                                <select class="form-input v3-input" id="v3_particle_color" name="v3[particle_color]">
+                                                        <option value="" selected>🌸 Mặc định (Hồng – Vàng ấm)</option>
+                                                        <option value="#f5b82e" >✨ Vàng mật ong (Sang trọng / Nam &amp; Nữ)</option>
+                                                        <option value="#4da3ff" >💎 Xanh dương (Nam tính / Thanh lịch)</option>
+                                                        <option value="#2ed8b6" >🌿 Xanh ngọc (Tươi mới)</option>
+                                                        <option value="#a678ff" >💜 Tím mộng mơ</option>
+                                                        <option value="#ff5c9a" >💗 Hồng phấn</option>
+                                                        <option value="#ff4a4a" >❤️ Đỏ thắm</option>
+                                                        <option value="#ff8f3a" >🧡 Cam nắng</option>
+                                                        <option value="#fff0d0" >🤍 Trắng ngà</option>
+                                                    </select>
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; background:#faf7fb; padding:9px 12px; border-radius:11px; border:1px solid #f0e4ec;">
+                            <span style="font-size:12.5px; font-weight:700; color:#3d3551;">Hiển thị ảnh ghép từ hạt sáng ở cuối Cảnh 2</span>
+                            <span class="switch" style="flex-shrink:0;">
+                                <input type="hidden" name="v3[enable_particle_image]" value="0">
+                                <input type="checkbox" class="v3-input" id="v3_enable_particle_image" name="v3[enable_particle_image]" value="1" checked>
+                                <span class="slider round"></span>
+                            </span>
+                        </label>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label">🖼️ Ảnh ghép từ hạt sáng (1 ảnh ở Cảnh 2)</label>
+                        <div class="v3-single-img-box">
+                            <img id="preview_v3_particle_image" class="v3-single-img-thumb" alt="Preview">
+                            <div style="flex:1; min-width:180px;">
+                                <div class="v3-single-img-actions">
+                                    <button type="button" class="v3-btn-pick" onclick="document.getElementById('file_v3_particle_image').click()">📷 Chọn ảnh riêng cho mục này</button>
+                                    <button type="button" class="v3-btn-clear" id="clear_v3_particle_image" onclick="clearV3SingleImage('v3_particle_image', 'particle_image')">✕ Xóa ảnh đã chọn</button>
+                                </div>
+                                <input type="file" id="file_v3_particle_image" name="v3_img_particle_image" class="v3-image-file" data-v3-key="particle_image" data-preview-id="preview_v3_particle_image" data-clear-id="clear_v3_particle_image" accept="image/*" style="display:none;" onchange="handleV3SingleImageChange(this)">
+                                <input type="hidden" class="v3-input" id="v3_particle_image" name="v3[particle_image]" value="">
+                                                                <div style="font-size:11px; color:#7a7090; margin-top:5px; line-height:1.4;">Chọn 1 ảnh riêng cho hiệu ứng hạt tụ thành ảnh. Nếu không chọn, hệ thống tự lấy ảnh đầu tiên trong Album quả cầu (hoặc ảnh mẫu).</div>
+                                                            </div>
+                        </div>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_particle_image_shape">Khung viền của ảnh hạt sáng</label>
+                                                <select class="form-input v3-input" id="v3_particle_image_shape" name="v3[particle_image_shape]">
+                                                        <option value="heart" selected>💖 Khung Trái tim</option>
+                                                        <option value="circle" >⭕ Khung Hình tròn</option>
+                                                        <option value="rect" >🖼️ Khung Chữ nhật (giữ nguyên tỉ lệ)</option>
+                                                    </select>
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-5">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">4. 🌹 Cảnh 3 · Bó hoa 3D không bao giờ tàn</div>
+                                                <div class="v3-scene-desc">Hạt sáng cuộn thành bó hoa hồng 3D nở từng cánh, bướm bay xung quanh. Chạm vào từng bông hoa sẽ rung nhẹ và rắc cánh hoa rơi.</div>
+                                            </div>
+                                        <div style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                        <span class="v3-scene-status-badge" style="font-size:11px; font-weight:700; color:#16a34a;">
+                            Đang bật                        </span>
+                        <label class="switch" title="Bật Cảnh 3: Bó hoa hồng 3D nở mãi không tàn &amp; bươm bướm">
+                            <input type="hidden" name="v3[enable_bouquet]" value="0">
+                            <input type="checkbox" class="v3-input v3-scene-toggle" id="v3_enable_bouquet" name="v3[enable_bouquet]" value="1" checked onchange="toggleV3SceneCard(this)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_bouquet_count">Số bông hoa trong bó (mỗi con số mang một ý nghĩa)</label>
+                                                <select class="form-input v3-input" id="v3_bouquet_count" name="v3[bouquet_count]">
+                                                        <option value="1" >🌹 1 bông — Duy nhất trong tim</option>
+                                                        <option value="3" >🌹 3 bông — Lời yêu thương chân thành</option>
+                                                        <option value="9" selected>🌹 9 bông — Mãi mãi bên nhau</option>
+                                                        <option value="11" >🌹 11 bông — Một lòng trọn đời</option>
+                                                    </select>
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_bouquet_color">Màu sắc bó hoa 3D</label>
+                                                <select class="form-input v3-input" id="v3_bouquet_color" name="v3[bouquet_color]">
+                                                        <option value="red" selected>🌹 Đỏ nhung (Nồng nàn, quyến rũ)</option>
+                                                        <option value="pink" >🌸 Hồng phấn (Dịu dàng, ngọt ngào)</option>
+                                                        <option value="white" >🤍 Trắng tinh khôi (Thanh lịch, trong sáng)</option>
+                                                        <option value="mix" >💐 Đỏ &amp; Hồng xen kẽ (Rực rỡ)</option>
+                                                        <option value="yellow" >🌻 Vàng ánh dương (Ấm áp, rạng rỡ — hợp tặng Nam / Tri ân)</option>
+                                                    </select>
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_bouquet_title">Lời đề tặng hiện phía trên bó hoa</label>
+                                                <input class="form-input v3-input" type="text" id="v3_bouquet_title" name="v3[bouquet_title]" value="Tặng bạn bó hoa không bao giờ tàn"
+                            maxlength="60"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Để trống nếu không muốn hiện dòng chữ này.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_bouquet_meaning">Dòng ý nghĩa bó hoa (nhỏ phía trên)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_bouquet_meaning" name="v3[bouquet_meaning]" value="Mãi mãi bên nhau"
+                            maxlength="60"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_bouquet_subtitle">Câu nhắn nhỏ bên dưới bó hoa</label>
+                                                <textarea class="form-input v3-input" id="v3_bouquet_subtitle" name="v3[bouquet_subtitle]" rows="2" maxlength="140">Hoa thật rồi sẽ héo, nhưng bó hoa này sẽ nở mãi — như tình cảm chân thành dành cho bạn mỗi ngày.</textarea>
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-6">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">5. 🔮 Cảnh 4 · Quả cầu ảnh &amp; Ảnh bay bóng bay</div>
+                                                <div class="v3-scene-desc">Các bức ảnh kỷ niệm ghép thành quả cầu phát sáng xoay 360°. Khi chạm vào quả cầu, các tấm ảnh hóa thành khung ảnh Polaroid gắn bóng bay trái tim bay lên trời.</div>
+                                            </div>
+                                        <div style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                        <span class="v3-scene-status-badge" style="font-size:11px; font-weight:700; color:#16a34a;">
+                            Đang bật                        </span>
+                        <label class="switch" title="Bật Cảnh 4: Quả cầu ghép từ ảnh kỷ niệm 3D">
+                            <input type="hidden" name="v3[enable_sphere]" value="0">
+                            <input type="checkbox" class="v3-input v3-scene-toggle" id="v3_enable_sphere" name="v3[enable_sphere]" value="1" checked onchange="toggleV3SceneCard(this)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label">📸 Album ảnh kỷ niệm ghép Quả cầu 3D (chọn nhiều ảnh)</label>
+                        <div class="v3-single-img-box" style="flex-direction:column; align-items:stretch;">
+                            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;">
+                                <button type="button" class="v3-btn-pick" onclick="document.getElementById('photos').click()">📸 Chọn bộ ảnh từ máy tính (Tối đa 20 ảnh)</button>
+                                <button type="button" class="v3-btn-clear" style="display:inline-block;" onclick="switchSection('sec-photos', document.querySelector('[data-section=&quot;sec-photos&quot;]'))">🗂️ Mở tab quản lý Album ảnh</button>
+                            </div>
+                                                        <div style="font-size:11px; color:#7a7090; line-height:1.4;">Tải lên từ 1 đến 20 ảnh kỷ niệm. Nếu chưa chọn ảnh, mẫu sẽ dùng bộ ảnh minh họa mặc định.</div>
+                                                        <div id="v3-inline-album-info" style="font-size:11.5px; font-weight:700; color:#22c55e;">✨ Nếu chưa tải ảnh lên, mẫu sẽ dùng bộ ảnh mặc định (Miễn phí).</div>
+                        </div>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; background:#faf7fb; padding:9px 12px; border-radius:11px; border:1px solid #f0e4ec;">
+                            <span style="font-size:12.5px; font-weight:700; color:#3d3551;">Bật hiệu ứng ảnh Polaroid treo bóng bay bay lên khi chạm nổ quả cầu</span>
+                            <span class="switch" style="flex-shrink:0;">
+                                <input type="hidden" name="v3[enable_flying_images]" value="0">
+                                <input type="checkbox" class="v3-input" id="v3_enable_flying_images" name="v3[enable_flying_images]" value="1" checked>
+                                <span class="slider round"></span>
+                            </span>
+                        </label>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_flying_captions">Chú thích viết tay dưới mỗi tấm ảnh Polaroid bay (mỗi dòng 1 câu ngắn ≤ 24 ký tự)</label>
+                                                <textarea class="form-input v3-input" id="v3_flying_captions" name="v3[flying_captions]" rows="4" maxlength="300">Thương thật nhiều 💕
+Khoảnh khắc đẹp nhất ✨
+Mãi bên nhau nhé 🥰
+Luôn rạng rỡ nhé 🌸
+Cảm ơn vì tất cả 💖</textarea>
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-7">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">6. 💌 Cảnh 5 · Phong bì sáp ong &amp; Lá thư tay</div>
+                                                <div class="v3-scene-desc">Cupid bay tới trao phong thư đóng dấu sáp ong. Khi chạm mở, lá thư lật ra với hiệu ứng viết chữ từng dòng kèm chữ ký và tấm ảnh dán băng keo ở cuối thư.</div>
+                                            </div>
+                                        <div style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                        <span class="v3-scene-status-badge" style="font-size:11px; font-weight:700; color:#16a34a;">
+                            Đang bật                        </span>
+                        <label class="switch" title="Bật Cảnh 5: Thần Cupid mang phong bì sáp ong &amp; Lá thư tay">
+                            <input type="hidden" name="v3[enable_letter]" value="0">
+                            <input type="checkbox" class="v3-input v3-scene-toggle" id="v3_enable_letter" name="v3[enable_letter]" value="1" checked onchange="toggleV3SceneCard(this)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_letter_title">Tiêu đề mở đầu bức thư</label>
+                                                <input class="form-input v3-input" type="text" id="v3_letter_title" name="v3[letter_title]" value="Gửi người thương!"
+                            maxlength="60"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: Gửi anh yêu!, Gửi em yêu!, Chúc mừng sinh nhật!...</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_letter_content">Nội dung bức thư (Enter xuống dòng để tách đoạn)</label>
+                                                <textarea class="form-input v3-input" id="v3_letter_content" name="v3[letter_content]" rows="6" maxlength="2000">Chẳng cần phải đợi đến một ngày lễ đặc biệt nào cả, vì mỗi ngày có bạn ở bên đều là một ngày thật đáng trân trọng.
+
+Chúc bạn luôn bình an, rạng rỡ, ngập tràn niềm vui và luôn cảm nhận được thật nhiều yêu thương mỗi ngày nhé! ❤️</textarea>
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_letter_signature">Chữ ký ở cuối bức thư</label>
+                                                <input class="form-input v3-input" type="text" id="v3_letter_signature" name="v3[letter_signature]" value="Thương nhiều ♥"
+                            maxlength="50"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: Người thương của anh ♥, Thương em nhiều ♥...</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_letter_color">Màu phong bì &amp; giấy thư 3D</label>
+                                                <select class="form-input v3-input" id="v3_letter_color" name="v3[letter_color]">
+                                                        <option value="night" selected>🌌 Đêm sao (Tím than ánh sao)</option>
+                                                        <option value="navy" >🌊 Xanh đêm (Lịch lãm, nam tính — hợp 19/11)</option>
+                                                        <option value="black" >🖤 Đen ánh kim (Sang trọng, cá tính)</option>
+                                                        <option value="rose" >🌸 Hồng phấn (Ngọt ngào, lãng mạn)</option>
+                                                        <option value="red" >❤️ Đỏ nhung (Nồng nàn)</option>
+                                                        <option value="lavender" >💜 Tím oải hương (Mộng mơ)</option>
+                                                        <option value="ivory" >📜 Trắng ngà (Cổ điển, trang nhã)</option>
+                                                        <option value="mint" >🌿 Xanh bạc hà (Tươi mát)</option>
+                                                    </select>
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; background:#faf7fb; padding:9px 12px; border-radius:11px; border:1px solid #f0e4ec;">
+                            <span style="font-size:12.5px; font-weight:700; color:#3d3551;">Đính kèm 1 tấm ảnh dán băng keo ở cuối bức thư</span>
+                            <span class="switch" style="flex-shrink:0;">
+                                <input type="hidden" name="v3[enable_letter_image]" value="0">
+                                <input type="checkbox" class="v3-input" id="v3_enable_letter_image" name="v3[enable_letter_image]" value="1" checked>
+                                <span class="slider round"></span>
+                            </span>
+                        </label>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label">🖼️ Ảnh dán băng keo trong lá thư (1 ảnh ở Cảnh 5)</label>
+                        <div class="v3-single-img-box">
+                            <img id="preview_v3_letter_image" class="v3-single-img-thumb" alt="Preview">
+                            <div style="flex:1; min-width:180px;">
+                                <div class="v3-single-img-actions">
+                                    <button type="button" class="v3-btn-pick" onclick="document.getElementById('file_v3_letter_image').click()">📷 Chọn ảnh riêng cho mục này</button>
+                                    <button type="button" class="v3-btn-clear" id="clear_v3_letter_image" onclick="clearV3SingleImage('v3_letter_image', 'letter_image')">✕ Xóa ảnh đã chọn</button>
+                                </div>
+                                <input type="file" id="file_v3_letter_image" name="v3_img_letter_image" class="v3-image-file" data-v3-key="letter_image" data-preview-id="preview_v3_letter_image" data-clear-id="clear_v3_letter_image" accept="image/*" style="display:none;" onchange="handleV3SingleImageChange(this)">
+                                <input type="hidden" class="v3-input" id="v3_letter_image" name="v3[letter_image]" value="">
+                                                                <div style="font-size:11px; color:#7a7090; margin-top:5px; line-height:1.4;">Chọn 1 ảnh kỷ niệm hiện ở cuối bức thư sau khi viết xong chữ. Nếu không chọn riêng, hệ thống lấy ảnh trong Album (hoặc ảnh mẫu).</div>
+                                                            </div>
+                        </div>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_letter_image_caption">Dòng chú thích nhỏ dưới ảnh trong thư</label>
+                                                <input class="form-input v3-input" type="text" id="v3_letter_image_caption" name="v3[letter_image_caption]" value="Khoảnh khắc đẹp của chúng mình ♥"
+                            maxlength="60"                                                                                    >
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-8">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">7. 🎁 Cảnh 6 · Hộp quà 3D &amp; Thẻ cào bí mật</div>
+                                                <div class="v3-scene-desc">Chùm bóng bay thả hộp quà 3D xuống. Khi chạm mở nắp hộp, pháo giấy nổ tung và thẻ cào nhũ vàng bay lên để người nhận lấy tay cào xem món quà bất ngờ bên dưới.</div>
+                                            </div>
+                                        <div style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                        <span class="v3-scene-status-badge" style="font-size:11px; font-weight:700; color:#16a34a;">
+                            Đang bật                        </span>
+                        <label class="switch" title="Bật Cảnh 6: Hộp quà 3D thả bằng bóng bay &amp; Thẻ cào nhũ vàng">
+                            <input type="hidden" name="v3[enable_gift_box]" value="0">
+                            <input type="checkbox" class="v3-input v3-scene-toggle" id="v3_enable_gift_box" name="v3[enable_gift_box]" value="1" checked onchange="toggleV3SceneCard(this)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_gift_color">Màu giấy gói &amp; nơ Hộp quà 3D</label>
+                                                <select class="form-input v3-input" id="v3_gift_color" name="v3[gift_color]">
+                                                        <option value="navy" >🌌 Xanh navy sao vàng (Hợp tặng bạn Nam / 19-11)</option>
+                                                        <option value="black" >🖤 Đen ánh kim nhũ vàng (Sang trọng, cá tính)</option>
+                                                        <option value="sky" >💎 Xanh da trời (Trẻ trung, tươi sáng)</option>
+                                                        <option value="mint" >🌿 Xanh bạc hà</option>
+                                                        <option value="pink" selected>🌸 Hồng phấn nơ satin (Dịu dàng, nữ tính)</option>
+                                                        <option value="red" >❤️ Đỏ nhũ vàng (Lễ hội, nổi bật)</option>
+                                                        <option value="lavender" >💜 Tím mộng mơ</option>
+                                                        <option value="peach" >🍑 Cam đào ấm áp</option>
+                                                    </select>
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_scratch_text">Nội dung bất ngờ hiện ra dưới lớp nhũ vàng khi cào thẻ</label>
+                                                <textarea class="form-input v3-input" id="v3_scratch_text" name="v3[scratch_text]" rows="3" maxlength="200">Một buổi hẹn đi ăn món ngon bạn thích vào cuối tuần này nhé! 🍲✨</textarea>
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: Một buổi hẹn ăn tối, một chuyến đi chơi, một vé xem phim hoặc lời hứa đáng yêu...</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; background:#faf7fb; padding:9px 12px; border-radius:11px; border:1px solid #f0e4ec;">
+                            <span style="font-size:12.5px; font-weight:700; color:#3d3551;">Hiển thị kèm 1 tấm ảnh bên trong thẻ cào</span>
+                            <span class="switch" style="flex-shrink:0;">
+                                <input type="hidden" name="v3[enable_scratch_image]" value="0">
+                                <input type="checkbox" class="v3-input" id="v3_enable_scratch_image" name="v3[enable_scratch_image]" value="1" checked>
+                                <span class="slider round"></span>
+                            </span>
+                        </label>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label">🖼️ Ảnh bí mật bên dưới lớp thẻ cào (1 ảnh ở Cảnh 6)</label>
+                        <div class="v3-single-img-box">
+                            <img id="preview_v3_scratch_image" class="v3-single-img-thumb" alt="Preview">
+                            <div style="flex:1; min-width:180px;">
+                                <div class="v3-single-img-actions">
+                                    <button type="button" class="v3-btn-pick" onclick="document.getElementById('file_v3_scratch_image').click()">📷 Chọn ảnh riêng cho mục này</button>
+                                    <button type="button" class="v3-btn-clear" id="clear_v3_scratch_image" onclick="clearV3SingleImage('v3_scratch_image', 'scratch_image')">✕ Xóa ảnh đã chọn</button>
+                                </div>
+                                <input type="file" id="file_v3_scratch_image" name="v3_img_scratch_image" class="v3-image-file" data-v3-key="scratch_image" data-preview-id="preview_v3_scratch_image" data-clear-id="clear_v3_scratch_image" accept="image/*" style="display:none;" onchange="handleV3SingleImageChange(this)">
+                                <input type="hidden" class="v3-input" id="v3_scratch_image" name="v3[scratch_image]" value="">
+                                                                <div style="font-size:11px; color:#7a7090; margin-top:5px; line-height:1.4;">Có thể chọn ảnh món quà, ảnh voucher/vé hẹn hò hoặc ảnh kỷ niệm của hai người.</div>
+                                                            </div>
+                        </div>
+                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-9">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">8. 🎆 Cảnh 7 · Đêm pháo hoa &amp; Đếm ngày bên nhau</div>
+                                                <div class="v3-scene-desc">Đèn trời bay lên giữa đêm sao, pháo hoa nổ rực rỡ và xếp thành 3 dòng chữ trên bầu trời. Cuối cùng hiện lời nhắn kết và đồng hồ đếm từng giây bên nhau.</div>
+                                            </div>
+                                        <div style="display:flex; align-items:center; gap:7px; flex-shrink:0;">
+                        <span class="v3-scene-status-badge" style="font-size:11px; font-weight:700; color:#16a34a;">
+                            Đang bật                        </span>
+                        <label class="switch" title="Bật Cảnh 7 (Kết): Đèn trời, Pháo hoa xếp chữ &amp; Đồng hồ đếm ngày bên nhau">
+                            <input type="hidden" name="v3[enable_finale]" value="0">
+                            <input type="checkbox" class="v3-input v3-scene-toggle" id="v3_enable_finale" name="v3[enable_finale]" value="1" checked onchange="toggleV3SceneCard(this)">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_firework_line1">Chữ pháo hoa dòng 1 (tối đa 14 ký tự)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_firework_line1" name="v3[firework_line1]" value="Yêu Thương"
+                            maxlength="14"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: 19.11, Yêu Anh, Yêu Thương, Happy Birthday...</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_firework_line2">Chữ pháo hoa dòng 2 (tối đa 14 ký tự)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_firework_line2" name="v3[firework_line2]" value="Mãi Bên Nhau"
+                            maxlength="14"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">VD: Thương Anh, Mãi Bên Nhau, Yêu Em...</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_firework_line3">Chữ pháo hoa dòng 3 (tùy chọn, tối đa 14 ký tự)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_firework_line3" name="v3[firework_line3]" value=""
+                            maxlength="14"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Để trống nếu chỉ muốn bắn 2 dòng chữ pháo hoa.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_final_message">Lời nhắn kết hiện dưới bầu trời pháo hoa</label>
+                                                <input class="form-input v3-input" type="text" id="v3_final_message" name="v3[final_message]" value="Cảm ơn vì đã luôn ở bên nhau"
+                            maxlength="120"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; background:#faf7fb; padding:9px 12px; border-radius:11px; border:1px solid #f0e4ec;">
+                            <span style="font-size:12.5px; font-weight:700; color:#3d3551;">Bật đồng hồ đếm thời gian đã bên nhau (Ngày · Giờ · Phút · Giây)</span>
+                            <span class="switch" style="flex-shrink:0;">
+                                <input type="hidden" name="v3[enable_love_counter]" value="0">
+                                <input type="checkbox" class="v3-input" id="v3_enable_love_counter" name="v3[enable_love_counter]" value="1" checked>
+                                <span class="slider round"></span>
+                            </span>
+                        </label>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_love_start_date">Ngày bắt đầu yêu / quen nhau (để tính số ngày)</label>
+                                                <input class="form-input v3-input" type="date" id="v3_love_start_date" name="v3[love_start_date]" value="2024-02-14"
+                                                                                                                >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_love_counter_title">Dòng tiêu đề phía trên đồng hồ đếm ngày</label>
+                                                <input class="form-input v3-input" type="text" id="v3_love_counter_title" name="v3[love_counter_title]" value="Mình đã bên nhau"
+                            maxlength="40"                                                                                    >
+                                                                                            </div>
+                                    </div>
+            </div>
+                    </div>
+        
+        <!-- SECTION: NHẠC NỀN -->

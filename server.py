@@ -1084,6 +1084,10 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 "recipient_name": recipient_name,
                 "birthday_day": birthday_day,
                 "birthday_month": birthday_month,
+                "v3": data.get("v3", {}) if isinstance(data.get("v3"), dict) else {},
+                "pin": data.get("v3_pin") or (data.get("v3", {}).get("pin") if isinstance(data.get("v3"), dict) else None) or data.get("pin", ""),
+                "unlock_date": data.get("v3_unlock_date") or (data.get("v3", {}).get("unlock_date") if isinstance(data.get("v3"), dict) else None) or "",
+                "wishes_list": data.get("v3_wishes") or (data.get("v3", {}).get("wishes") if isinstance(data.get("v3"), dict) else None) or "",
                 "letter_title": letter_title,
                 "letter_content": letter_content,
                 "letter_signature": letter_signature,
@@ -2201,8 +2205,22 @@ setInterval(pollStatus, 2500);
         content = content.replace('<span class="tab-label">Album Quả cầu</span>', f'<span class="tab-label">{photo_tab_label}</span>')
         content = content.replace('<span class="tab-label">Lời chúc & Thư</span>', f'<span class="tab-label">{letter_tab_label}</span>')
 
-        # Dynamic tabs and section isolation
-        if str(tpl_id) != '69':
+        # Dynamic tabs and section isolation with full templates_v3_meta integration
+        v3_meta_path = os.path.join(DIRECTORY, 'templates_v3_meta', f'sec_v3_{tpl_id}.html')
+        has_custom_v3 = os.path.exists(v3_meta_path)
+
+        if has_custom_v3:
+            try:
+                with open(v3_meta_path, 'r', encoding='utf-8') as f_v3:
+                    custom_v3_html = f_v3.read().strip()
+                # Replace default sec-v3 with template-specific scenario form
+                sec_v3_pattern = r'(<div class="gb-section active" id="sec-v3">.*?)(?=\s*<!--\s*SECTION:|\s*<div class="gb-section" id="sec-)'
+                content = re.sub(sec_v3_pattern, custom_v3_html, content, count=1, flags=re.DOTALL)
+                # Keep tab-sec-v3 active
+                content = content.replace('id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)" style="display:none;"', 'id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)"')
+            except Exception as e:
+                pass
+        elif str(tpl_id) != '69':
             content = content.replace('id="tab-sec-v3"', 'id="tab-sec-v3" style="display:none;"')
             content = content.replace('class="icon-tab active" id="tab-sec-v3"', 'class="icon-tab" id="tab-sec-v3" style="display:none;"')
             content = content.replace('id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)" style="display:none;"', 'id="tab-sec-letter" data-section="sec-letter" onclick="switchSection(\'sec-letter\', this)"')

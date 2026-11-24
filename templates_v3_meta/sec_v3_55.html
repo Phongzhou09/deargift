@@ -1,0 +1,277 @@
+<div class="gb-section active" id="sec-v3">
+                        <style>
+            .v3-occasion-box {
+                background: linear-gradient(135deg, #fff5f8 0%, #f5f3ff 100%);
+                border: 1.5px solid #f3d0e0;
+                border-radius: 16px;
+                padding: 13px 14px;
+                margin-bottom: 14px;
+            }
+            .v3-occasion-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-bottom: 9px;
+            }
+            .v3-occasion-title {
+                font-size: 13px;
+                font-weight: 800;
+                color: #b82b63;
+            }
+            .v3-occasion-note {
+                font-size: 11px;
+                color: #6b5b7b;
+                background: #fff;
+                padding: 3px 9px;
+                border-radius: 99px;
+                border: 1px solid #ead5e4;
+                font-weight: 600;
+            }
+            .v3-occasion-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 7px;
+            }
+            .v3-occasion-btn {
+                border: 1.5px solid #e6d4e2;
+                background: #fff;
+                color: #4a3f5c;
+                border-radius: 11px;
+                padding: 7px 11px;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all .18s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .v3-occasion-btn:hover {
+                border-color: #e8589a;
+                background: #fff7fa;
+            }
+            .v3-occasion-btn.active {
+                background: linear-gradient(135deg, #e8589a, #7c4dff);
+                color: #fff;
+                border-color: transparent;
+                box-shadow: 0 4px 12px rgba(232,88,154,.25);
+            }
+            .v3-scene-filter {
+                display: flex;
+                gap: 6px;
+                overflow-x: auto;
+                padding-bottom: 8px;
+                margin-bottom: 12px;
+                scrollbar-width: thin;
+            }
+            .v3-filter-pill {
+                white-space: nowrap;
+                border: 1px solid #e7d9e6;
+                background: #fff;
+                color: #5a4e6d;
+                border-radius: 999px;
+                padding: 6px 12px;
+                font-size: 11.5px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all .15s;
+            }
+            .v3-filter-pill.active {
+                background: #3d3551;
+                color: #fff;
+                border-color: #3d3551;
+            }
+            .v3-scene-card {
+                background: #fff;
+                border: 1.5px solid #efe3ec;
+                border-radius: 16px;
+                margin-bottom: 14px;
+                overflow: hidden;
+                transition: border-color .2s, box-shadow .2s;
+            }
+            .v3-scene-card:hover {
+                border-color: #e6c6d9;
+                box-shadow: 0 4px 14px rgba(61,53,81,0.05);
+            }
+            .v3-scene-card.is-disabled {
+                opacity: 0.68;
+                background: #faf8fb;
+            }
+            .v3-scene-card.is-disabled .v3-scene-body {
+                display: none;
+            }
+            .v3-scene-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 12px 15px;
+                background: linear-gradient(90deg, #fff9fc 0%, #fcfaff 100%);
+                border-bottom: 1px solid #f4eaf1;
+            }
+            .v3-scene-title {
+                font-size: 13.5px;
+                font-weight: 800;
+                color: #3d3551;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .v3-scene-desc {
+                font-size: 11.5px;
+                color: #7a7090;
+                margin-top: 3px;
+                line-height: 1.45;
+            }
+            .v3-scene-body {
+                padding: 14px 15px 6px;
+            }
+            .v3-single-img-box {
+                border: 1.5px dashed #e2bed1;
+                border-radius: 13px;
+                padding: 11px 12px;
+                background: #fffbfd;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .v3-single-img-thumb {
+                width: 68px;
+                height: 68px;
+                border-radius: 10px;
+                object-fit: cover;
+                border: 1px solid #ead8e3;
+                background: #f6eef3;
+                display: none;
+            }
+            .v3-single-img-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                align-items: center;
+            }
+            .v3-btn-pick {
+                padding: 8px 13px;
+                border-radius: 10px;
+                background: #fff0f6;
+                color: #d63384;
+                border: 1px solid #f5c2da;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            .v3-btn-pick:hover {
+                background: #fce4ec;
+            }
+            .v3-btn-clear {
+                padding: 7px 10px;
+                border-radius: 9px;
+                background: #f8f9fa;
+                color: #666;
+                border: 1px solid #ddd;
+                font-size: 11.5px;
+                font-weight: 600;
+                cursor: pointer;
+                display: none;
+            }
+            </style>
+
+            <div style="margin-bottom:12px;">
+                <span style="font-size:15px; font-weight:800; color:#3d3551;">🔐 Tùy chỉnh kịch bản theo từng cảnh</span>
+                <p style="font-size:12px; color:#7a7090; margin:4px 0 0; line-height:1.5;">Mỗi cảnh là một khung riêng biệt: bạn có thể <b>Bật/Tắt từng cảnh</b>, sửa <b>chữ</b> hoặc <b>chọn ảnh riêng cho đúng cảnh đó</b>. Để trống thì mẫu tự dùng nội dung gợi ý sẵn.</p>
+            </div>
+
+            
+            <div class="v3-scene-filter" id="v3SceneFilterBar">
+                <button type="button" class="v3-filter-pill active" onclick="filterV3SceneCards('all', this)">📋 Xem tất cả (4 phần)</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-1', this)">Chung</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-2', this)">🔐 Ổ khoá</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-3', this)">💌 Tấm thiệp</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-4', this)">📸 Ảnh</button>
+                            </div>
+
+                        <div class="v3-scene-card " id="scene-card-1">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">Chung</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_title">Tiêu đề trang</label>
+                                                <input class="form-input v3-input" type="text" id="v3_title" name="v3[title]" value="Mở khoá trái tim nhé 🔐"
+                            maxlength="80"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Hiện trên tab trình duyệt và khi dán link lên Facebook/Zalo.</span>
+                                                                    </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-2">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">🔐 Ổ khoá</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_unlock_date">Ngày kỷ niệm (mã mở khoá) *</label>
+                                                <input class="form-input v3-input" type="date" id="v3_unlock_date" name="v3[unlock_date]" value="2024-02-14"
+                                                                                                                >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Mã khoá là NGÀY + THÁNG, vd 14/02 → 1402. Người nhận phải vặn đúng 4 số này.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_lock_title">Chữ trên ổ khoá</label>
+                                                <input class="form-input v3-input" type="text" id="v3_lock_title" name="v3[lock_title]" value="Ngày Chúng Mình Bên Nhau"
+                            maxlength="40"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Gợi ý cho người nhận biết phải nhập ngày nào.</span>
+                                                                    </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-3">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">💌 Tấm thiệp</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_card_title">Tiêu đề thiệp</label>
+                                                <input class="form-input v3-input" type="text" id="v3_card_title" name="v3[card_title]" value="CHÚC MỪNG 2 NĂM|BÊN NHAU"
+                            maxlength="60"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Dấu | để xuống dòng.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_message">Lời chúc trên thiệp</label>
+                                                <textarea class="form-input v3-input" id="v3_message" name="v3[message]" rows="5" maxlength="800">Hai năm bên em là khoảng thời gian tuyệt vời nhất cuộc đời anh. Mỗi khoảnh khắc, mỗi nụ cười, mỗi cái nắm tay đều khiến anh thêm yêu em hơn. Cảm ơn em đã đến bên anh và cho anh một tình yêu trọn vẹn đến như vậy.</textarea>
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-4">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">📸 Ảnh</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label">Ảnh kỷ niệm (dưới lớp cào)</label>
+                        <div class="v3-single-img-box" style="flex-direction:column; align-items:stretch;">
+                            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;">
+                                <button type="button" class="v3-btn-pick" onclick="document.getElementById('photos').click()">📸 Chọn bộ ảnh từ máy tính (Tối đa 12 ảnh)</button>
+                                <button type="button" class="v3-btn-clear" style="display:inline-block;" onclick="switchSection('sec-photos', document.querySelector('[data-section=&quot;sec-photos&quot;]'))">🗂️ Mở tab quản lý Album ảnh</button>
+                            </div>
+                                                        <div style="font-size:11px; color:#7a7090; line-height:1.4;">Hiện dần khi người nhận cào lớp phủ, rồi chạy lần lượt. Bỏ trống thì dùng ảnh mẫu.</div>
+                                                        <div id="v3-inline-album-info" style="font-size:11.5px; font-weight:700; color:#22c55e;">✨ Nếu chưa tải ảnh lên, mẫu sẽ dùng bộ ảnh mặc định (Miễn phí).</div>
+                        </div>
+                                            </div>
+                                    </div>
+            </div>
+                    </div>
+        
+        <!-- SECTION: NHẠC NỀN -->

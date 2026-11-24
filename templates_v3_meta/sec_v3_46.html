@@ -1,0 +1,524 @@
+<div class="gb-section active" id="sec-v3">
+                        <style>
+            .v3-occasion-box {
+                background: linear-gradient(135deg, #fff5f8 0%, #f5f3ff 100%);
+                border: 1.5px solid #f3d0e0;
+                border-radius: 16px;
+                padding: 13px 14px;
+                margin-bottom: 14px;
+            }
+            .v3-occasion-head {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 6px;
+                margin-bottom: 9px;
+            }
+            .v3-occasion-title {
+                font-size: 13px;
+                font-weight: 800;
+                color: #b82b63;
+            }
+            .v3-occasion-note {
+                font-size: 11px;
+                color: #6b5b7b;
+                background: #fff;
+                padding: 3px 9px;
+                border-radius: 99px;
+                border: 1px solid #ead5e4;
+                font-weight: 600;
+            }
+            .v3-occasion-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 7px;
+            }
+            .v3-occasion-btn {
+                border: 1.5px solid #e6d4e2;
+                background: #fff;
+                color: #4a3f5c;
+                border-radius: 11px;
+                padding: 7px 11px;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all .18s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+            }
+            .v3-occasion-btn:hover {
+                border-color: #e8589a;
+                background: #fff7fa;
+            }
+            .v3-occasion-btn.active {
+                background: linear-gradient(135deg, #e8589a, #7c4dff);
+                color: #fff;
+                border-color: transparent;
+                box-shadow: 0 4px 12px rgba(232,88,154,.25);
+            }
+            .v3-scene-filter {
+                display: flex;
+                gap: 6px;
+                overflow-x: auto;
+                padding-bottom: 8px;
+                margin-bottom: 12px;
+                scrollbar-width: thin;
+            }
+            .v3-filter-pill {
+                white-space: nowrap;
+                border: 1px solid #e7d9e6;
+                background: #fff;
+                color: #5a4e6d;
+                border-radius: 999px;
+                padding: 6px 12px;
+                font-size: 11.5px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all .15s;
+            }
+            .v3-filter-pill.active {
+                background: #3d3551;
+                color: #fff;
+                border-color: #3d3551;
+            }
+            .v3-scene-card {
+                background: #fff;
+                border: 1.5px solid #efe3ec;
+                border-radius: 16px;
+                margin-bottom: 14px;
+                overflow: hidden;
+                transition: border-color .2s, box-shadow .2s;
+            }
+            .v3-scene-card:hover {
+                border-color: #e6c6d9;
+                box-shadow: 0 4px 14px rgba(61,53,81,0.05);
+            }
+            .v3-scene-card.is-disabled {
+                opacity: 0.68;
+                background: #faf8fb;
+            }
+            .v3-scene-card.is-disabled .v3-scene-body {
+                display: none;
+            }
+            .v3-scene-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 12px 15px;
+                background: linear-gradient(90deg, #fff9fc 0%, #fcfaff 100%);
+                border-bottom: 1px solid #f4eaf1;
+            }
+            .v3-scene-title {
+                font-size: 13.5px;
+                font-weight: 800;
+                color: #3d3551;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+            .v3-scene-desc {
+                font-size: 11.5px;
+                color: #7a7090;
+                margin-top: 3px;
+                line-height: 1.45;
+            }
+            .v3-scene-body {
+                padding: 14px 15px 6px;
+            }
+            .v3-single-img-box {
+                border: 1.5px dashed #e2bed1;
+                border-radius: 13px;
+                padding: 11px 12px;
+                background: #fffbfd;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            .v3-single-img-thumb {
+                width: 68px;
+                height: 68px;
+                border-radius: 10px;
+                object-fit: cover;
+                border: 1px solid #ead8e3;
+                background: #f6eef3;
+                display: none;
+            }
+            .v3-single-img-actions {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                align-items: center;
+            }
+            .v3-btn-pick {
+                padding: 8px 13px;
+                border-radius: 10px;
+                background: #fff0f6;
+                color: #d63384;
+                border: 1px solid #f5c2da;
+                font-size: 12px;
+                font-weight: 700;
+                cursor: pointer;
+            }
+            .v3-btn-pick:hover {
+                background: #fce4ec;
+            }
+            .v3-btn-clear {
+                padding: 7px 10px;
+                border-radius: 9px;
+                background: #f8f9fa;
+                color: #666;
+                border: 1px solid #ddd;
+                font-size: 11.5px;
+                font-weight: 600;
+                cursor: pointer;
+                display: none;
+            }
+            </style>
+
+            <div style="margin-bottom:12px;">
+                <span style="font-size:15px; font-weight:800; color:#3d3551;">🐾 Tùy chỉnh kịch bản theo từng cảnh</span>
+                <p style="font-size:12px; color:#7a7090; margin:4px 0 0; line-height:1.5;">Mỗi cảnh là một khung riêng biệt: bạn có thể <b>Bật/Tắt từng cảnh</b>, sửa <b>chữ</b> hoặc <b>chọn ảnh riêng cho đúng cảnh đó</b>. Để trống thì mẫu tự dùng nội dung gợi ý sẵn.</p>
+            </div>
+
+            
+            <div class="v3-scene-filter" id="v3SceneFilterBar">
+                <button type="button" class="v3-filter-pill active" onclick="filterV3SceneCards('all', this)">📋 Xem tất cả (12 phần)</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-1', this)">Chung</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-2', this)">📱 Màn 1 · Khung Chat QR</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-3', this)">🐾 Màn 2 · Chiikawa Giao Thư</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-4', this)">😤 Màn 3 · Excuse Me!</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-5', this)">✨ Màn 4 · Phong Thư</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-6', this)">🎉 Màn 5 · Băng Rôn Sinh Nhật</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-7', this)">🎁 Màn 6 · Chọn Quà</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-8', this)">📷 Quà 1 · Album Ảnh</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-9', this)">💌 Quà 2 · Lá Thư</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-10', this)">🎵 Quà 3 · Bài Hát</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-11', this)">💐 Quà 4 · Lời Chúc</button>
+                                <button type="button" class="v3-filter-pill" onclick="filterV3SceneCards('scene-card-12', this)">⚙️ Khác</button>
+                            </div>
+
+                        <div class="v3-scene-card " id="scene-card-1">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">Chung</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_title">Tiêu đề trang</label>
+                                                <input class="form-input v3-input" type="text" id="v3_title" name="v3[title]" value="Chiikawa có thư gửi tặng bạn 🐾"
+                            maxlength="80"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Hiện trên tab trình duyệt và khi dán link lên Facebook/Zalo.</span>
+                                                                    </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-2">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">📱 Màn 1 · Khung Chat QR</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_chat_name">Tên hiện trong khung chat</label>
+                                                <input class="form-input v3-input" type="text" id="v3_chat_name" name="v3[chat_name]" value="Chiikawa Delivery 🐾"
+                            maxlength="28"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_chat_msg">Tin nhắn trong chat</label>
+                                                <textarea class="form-input v3-input" id="v3_chat_msg" name="v3[chat_msg]" rows="3" maxlength="180">Psst! Tớ có thứ muốn gửi tới cậu... 🐾
+Chạm vào màn hình để nhận nhé!</textarea>
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-3">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">🐾 Màn 2 · Chiikawa Giao Thư</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_hello_top">Dòng chào nhỏ</label>
+                                                <input class="form-input v3-input" type="text" id="v3_hello_top" name="v3[hello_top]" value="Hello"
+                            maxlength="24"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_hello_name">Dòng chào lớn</label>
+                                                <input class="form-input v3-input" type="text" id="v3_hello_name" name="v3[hello_name]" value="MY FAVORITE PERSON 💙"
+                            maxlength="42"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_ask_text">Lời thoại typewriter của Chiikawa</label>
+                                                <textarea class="form-input v3-input" id="v3_ask_text" name="v3[ask_text]" rows="3" maxlength="280">Có người nhờ Chiikawa mang lá thư này tới cho cậu.
+
+Cậu có muốn nhận món quà đặc biệt này không? 🐾💙</textarea>
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Chữ sẽ hiện từng ký tự như máy đánh chữ.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_btn_accept">Chữ nút Đồng ý</label>
+                                                <input class="form-input v3-input" type="text" id="v3_btn_accept" name="v3[btn_accept]" value="Accept 💌"
+                            maxlength="22"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_btn_decline">Chữ nút Từ chối</label>
+                                                <input class="form-input v3-input" type="text" id="v3_btn_decline" name="v3[btn_decline]" value="Decline"
+                            maxlength="22"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Bấm Decline → Chiikawa nổi giận rồi quay lại — không thoát được đâu 😄</span>
+                                                                    </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-4">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">😤 Màn 3 · Excuse Me!</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_excuse_title">Chữ to trong biển giận</label>
+                                                <input class="form-input v3-input" type="text" id="v3_excuse_title" name="v3[excuse_title]" value="Excuse Me! 😤"
+                            maxlength="28"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_excuse_sub">Chữ nhỏ trong biển giận</label>
+                                                <input class="form-input v3-input" type="text" id="v3_excuse_sub" name="v3[excuse_sub]" value="Đáp án đúng là &quot;Accept&quot; cơ mà!"
+                            maxlength="72"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_btn_retry">Chữ nút làm lại</label>
+                                                <input class="form-input v3-input" type="text" id="v3_btn_retry" name="v3[btn_retry]" value="Try again"
+                            maxlength="22"                                                                                    >
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-5">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">✨ Màn 4 · Phong Thư</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_yeay_text">Băng rôn khi đồng ý nhận</label>
+                                                <input class="form-input v3-input" type="text" id="v3_yeay_text" name="v3[yeay_text]" value="Yeay… Cậu đã nhận món quà đặc biệt! 🎉"
+                            maxlength="68"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_envelope_hint">Chữ gợi ý dưới phong thư</label>
+                                                <input class="form-input v3-input" type="text" id="v3_envelope_hint" name="v3[envelope_hint]" value="✉️ Chạm để mở điều bất ngờ nho nhỏ &lt;3"
+                            maxlength="60"                                                                                    >
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-6">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">🎉 Màn 5 · Băng Rôn Sinh Nhật</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_banner_title">Chữ lớn băng rôn</label>
+                                                <input class="form-input v3-input" type="text" id="v3_banner_title" name="v3[banner_title]" value="Happy Birthday"
+                            maxlength="32"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Font viết tay, nên dùng tiếng Anh hoặc không dấu.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_banner_name">Dòng tên dưới băng rôn</label>
+                                                <input class="form-input v3-input" type="text" id="v3_banner_name" name="v3[banner_name]" value="Special Person 💙"
+                            maxlength="32"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_banner_note">Ghi chú nhỏ dưới cùng</label>
+                                                <input class="form-input v3-input" type="text" id="v3_banner_note" name="v3[banner_note]" value="chạm để xem quà nhé ↓"
+                            maxlength="44"                                                                                    >
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-7">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">🎁 Màn 6 · Chọn Quà</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_hub_title">Tiêu đề trang chọn quà</label>
+                                                <input class="form-input v3-input" type="text" id="v3_hub_title" name="v3[hub_title]" value="Some Little Gifts For You 🎁"
+                            maxlength="48"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_hub_sub">Dòng phụ dưới tiêu đề</label>
+                                                <input class="form-input v3-input" type="text" id="v3_hub_sub" name="v3[hub_sub]" value="Mở từng món một và xem bên trong có gì nhé"
+                            maxlength="72"                                                                                    >
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-8">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">📷 Quà 1 · Album Ảnh</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_gallery_title">Tên hộp quà 1 (Album)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_gallery_title" name="v3[gallery_title]" value="The Prettiest Girl In My Gallery"
+                            maxlength="48"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label">Ảnh kỷ niệm</label>
+                        <div class="v3-single-img-box" style="flex-direction:column; align-items:stretch;">
+                            <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between;">
+                                <button type="button" class="v3-btn-pick" onclick="document.getElementById('photos').click()">📸 Chọn bộ ảnh từ máy tính (Tối đa 10 ảnh)</button>
+                                <button type="button" class="v3-btn-clear" style="display:inline-block;" onclick="switchSection('sec-photos', document.querySelector('[data-section=&quot;sec-photos&quot;]'))">🗂️ Mở tab quản lý Album ảnh</button>
+                            </div>
+                                                        <div style="font-size:11px; color:#7a7090; line-height:1.4;">Nên có từ 6 ảnh. Dùng cho polaroid album, ảnh băng rôn sinh nhật và film strip lá thư.</div>
+                                                        <div id="v3-inline-album-info" style="font-size:11.5px; font-weight:700; color:#22c55e;">✨ Nếu chưa tải ảnh lên, mẫu sẽ dùng bộ ảnh mặc định (Miễn phí).</div>
+                        </div>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_gallery_caption">Chú thích ảnh (mỗi dòng = 1 chú thích)</label>
+                                                <textarea class="form-input v3-input" id="v3_gallery_caption" name="v3[gallery_caption]" rows="5" maxlength="400">lần đầu đi chơi
+hôm trời mưa to
+cái ngày cười xỉu
+sinh nhật năm ngoái
+bữa ăn đặc biệt
+mãi mãi ♡</textarea>
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Dòng thứ n là chú thích của ảnh thứ n.</span>
+                                                                    </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-9">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">💌 Quà 2 · Lá Thư</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_letter_title">Tên hộp quà 2 (Thư)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_letter_title" name="v3[letter_title]" value="Dear My Love"
+                            maxlength="48"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_letter">Nội dung lá thư *</label>
+                                                <textarea class="form-input v3-input" id="v3_letter" name="v3[letter]" rows="9" maxlength="2000">Tớ không giỏi nói mấy chuyện này ngoài đời, nên tớ viết ra đây.
+
+Cảm ơn cậu vì đã ở cạnh tớ suốt quãng vừa rồi. Có những hôm tớ cáu bẳn vô lý, có những hôm tớ im lặng chẳng vì gì cả, vậy mà cậu vẫn ở đó.
+
+Tớ nhớ mấy chuyện nhỏ nhiều hơn chuyện lớn. Kiểu cậu luôn nhường tớ miếng ngon hơn. Kiểu cậu nhắn &quot;về tới chưa&quot; mỗi tối.
+
+Chúc cậu tuổi mới nhiều tiếng cười, ít deadline, và luôn có người để kể chuyện đầu tiên.</textarea>
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Cách nhau một dòng trống để tách đoạn. Thư hiện từng chữ như máy đánh chữ.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_letter_sign">Ký tên cuối thư</label>
+                                                <input class="form-input v3-input" type="text" id="v3_letter_sign" name="v3[letter_sign]" value="Người luôn ở đây ♡"
+                            maxlength="42"                                                                                    >
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-10">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">🎵 Quà 3 · Bài Hát</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_music_title">Tên hộp quà 3 (Nhạc)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_music_title" name="v3[music_title]" value="Song That Reminds Me Of You"
+                            maxlength="48"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_song_title">Tên bài hát</label>
+                                                <input class="form-input v3-input" type="text" id="v3_song_title" name="v3[song_title]" value="Bài hát của chúng mình"
+                            maxlength="42"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_song_artist">Ca sĩ / nhóm nhạc</label>
+                                                <input class="form-input v3-input" type="text" id="v3_song_artist" name="v3[song_artist]" value="dành riêng cho cậu"
+                            maxlength="42"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_youtube">Link YouTube bài hát</label>
+                                                <input class="form-input v3-input" type="text" id="v3_youtube" name="v3[youtube]" value=""
+                            maxlength="120"                                                                                    >
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Dán link hoặc ID. Để trống thì chỉ có đĩa than quay, không có khung video.</span>
+                                                                    </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_song_note">Câu viết tay dưới đĩa than</label>
+                                                <input class="form-input v3-input" type="text" id="v3_song_note" name="v3[song_note]" value="nghe bài này là tớ nghĩ tới cậu 💙"
+                            maxlength="62"                                                                                    >
+                                                                                            </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-11">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">💐 Quà 4 · Lời Chúc</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_wishes_title">Tên hộp quà 4 (Lời chúc)</label>
+                                                <input class="form-input v3-input" type="text" id="v3_wishes_title" name="v3[wishes_title]" value="Blooming Wishes For You"
+                            maxlength="48"                                                                                    >
+                                                                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_wishes">Lời chúc (mỗi dòng một cái, tối đa 6)</label>
+                                                <textarea class="form-input v3-input" id="v3_wishes" name="v3[wishes]" rows="7" maxlength="720">Semoga dunia selalu memelukmu dengan baik 🌸
+Mong cậu ngủ đủ giấc và dậy thấy nhẹ lòng
+Mong mấy dự định dang dở đều tới đích
+Mong cậu bớt lo cho người khác một chút
+Mong ngày nào cậu cũng có chuyện nhỏ để vui
+Mong cậu luôn biết cậu đáng được thương 💙</textarea>
+                                                                        <span style="font-size:11px; color:var(--text-muted); display:block; margin-top:4px;">Mỗi dòng thành một thẻ treo trên bó hoa. Tối đa 6 dòng.</span>
+                                                                    </div>
+                                    </div>
+            </div>
+                        <div class="v3-scene-card " id="scene-card-12">
+                <div class="v3-scene-header">
+                    <div style="flex:1; min-width:0;">
+                        <div class="v3-scene-title">⚙️ Khác</div>
+                                            </div>
+                                    </div>
+
+                <div class="v3-scene-body">
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" style="display:flex; align-items:center; justify-content:space-between; gap:10px; cursor:pointer; background:#faf7fb; padding:9px 12px; border-radius:11px; border:1px solid #f0e4ec;">
+                            <span style="font-size:12.5px; font-weight:700; color:#3d3551;">Bắn confetti khi mở quà</span>
+                            <span class="switch" style="flex-shrink:0;">
+                                <input type="hidden" name="v3[confetti]" value="0">
+                                <input type="checkbox" class="v3-input" id="v3_confetti" name="v3[confetti]" value="1" checked>
+                                <span class="slider round"></span>
+                            </span>
+                        </label>
+                                            </div>
+                                        <div class="form-group" style="margin-bottom:12px;">
+                                                <label class="form-label" for="v3_accent">Màu nhấn (navy blue)</label>
+                                                <input class="form-input v3-input" type="color" id="v3_accent" name="v3[accent]" value="#1e3a8a"
+                                                                                    style="height:44px; padding:4px;"                            >
+                                                                                            </div>
+                                    </div>
+            </div>
+                    </div>
+        
+        <!-- SECTION: NHẠC NỀN -->
