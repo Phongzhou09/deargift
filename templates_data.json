@@ -1,5 +1,28 @@
 [
   {
+    "id": "72",
+    "is_featured": true,
+    "demo_url": "demo.php?id=72",
+    "demo_title": "Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸",
+    "img_url": "/assets/thumbnails/vuon-hoa-3d.jpg",
+    "price": "Miễn phí",
+    "usage": "Mới",
+    "category": "Ngày Phụ Nữ",
+    "duration": "2 phút tạo",
+    "title": "Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸",
+    "desc": "Khu vườn hoa 3D 360 độ tương tác toàn cảnh: cánh cổng hoa dẫn vào khu vườn cổ tích, ngắm các khung ảnh kỷ niệm xoay vòng 3D, bó hoa ánh sáng và phong thư phong cách sáp ong thơ mộng.",
+    "tags": [
+      "#VườnHoa3D",
+      "#360độ",
+      "#KỷNiệm",
+      "#20/10",
+      "#8/3",
+      "#SinhNhật"
+    ],
+    "builder_url": "gift-builder.php?id=72",
+    "slug": "vuon-hoa-3d-360"
+  },
+  {
     "id": "71",
     "is_featured": true,
     "demo_url": "demo.php?id=71",
@@ -53,12 +76,13 @@
     "usage": "139 lượt dùng",
     "category": "Ngày Phụ Nữ",
     "duration": "3 phút tạo",
-    "title": "Món Quà Nhỏ 3D · 19/11 (Quốc Tế Nam Giới) 🎁",
-    "desc": "Món quà 3D tương tác 7 cảnh độc quyền cho ngày Quốc tế Nam giới 19/11: tờ lịch 19/11, chữ hạt sáng, bó hoa 3D, quả cầu ảnh bay, phong thư sáp ong, thẻ cào bí mật và đêm pháo hoa.",
+    "title": "Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁",
+    "desc": "Món quà 3D tương tác độc quyền Boys Day 19/11: chú gấu kem đáng yêu, mini-game kết nối ảnh kỷ niệm, những mảnh ghép thương mến và lá thư chân thành gửi người thương.",
     "tags": [
       "#19/11",
-      "#Nam giới",
-      "#Bó hoa 3D"
+      "#BoysDay",
+      "#GấuKem3D",
+      "#NamGiới"
     ],
     "builder_url": "gift-builder.php?id=69"
   },

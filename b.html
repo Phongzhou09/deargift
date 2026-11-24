@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <base href="/">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#f9efea" />
+  <title>Món quà nhỏ · 19/11 (Quốc Tế Đàn Ông) 🎁</title>
+  <meta name="description" content="Một món quà nhỏ dành riêng cho bạn." />
+  <link rel="icon" href="/assets/icons/heart.svg" type="image/svg+xml" />
+  <script>
+    // Ensure default demo gift ID if opened directly
+    if (!window.location.search || window.location.search === '?' || window.location.search.length < 5) {
+      try {
+        window.history.replaceState(null, '', window.location.pathname + '?61f15939408dab54');
+      } catch(e) {}
+    }
+    // High-reliability offline / demo data interceptor
+    (function() {
+      var origFetch = window.fetch;
+      window.fetch = function(url, opts) {
+        var u = String(url || '');
+        if (u.indexOf('/access/boysday/') !== -1 || u.indexOf('/access/by-slug/boysday/') !== -1) {
+          return origFetch(url, opts).then(function(res) {
+            if (res.ok) return res;
+            throw new Error('API unavailable, fallback to local');
+          }).catch(function() {
+            return origFetch('/assets/data/boysday_demo.json');
+          });
+        }
+        return origFetch(url, opts);
+      };
+    })();
+  </script>
+  <script type="module" crossorigin src="/assets/boysDay-DeW9XY6f.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/boys-day-Cit_4ScV.css">
+  <link rel="stylesheet" crossorigin href="/assets/BoysDayApp-DWWYih8U.css">
+</head>
+<body>
+  <div id="root"></div>
+</body>
+</html>

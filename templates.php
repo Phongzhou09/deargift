@@ -751,6 +751,27 @@ document.addEventListener('keydown', function (event) {
 </div>
 </div>
 </article>
+<article class="tm-card" data-category-id="3" data-category-ids="1,3" data-category-name="Ngày Phụ Nữ" data-template-id="72">
+<a aria-label="Xem demo Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸" class="tm-card__media" data-demo-preview="" data-demo-title="Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸" href="demo.php?id=72" rel="nofollow noopener noreferrer" target="_blank">
+<img alt="Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸" loading="lazy" onerror="this.onerror=null; this.src='assets/thumbnails/photo-bouquet-thumb.jpg';" src="assets/thumbnails/vuon-hoa-3d.jpg"/>
+<span class="tm-card__price">Miễn phí</span>
+<span class="tm-card__preview"><i data-lucide="play"></i> Xem trải nghiệm</span>
+<span class="tm-card__usage"><i data-lucide="sparkles"></i> Mới ra mắt</span>
+</a>
+<div class="tm-card__body">
+<div class="tm-card__meta">
+<span>Vườn hoa 360°</span>
+<span><i data-lucide="clock-3"></i> 2 phút tạo</span>
+</div>
+<h3>Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸</h3>
+<p>Khu vườn hoa 3D 360 độ ngập tràn sắc hoa và kỷ niệm: cánh cổng hoa cổ tích, ngắm khung ảnh kỷ niệm xoay vòng 3D, bó hoa ánh sáng và phong thư tình lãng mạn.</p>
+<div class="tm-card__actions">
+<a class="tm-btn tm-btn--ghost" data-demo-preview="" data-demo-title="Vườn Hoa 3D 360° — Khu Vườn Kỷ Niệm & Thư Tình 🌸" href="demo.php?id=72" rel="nofollow noopener noreferrer" target="_blank"><i data-lucide="eye"></i> Xem demo</a>
+<a class="tm-btn tm-btn--primary" href="gift-builder.php?id=72" rel="nofollow">Tạo quà <i data-lucide="arrow-up-right"></i></a>
+</div>
+</div>
+</article>
+
 <article class="tm-card" data-category-id="7" data-category-ids="1,7" data-category-name="Tết" data-template-id="71">
 <a aria-label="Xem demo Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đinh Mùi 2027 🧧" class="tm-card__media" data-demo-preview="" data-demo-title="Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đinh Mùi 2027 🧧" href="demo.php?id=71" rel="nofollow noopener noreferrer" target="_blank">
 <img alt="Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đinh Mùi 2027 🧧" loading="lazy" onerror="this.onerror=null; this.src='assets/thumbnails/phao-hoa-nam-moi.jpg';" src="assets/thumbnails/tet-sum-vay.jpg"/>
