@@ -544,6 +544,47 @@ musicBtn.addEventListener('click', function() {
 });
 
 function openWeddingInvitation() {
+  playRomanticChime();
+
+// Web Audio Synth Romantic Chime
+var audioCtx = null;
+function playRomanticChime() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    var now = audioCtx.currentTime;
+    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach(function(freq, i) {
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.08);
+      gain.gain.setValueAtTime(0.12, now + i * 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.08 + 1.2);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(now + i * 0.08);
+      osc.stop(now + i * 0.08 + 1.2);
+    });
+  } catch(e) {}
+}
+
+// Interactive 3D Card Tilt on Mouse/Touch
+document.querySelectorAll('.envelope-gate, .wedding-details, .photo-frame-wrap').forEach(function(card) {
+  card.addEventListener('mousemove', function(e) {
+    var rect = card.getBoundingClientRect();
+    var x = e.clientX - rect.left - rect.width / 2;
+    var y = e.clientY - rect.top - rect.height / 2;
+    card.style.transform = 'perspective(1000px) rotateX(' + (-y * 0.025) + 'deg) rotateY(' + (x * 0.025) + 'deg)';
+  });
+  card.addEventListener('mouseleave', function() {
+    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+    card.style.transition = 'transform 0.5s ease';
+  });
+  card.addEventListener('mouseenter', function() {
+    card.style.transition = 'none';
+  });
+});
+
   playMusic();
   var gate = document.getElementById('envelopeGate');
   gate.style.transition = 'all 0.5s ease';
