@@ -8,7 +8,16 @@
 
 /* ───────────────────── CONFIG ───────────────────── */
 var CFG = window.GIFT_CONFIG || {};
-var ASSET = 'assets/';
+var ASSET = (function() {
+  var scripts = document.getElementsByTagName('script');
+  for (var i = 0; i < scripts.length; i++) {
+    var src = scripts[i].src || '';
+    if (src.indexOf('app.js') !== -1) {
+      return src.substring(0, src.lastIndexOf('/') + 1);
+    }
+  }
+  return 'trung-thu-nguyet-da/assets/';
+})();
 var INTRO_ASSET = ASSET + 'intro/';
 var NGUYET_THU  = ASSET + 'nguyet-thu/';
 
@@ -763,8 +772,8 @@ function buildLetterModal() {
 
   var title = letterEl.querySelector('.nt-title');
   var signature = letterEl.querySelector('.nt-signature');
-  title.textContent = CFG.popupTitle || 'Gửi người thương';
-  signature.textContent = CFG.sender ? '— ' + CFG.sender + ' —' : '';
+  title.textContent = CFG.popupTitle || 'Nguyệt Dạ Đoàn Viên';
+  signature.textContent = CFG.sender ? '— ' + CFG.sender + ' —' : '— DearGift —';
   letterEl.querySelector('.nt-close').addEventListener('click', closeLetter);
   letterEl.addEventListener('click', function (e) { if (e.target === letterEl) closeLetter(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && letterOpen) closeLetter(); });

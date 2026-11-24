@@ -484,14 +484,14 @@
     }
     var hold = document.createElement("button");
     hold.type = "button";
-    hold.className = "giftory-stage-ui giftory-hold giftory-heart-hold";
-    hold.innerHTML = '<span class="gh-progress"></span><b>💌</b><span class="gh-label">Ấn giữ Trái Tim để nhận <strong>Thiệp Thư</strong></span><i>×</i>';
+    hold.className = "giftory-stage-ui giftory-hold giftory-heart-hold show";
+    hold.innerHTML = '<span class="gh-progress"></span><b>💌</b><span class="gh-label">Chạm vào Trái Tim để mở <strong>Thiệp Thư</strong></span>';
     root.appendChild(hold);
     var pr = document.createElement("div");
     pr.className = "giftory-stage-ui giftory-pointer-progress";
     pr.innerHTML = '<div class="gpp-inner"><b>0%</b><small>GIỮ</small></div><span class="gpp-label">Đang ngưng tụ Thiệp Thư... 💌</span>';
     root.appendChild(pr);
-    var phase = "heart", start = performance.now(), holding = false, hs0 = 0, hraf = 0, ready = 4700;
+    var phase = "heart", start = performance.now(), holding = false, hs0 = 0, hraf = 0, ready = 300;
     function reset() {
       if (phase !== "heart") return;
       holding = false;
@@ -562,7 +562,7 @@
       if (e.key === " " || e.key === "Enter") reset();
     });
     hold.addEventListener("click", function() {
-      if (phase === "envelope") open();
+      open();
     });
     var ray = new T.Raycaster(), mouse = new T.Vector2();
     var tapX = 0, tapY = 0, tapT = 0;
@@ -575,10 +575,21 @@
       mouse.x = e.clientX / innerWidth * 2 - 1;
       mouse.y = -(e.clientY / innerHeight) * 2 + 1;
       ray.setFromCamera(mouse, C);
-      if (ray.intersectObjects(heart.children, true).length) begin(e);
+      if (ray.intersectObjects(heart.children, true).length) {
+        music();
+      }
     });
     canvas.addEventListener("pointerup", function(e) {
       reset();
+      if (Math.hypot(e.clientX - tapX, e.clientY - tapY) < 15 && performance.now() - tapT < 600) {
+        mouse.x = e.clientX / innerWidth * 2 - 1;
+        mouse.y = -(e.clientY / innerHeight) * 2 + 1;
+        ray.setFromCamera(mouse, C);
+        if (ray.intersectObjects(heart.children, true).length) {
+          open();
+          return;
+        }
+      }
       if (phase === "envelope" && Math.hypot(e.clientX - tapX, e.clientY - tapY) < 10 && performance.now() - tapT < 600) open();
     });
     canvas.addEventListener("pointercancel", reset);
@@ -622,7 +633,7 @@
         glassMat.uniforms.time.value = elapsed;
         auraMat.uniforms.time.value = elapsed;
         auraMat.uniforms.uOpacity.value = smooth(Math.min(1, Math.max(0, (age - 1400) / 1600))) * (0.85 + Math.sin(elapsed * 2.1) * 0.15);
-        heart.rotation.y = (1 - heartAppear) * Math.PI * 3 + Math.sin(elapsed * 0.45) * 0.42;
+        heart.rotation.y += dt * 0.85;
         shell1.rotation.y += dt * 0.18;
         shell1.rotation.z = Math.sin(elapsed * 0.5) * 0.08;
         shell1.material.opacity = (0.12 + Math.sin(elapsed * 1.7) * 0.04) * heartAppear;
