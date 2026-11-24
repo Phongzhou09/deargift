@@ -751,6 +751,48 @@ document.addEventListener('keydown', function (event) {
 </div>
 </div>
 </article>
+<article class="tm-card" data-category-id="7" data-category-ids="1,7" data-category-name="Tết" data-template-id="71">
+<a aria-label="Xem demo Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đầu Năm 🧧" class="tm-card__media" data-demo-preview="" data-demo-title="Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đầu Năm 🧧" href="demo.php?id=71" rel="nofollow noopener noreferrer" target="_blank">
+<img alt="Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đầu Năm 🧧" loading="lazy" onerror="this.onerror=null; this.src='assets/images/og-image.jpg';" src="https://images.unsplash.com/photo-1548625361-195fe57876a3?w=800&fit=crop&q=80"/>
+<span class="tm-card__price">Miễn phí</span>
+<span class="tm-card__preview"><i data-lucide="play"></i> Xem trải nghiệm</span>
+<span class="tm-card__usage"><i data-lucide="sparkles"></i> Mới ra mắt</span>
+</a>
+<div class="tm-card__body">
+<div class="tm-card__meta">
+<span>Lễ hội Tết</span>
+<span><i data-lucide="clock-3"></i> 2 phút tạo</span>
+</div>
+<h3>Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đầu Năm 🧧</h3>
+<p>Món quà Tết 3D rực rỡ sắc xuân: hoa mai hoa đào nở rộ, bắn pháo hoa đêm giao thừa, rút quẻ may mắn đầu năm, thư chúc Tết gia đình và khui bao lì xì tài lộc.</p>
+<div class="tm-card__actions">
+<a class="tm-btn tm-btn--ghost" data-demo-preview="" data-demo-title="Tết Sum Vầy 3D — Pháo Hoa & Lì Xì Đầu Năm 🧧" href="demo.php?id=71" rel="nofollow noopener noreferrer" target="_blank"><i data-lucide="eye"></i> Xem demo</a>
+<a class="tm-btn tm-btn--primary" href="gift-builder.php?id=71" rel="nofollow">Tạo quà <i data-lucide="arrow-up-right"></i></a>
+</div>
+</div>
+</article>
+
+<article class="tm-card" data-category-id="1" data-category-ids="1,2" data-category-name="Đám cưới" data-template-id="70">
+<a aria-label="Xem demo Thiệp Cưới 3D — Save The Date & Hạnh Phúc 💍" class="tm-card__media" data-demo-preview="" data-demo-title="Thiệp Cưới 3D — Save The Date & Hạnh Phúc 💍" href="demo.php?id=70" rel="nofollow noopener noreferrer" target="_blank">
+<img alt="Thiệp Cưới 3D — Save The Date & Hạnh Phúc 💍" loading="lazy" onerror="this.onerror=null; this.src='assets/images/og-image.jpg';" src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&fit=crop&q=80"/>
+<span class="tm-card__price">Miễn phí</span>
+<span class="tm-card__preview"><i data-lucide="play"></i> Xem trải nghiệm</span>
+<span class="tm-card__usage"><i data-lucide="sparkles"></i> Mới ra mắt</span>
+</a>
+<div class="tm-card__body">
+<div class="tm-card__meta">
+<span>Sự kiện Đám cưới</span>
+<span><i data-lucide="clock-3"></i> 2 phút tạo</span>
+</div>
+<h3>Thiệp Cưới 3D — Save The Date & Hạnh Phúc 💍</h3>
+<p>Thiệp cưới 3D hoàng gia sang trọng: nhẫn kim cương lấp lánh, ảnh cưới cô dâu & chú rể, đếm ngược ngày trọng đại, bản đồ lễ cưới và hộp mừng cưới trực tuyến.</p>
+<div class="tm-card__actions">
+<a class="tm-btn tm-btn--ghost" data-demo-preview="" data-demo-title="Thiệp Cưới 3D — Save The Date & Hạnh Phúc 💍" href="demo.php?id=70" rel="nofollow noopener noreferrer" target="_blank"><i data-lucide="eye"></i> Xem demo</a>
+<a class="tm-btn tm-btn--primary" href="gift-builder.php?id=70" rel="nofollow">Tạo quà <i data-lucide="arrow-up-right"></i></a>
+</div>
+</div>
+</article>
+
 <article class="tm-card" data-category-id="3" data-category-ids="1,3" data-category-name="Sinh nhật" data-template-id="21">
 <a aria-label="Xem demo Mẫu sinh nhật VIP" class="tm-card__media" data-demo-preview="" data-demo-title="Mẫu sinh nhật VIP" href="demo.php?id=21" rel="nofollow noopener noreferrer" target="_blank">
 <img alt="Mẫu sinh nhật VIP" loading="lazy" onerror="this.onerror=null; this.src='assets/images/og-image.jpg';" src="assets/thumbnails/hpbd-vip.jpg"/>
