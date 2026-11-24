@@ -4834,10 +4834,18 @@ function syncBirthdayInputs(src) {
     var urlParams = new URLSearchParams(window.location.search);
     var tplId = urlParams.get('id') || '69';
     var birthdayGroup = document.getElementById('group_birthday_date');
-    var birthdayTpls = ['42', '21', '25', '26', '28', '50', '53', '59', '60', 'banh-kem-sinh-nhat'];
+    var birthdayTpls = ["21", "25", "26", "28", "42", "46", "50", "53", "57", "59", "60", "66", "banh-kem-sinh-nhat", "hpbd-vip"];
+    var anniTpls = ["12", "29", "31", "32", "35", "36", "38", "39", "40", "41", "43", "48", "52", "54", "55", "58", "61", "64", "67", "68", "69"];
     if (birthdayGroup) {
-        if (birthdayTpls.indexOf(tplId) !== -1 || /sinh-nhat|birthday|banh-kem/i.test(document.title || '')) {
-            birthdayGroup.style.display = 'block';
+        birthdayGroup.style.display = 'block'; // Always available so user can customize date
+        var titleLabel = birthdayGroup.querySelector('label.form-label');
+        var badge = birthdayGroup.querySelector('span[style*="border-radius: 12px"]');
+        if (anniTpls.indexOf(tplId) !== -1) {
+            if (titleLabel) titleLabel.textContent = 'Ngày kỷ niệm / Ngày đặc biệt (Tờ lịch / Cảnh 3D)';
+            if (badge) badge.textContent = 'Kỷ niệm';
+        } else {
+            if (titleLabel) titleLabel.textContent = 'Ngày sinh nhật (Tờ lịch cuộn tới & Bánh kem)';
+            if (badge) badge.textContent = 'Sinh nhật';
         }
     }
 })();
