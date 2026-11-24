@@ -753,7 +753,7 @@ document.addEventListener('keydown', function (event) {
 </article>
 <article class="tm-card" data-category-id="3" data-category-ids="1,3" data-category-name="Ngày Phụ Nữ" data-template-id="73">
 <a aria-label="Xem demo Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁" class="tm-card__media" data-demo-preview="" data-demo-title="Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁" href="demo.php?id=73" rel="nofollow noopener noreferrer" target="_blank">
-<img alt="Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁" loading="lazy" onerror="this.onerror=null; this.src='templates/mon-qua-nho-2010/cover.webp';" src="assets/boysday/uploads/img-mwdl2m5l-778cd5ec.webp"/>
+<img alt="Món Quà Nhỏ · Boys Day 19/11 & Gấu Kem 3D 🎁" loading="lazy" onerror="this.onerror=null; this.src='templates/mon-qua-nho-2010/cover.webp';" src="assets/thumbnails/boysday-1911.webp"/>
 <span class="tm-card__price">Miễn phí</span>
 <span class="tm-card__preview"><i data-lucide="play"></i> Xem trải nghiệm</span>
 <span class="tm-card__usage"><i data-lucide="sparkles"></i> Mới ra mắt</span>
