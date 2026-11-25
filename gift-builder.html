@@ -287,6 +287,7 @@
     </div>
     <button type="button" class="mobile-nav-backdrop" aria-label="Đóng bảng điều hướng" onclick="closeMobileNavigation()"></button>
 </header>
+<script src="js/header-auth.js"></script>
 
 <script>
 function toggleMobileNavigation(button) {

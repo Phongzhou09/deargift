@@ -2197,6 +2197,33 @@ setInterval(pollStatus, 2500);
         # Price
         content = re.sub(r'<span[^>]*id="pr-template"[^>]*>.*?</span>', f'<span class="price-val " id="pr-template" style="color: #e8589a; font-weight:700">{price}</span>', content, flags=re.DOTALL)
 
+        # Render authenticated customer account in header
+        if user:
+            raw_name = user.get('full_name') or user.get('name') or user.get('username') or (user.get('email', '').split('@')[0]) or 'Khách'
+            initial = (raw_name[0] if raw_name else 'U').upper()
+            user_auth_html = f'''<div id="header-auth-buttons" style="display:inline-flex; align-items:center; gap:12px;">
+                <a href="my-gifts.php" rel="nofollow" class="btn-nav-manage hdr-desktop-only" style="display:inline-flex; align-items:center; gap:6px; color:#ff4b91; text-decoration:none; font-weight:600; font-size:14px; padding:6px 12px; border-radius:50px; background:#fff0f6; border:1px solid #ffd6e7;" title="Quản lý quà tặng">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ff4b91" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m7.5 4.27 9 5.15"/>
+                        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/>
+                        <path d="m3.3 7 8.7 5 8.7-5"/>
+                        <path d="M12 22V12"/>
+                    </svg>
+                    <span>Quản lý</span>
+                </a>
+                <div class="dg-account hdr-desktop-only" style="position:relative; display:inline-flex; align-items:center;">
+                    <a href="settings.php" class="dg-account-trigger" style="display:inline-flex; align-items:center; gap:8px; padding:3px 8px 3px 4px; border:1px solid #f3c6dc; border-radius:999px; background:#fff; text-decoration:none;" title="Tài khoản: {raw_name}">
+                        <span class="dg-account-avatar" style="width:28px; height:28px; border-radius:50%; background:#a855f7; color:#ffffff; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; text-transform:uppercase; flex-shrink:0;">{initial}</span>
+                        <span class="dg-account-name" style="font-weight:600; color:#3d3551; font-size:13px; max-width:115px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{raw_name}</span>
+                        <span class="dg-account-burger" style="width:24px; height:24px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:#fdeaf3; color:#d6377f; flex-shrink:0;">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                        </span>
+                    </a>
+                </div>
+            </div>'''
+            content = re.sub(r'<div id="header-auth-buttons"[^>]*>.*?</div>\s*(?=<button|\s*</div>)', user_auth_html, content, flags=re.DOTALL)
+
+
         # Iframe & Form action
         expected_src = 'templates/_v3/live.php?slug=mon-qua-nho-2010' if str(tpl_id) == '69' else f'preview-gift.php?id={tpl_id}'
         content = content.replace('src="templates/_v3/live.php?slug=mon-qua-nho-2010"', f'src="{expected_src}"')
