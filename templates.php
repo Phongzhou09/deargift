@@ -2,6 +2,7 @@
 
 <html lang="vi">
 <head>
+<script src="js/security.js?v=1794500000"></script>
 <!--
   © DearGift (deargift.love) — Bản quyền thiết kế & mã nguồn thuộc Nguyễn Văn Phong. All rights reserved.
   NGHIÊM CẤM sao chép, clone, dịch ngược hoặc tái sử dụng mã nguồn, giao diện, hiệu ứng.
@@ -2413,16 +2414,71 @@ document.addEventListener('DOMContentLoaded', function() {
             var authDiv = document.getElementById('header-auth-buttons');
             if (user && authDiv) {
                 var name = user.full_name || user.name || user.username || 'Khách';
+                var contact = user.email || user.phone || 'Thành viên DearGift';
                 authDiv.innerHTML = `
-                    <a href="my-gifts.php" class="btn-login hdr-desktop-only" style="background:#fce7f3; color:#e8589a; border:1px solid #fbcfe8; font-weight:700; text-decoration:none; padding:6px 14px; border-radius:50px; font-size:12.5px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
-                        <span>🎁</span> Quà của tôi
-                    </a>
-                    <div class="hdr-desktop-only" style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#3d3551; background:#f5eeff; border:1px solid #eadff5; padding:4px 6px 4px 12px; border-radius:50px; max-width:240px; box-sizing:border-box;">
-                        <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:#e9d5ff; font-size:12px; flex-shrink:0;">👤</span>
-                        <a href="settings.php" style="color:#3d3551; text-decoration:none; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:110px; display:inline-block; vertical-align:middle;" title="Tài khoản: ${name}">${name}</a>
-                        <a href="#" onclick="localStorage.removeItem('deargift_user');localStorage.removeItem('deargift_customer');document.cookie='currentUser=; path=/; max-age=0';location.reload();" style="color:#94a3b8; hover:color:#e11d48; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; text-decoration:none; background:#ffffff; border:1px solid #e2e8f0; flex-shrink:0;" title="Đăng xuất">Thoát</a>
+                    <div class="user-menu-wrapper" style="position:relative; display:inline-block;">
+                        <button id="user-menu-trigger" onclick="window.toggleUserDropdown(event)" type="button" style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#3d3551; background:#f5eeff; border:1px solid #eadff5; padding:5px 12px; border-radius:50px; cursor:pointer; transition:all 0.2s; outline:none; box-shadow:0 2px 6px rgba(139,92,246,0.06);">
+                            <span style="display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; background:linear-gradient(135deg, #e9d5ff, #fbcfe8); font-size:12px; flex-shrink:0;">👤</span>
+                            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:110px; display:inline-block; font-weight:700; color:#3d3551;" title="Tài khoản: ${name}">${name}</span>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="color:#8b5cf6; transition:transform 0.2s;" id="user-menu-chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </button>
+                        <div id="user-dropdown-menu" style="display:none; position:absolute; right:0; top:calc(100% + 8px); min-width:245px; background:#ffffff; border-radius:16px; box-shadow:0 12px 36px rgba(0,0,0,0.12), 0 4px 12px rgba(139,92,246,0.08); border:1px solid #f1e8f8; z-index:99999; overflow:hidden; text-align:left; animation:dgMenuFade 0.2s ease;">
+                            <div style="padding:14px 16px; background:linear-gradient(135deg, #fbf7ff, #fff5f8); border-bottom:1px solid #f3e8f8;">
+                                <div style="font-weight:800; font-size:13.5px; color:#1e1b4b; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${name}</div>
+                                <div style="font-size:11.5px; color:#8b5cf6; font-weight:600; margin-top:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${contact}</div>
+                            </div>
+                            <div style="padding:6px;">
+                                <a href="my-gifts.php" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; text-decoration:none; color:#334155; font-size:13px; font-weight:600; transition:all 0.15s;" onmouseover="this.style.background='#fdf2f8';this.style.color='#db2777'" onmouseout="this.style.background='transparent';this.style.color='#334155'">
+                                    <span style="font-size:16px;">🎁</span>
+                                    <span>Tổng quan quà đã tạo</span>
+                                </a>
+                                <a href="my-gifts.php#orders" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; text-decoration:none; color:#334155; font-size:13px; font-weight:600; transition:all 0.15s;" onmouseover="this.style.background='#fdf2f8';this.style.color='#db2777'" onmouseout="this.style.background='transparent';this.style.color='#334155'">
+                                    <span style="font-size:16px;">📦</span>
+                                    <span>Đơn hàng & Giao dịch</span>
+                                </a>
+                                <a href="settings.php" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; text-decoration:none; color:#334155; font-size:13px; font-weight:600; transition:all 0.15s;" onmouseover="this.style.background='#fdf2f8';this.style.color='#db2777'" onmouseout="this.style.background='transparent';this.style.color='#334155'">
+                                    <span style="font-size:16px;">⚙️</span>
+                                    <span>Cài đặt tài khoản</span>
+                                </a>
+                                <div style="height:1px; background:#f1e8f8; margin:4px 0;"></div>
+                                <a href="#" onclick="window.dgLogout(event)" style="display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; text-decoration:none; color:#ef4444; font-size:13px; font-weight:600; transition:all 0.15s;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
+                                    <span style="font-size:16px;">🚪</span>
+                                    <span>Đăng xuất</span>
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 `;
+
+                if (!window._dgDropdownInit) {
+                    window._dgDropdownInit = true;
+                    window.toggleUserDropdown = function(e) {
+                        if (e) { e.preventDefault(); e.stopPropagation(); }
+                        var m = document.getElementById('user-dropdown-menu');
+                        var c = document.getElementById('user-menu-chevron');
+                        if (!m) return;
+                        var open = m.style.display === 'block';
+                        m.style.display = open ? 'none' : 'block';
+                        if (c) c.style.transform = open ? 'rotate(0deg)' : 'rotate(180deg)';
+                    };
+                    window.dgLogout = function(e) {
+                        if (e) e.preventDefault();
+                        localStorage.removeItem('deargift_user');
+                        localStorage.removeItem('deargift_customer');
+                        document.cookie = 'currentUser=; path=/; max-age=0';
+                        location.reload();
+                    };
+                    document.addEventListener('click', function(e) {
+                        var m = document.getElementById('user-dropdown-menu');
+                        var btn = document.getElementById('user-menu-trigger');
+                        if (m && m.style.display === 'block' && btn && !btn.contains(e.target) && !m.contains(e.target)) {
+                            m.style.display = 'none';
+                            var c = document.getElementById('user-menu-chevron');
+                            if (c) c.style.transform = 'rotate(0deg)';
+                        }
+                    });
+                }
+
                 var mProfile = document.querySelector('.mnav-profile');
                 var mAuth = document.querySelector('.mnav-auth');
                 if (mProfile && mAuth) {
@@ -2431,13 +2487,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="mnav-profile__avatar"><i data-lucide="user"></i></span>
                         <div class="mnav-profile__copy">
                             <strong>${name}</strong>
-                            <span>${user.email || 'Tài khoản thành viên'}</span>
+                            <span>${contact}</span>
                         </div>
                     `;
                     mAuth.innerHTML = `
-                        <a class="mnav-auth__login" href="my-gifts.php"><i data-lucide="gift"></i> Quà của tôi</a>
+                        <a class="mnav-auth__login" href="my-gifts.php"><i data-lucide="gift"></i> Quà đã tạo</a>
+                        <a class="mnav-auth__login" href="my-gifts.php#orders" style="background:#f0fdf4; color:#16a34a; border-color:#bbf7d0;"><i data-lucide="package"></i> Đơn hàng</a>
                         <a class="mnav-auth__register" href="settings.php"><i data-lucide="settings"></i> Cài đặt</a>
                     `;
+                    if (window.lucide && window.lucide.createIcons) {
+                        window.lucide.createIcons();
+                    }
                 }
             }
         }
@@ -2658,6 +2718,6 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
-<script src="js/header-auth.js"></script>
+<script src="js/header-auth.js?v=1794500000" defer></script>
 </body>
 </html>

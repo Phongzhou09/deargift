@@ -14,3 +14,10 @@ search_*.py
 crawled_templates_raw.html
 audit_*.py
 download_*.py
+ 
+js_src_backup/
+*.test.js
+\; Add-Content -Path 'c:\Thý muòc mõìi (25)\.gitignore' -Value \
+js_src_backup/
+*.test.js
+

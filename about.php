@@ -216,10 +216,8 @@
                 <a href="/about.php?lang=vi" lang="vi" class="">VI</a>
                 <a href="/about.php?lang=en" lang="en" class="is-active">EN</a>
             </div>
-                            <div id="header-auth-buttons" style="display:inline-flex; align-items:center; gap:8px;">
-<a href="login.php" rel="nofollow" class="btn-login hdr-desktop-only">Sign in</a>
+                            <a href="login.php" rel="nofollow" class="btn-login hdr-desktop-only">Sign in</a>
                 <a href="register.php" rel="nofollow" class="btn-signup hdr-desktop-only">Sign up</a>
-</div>
             
             <button class="mobile-toggle" type="button" onclick="toggleMobileNavigation(this)" aria-label="Open navigation" aria-controls="mobileNavPanel" aria-expanded="false">
                 <span class="mobile-burger" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -963,7 +961,6 @@ document.addEventListener('keydown', function (event) {
 })();
 </script>
 
-<script src="js/header-auth.js"></script>
 </body>
 </html>
 
