@@ -1,3 +1,5 @@
+import gzip
+import io
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -383,7 +385,84 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
+        # Aggressive Bandwidth Saving: Client & CDN Cache Headers
+        p_clean = self.path.lower().split('?')[0]
+        if any(p_clean.endswith(ext) for ext in ('.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.mp3', '.mp4', '.wav', '.ogg')):
+            self.send_header('Cache-Control', 'public, max-age=2592000, immutable')
+        elif any(p_clean.endswith(ext) for ext in ('.css', '.js')):
+            self.send_header('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400')
+        elif any(p_clean.endswith(ext) for ext in ('.html', '.php', '.json')) or p_clean in ('', '/'):
+            self.send_header('Cache-Control', 'public, max-age=300, must-revalidate')
         super().end_headers()
+
+    def send_head(self):
+        # Serve static files with automatic Gzip compression & ETag support
+        path = self.translate_path(self.path)
+        if os.path.isdir(path):
+            parts = urllib.parse.urlsplit(self.path)
+            if not parts.path.endswith('/'):
+                self.send_response(301)
+                new_parts = (parts[0], parts[1], parts[2] + '/', parts[3], parts[4])
+                self.send_header("Location", urllib.parse.urlunsplit(new_parts))
+                self.end_headers()
+                return None
+            for index in "index.html", "index.htm":
+                index_path = os.path.join(path, index)
+                if os.path.exists(index_path):
+                    path = index_path
+                    break
+            else:
+                return super().send_head()
+
+        ctype = self.guess_type(path)
+        try:
+            fs = os.stat(path)
+        except OSError:
+            self.send_error(404, "File not found")
+            return None
+
+        # ETag & 304 Not Modified check (Saves 100% bandwidth on cached files)
+        etag = f'"{int(fs.st_mtime)}-{fs.st_size}"'
+        if self.headers.get('If-None-Match') == etag:
+            self.send_response(304)
+            self.send_header('ETag', etag)
+            self.end_headers()
+            return None
+
+        # Compress text, js, css, json, svg with Gzip on the fly
+        accepts_gzip = 'gzip' in self.headers.get('Accept-Encoding', '')
+        compress_types = ('text/', 'application/javascript', 'application/json', 'image/svg+xml')
+        should_compress = accepts_gzip and any(ctype.startswith(t) for t in compress_types) and fs.st_size > 256
+
+        if should_compress:
+            try:
+                with open(path, 'rb') as orig_f:
+                    raw_data = orig_f.read()
+                compressed_data = gzip.compress(raw_data, compresslevel=6)
+                self.send_response(200)
+                self.send_header("Content-Type", ctype)
+                self.send_header("Content-Encoding", "gzip")
+                self.send_header("Content-Length", str(len(compressed_data)))
+                self.send_header("ETag", etag)
+                self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
+                self.end_headers()
+                return io.BytesIO(compressed_data)
+            except Exception:
+                pass
+
+        try:
+            f = open(path, 'rb')
+        except OSError:
+            self.send_error(404, "File not found")
+            return None
+
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(fs[6]))
+        self.send_header("ETag", etag)
+        self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
+        self.end_headers()
+        return f
 
     def get_request_user(self):
         cookie_header = self.headers.get('Cookie', '')
