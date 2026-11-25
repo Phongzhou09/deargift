@@ -91,6 +91,9 @@ PROTECTED_SYSTEM_FILES = {
 
 def is_protected_system_file(path_str):
     clean = path_str.strip('/').split('?')[0].lower()
+    # Block Git internals, environment, database and config files unconditionally
+    if clean.startswith('.git') or '/.git' in clean or clean in ['.env', 'render.yaml', 'requirements.txt', 'server.py', 'users.json', 'gifts.json', 'settings.json']:
+        return True
     # Allow public asset data (e.g. assets/data/*.json, templates/*.json)
     if clean.startswith('assets/'):
         return False

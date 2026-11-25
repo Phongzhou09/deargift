@@ -38,7 +38,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="assets/images/logo-heart-16.png">
     <link rel="apple-touch-icon" sizes="180x180" href="assets/images/logo-heart-180.png">
     <link rel="shortcut icon" href="assets/images/logo-heart-48.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <link rel="manifest" href="index.htmlsite.webmanifest">
     <meta name="msapplication-TileImage" content="assets/images/logo-heart-192.png">
     <meta name="msapplication-TileColor" content="#e8589a">
     <meta name="theme-color" content="#e8589a">
@@ -217,8 +217,10 @@
                 <a href="/gift-builder.php?id=69" lang="vi" class="is-active">VI</a>
                 <a href="/gift-builder.php?id=69&amp;lang=en" lang="en" class="">EN</a>
             </div>
-                            <a href="login.php" rel="nofollow" class="btn-login hdr-desktop-only">Đăng nhập</a>
+            <div id="header-auth-buttons" style="display:inline-flex; align-items:center; gap:8px;">
+                <a href="login.php" rel="nofollow" class="btn-login hdr-desktop-only">Đăng nhập</a>
                 <a href="register.php" rel="nofollow" class="btn-signup hdr-desktop-only">Đăng ký</a>
+            </div>
             
             <button class="mobile-toggle" type="button" onclick="toggleMobileNavigation(this)" aria-label="Mở bảng điều hướng" aria-controls="mobileNavPanel" aria-expanded="false">
                 <span class="mobile-burger" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -4699,6 +4701,63 @@ window.DG_BUILDER_LANGUAGE = "vi";
     }
     
 </script>
+
+
+    <script>
+    (function() {
+        function getSafeName(u) {
+            return u.full_name || u.name || u.username || (u.email ? u.email.split('@')[0] : 'Khách');
+        }
+
+        function renderUserAuth(user) {
+            var authDiv = document.getElementById('header-auth-buttons');
+            if (user && authDiv) {
+                var name = getSafeName(user);
+                authDiv.innerHTML = `
+                    <a href="my-gifts.php" class="btn-login hdr-desktop-only" style="background:#fce7f3; color:#e8589a; border:1px solid #fbcfe8; font-weight:700; text-decoration:none; padding:6px 14px; border-radius:50px; font-size:12.5px; white-space:nowrap; display:inline-flex; align-items:center; gap:4px;">
+                        <span>🎁</span> Quà của tôi
+                    </a>
+                    <div class="hdr-desktop-only" style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#3d3551; background:#f5eeff; border:1px solid #eadff5; padding:4px 6px 4px 12px; border-radius:50px; max-width:240px; box-sizing:border-box;">
+                        <span style="display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:50%; background:#e9d5ff; font-size:12px; flex-shrink:0;">👤</span>
+                        <a href="settings.php" style="color:#3d3551; text-decoration:none; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:110px; display:inline-block; vertical-align:middle;" title="Tài khoản: ${name}">${name}</a>
+                        <a href="#" onclick="localStorage.removeItem('deargift_user');localStorage.removeItem('deargift_customer');document.cookie='currentUser=; path=/; max-age=0';location.reload();" style="color:#94a3b8; hover:color:#e11d48; padding:3px 8px; border-radius:20px; font-size:11px; font-weight:600; text-decoration:none; background:#ffffff; border:1px solid #e2e8f0; flex-shrink:0;" title="Đăng xuất">Thoát</a>
+                    </div>
+                `;
+                var mProfile = document.querySelector('.mnav-profile');
+                var mAuth = document.querySelector('.mnav-auth');
+                if (mProfile && mAuth) {
+                    mProfile.className = 'mnav-profile';
+                    mProfile.innerHTML = `
+                        <span class="mnav-profile__avatar"><i data-lucide="user"></i></span>
+                        <div class="mnav-profile__copy" style="max-width:180px; overflow:hidden;">
+                            <strong style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${name}">${name}</strong>
+                            <span style="display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; color:#64748b;">${user.email || 'Tài khoản thành viên'}</span>
+                        </div>
+                    `;
+                    mAuth.innerHTML = `
+                        <a class="mnav-auth__login" href="my-gifts.php"><i data-lucide="gift"></i> Quà của tôi</a>
+                        <a class="mnav-auth__register" href="settings.php"><i data-lucide="settings"></i> Cài đặt</a>
+                    `;
+                }
+            }
+        }
+
+        var localUser = null;
+        try {
+            localUser = JSON.parse(localStorage.getItem('deargift_user') || localStorage.getItem('deargift_customer') || 'null');
+        } catch(e) {}
+        
+        if (localUser) {
+            renderUserAuth(localUser);
+        } else {
+            fetch('/api/me').then(r => r.json()).then(res => {
+                if (res.status === 'success' && res.user) {
+                    renderUserAuth(res.user);
+                }
+            }).catch(function() {});
+        }
+    })();
+    </script>
 
 </body>
 </html>
