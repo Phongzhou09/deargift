@@ -6,5 +6,7 @@ services:
     startCommand: "python server.py"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.9
+        value: 3.11
+      - key: MISE_PYTHON_GITHUB_ATTESTATIONS
+        value: "false"
     plan: free
