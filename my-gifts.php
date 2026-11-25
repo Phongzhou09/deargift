@@ -610,5 +610,6 @@
 
     document.addEventListener('DOMContentLoaded', fetchGifts);
   </script>
+<script src="js/header-auth.js"></script>
 </body>
 </html>

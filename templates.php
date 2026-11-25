@@ -2658,5 +2658,6 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
+<script src="js/header-auth.js"></script>
 </body>
 </html>
