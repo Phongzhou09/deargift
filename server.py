@@ -701,18 +701,17 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             slug = parts[0] if (len(parts) >= 2 and parts[-1] in ['gift.php', 'gift', 'view-gift.php']) else None
             return self.serve_custom_gift(uid, slug=slug)
 
-        # Route /_next/ to templates/trung-thu-den-ong-sao/app/_next/
-        if path.startswith('/_next/'):
+        # Route Trung Thu Next.js static assets (_next, people, lovegift-postbox, images)
+        if path.startswith('/_next/') or path.startswith('/people/') or path.startswith('/lovegift-postbox/'):
             self.path = '/templates/trung-thu-den-ong-sao/app' + path
             return super().do_GET()
 
-        # Route /people/ and /images/khung/ for Trung Thu template
-        if path.startswith('/people/'):
-            self.path = '/templates/trung-thu-den-ong-sao/app' + path
-            return super().do_GET()
-        if path.startswith('/images/khung/'):
-            self.path = '/templates/trung-thu-den-ong-sao/app' + path
-            return super().do_GET()
+        if path.startswith('/images/'):
+            tt_img = os.path.join(DIRECTORY, 'templates', 'trung-thu-den-ong-sao', 'app' + path)
+            root_img = os.path.join(DIRECTORY, path.lstrip('/'))
+            if os.path.exists(tt_img) and not os.path.exists(root_img):
+                self.path = '/templates/trung-thu-den-ong-sao/app' + path
+                return super().do_GET()
 
         # Fix double gift path like /gift/gift/gift.js -> /gift/gift.js
         if '/gift/gift/' in path:
