@@ -333,16 +333,40 @@ body.user-app .btn-primary {
 }
 
 /* Account dropdown pill & popover inside workspace-topnav */
+.workspace-topnav > * { min-width: 0; }
+html body.user-app .workspace-icon-btn {
+    width: 42px !important;
+    height: 42px !important;
+    flex-shrink: 0 !important;
+    padding: 0 !important;
+    border: 1px solid var(--ws-line) !important;
+    border-radius: 14px !important;
+    background: #fff !important;
+    color: #504752 !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+html body.user-app .workspace-icon-btn:hover {
+    border-color: #e8589a !important;
+    color: #d51e68 !important;
+    background: #fff7fb !important;
+}
+html body.user-app .workspace-icon-btn.active {
+    color: #fff !important;
+    border-color: transparent !important;
+    background: linear-gradient(135deg, #ef4d87, #bd1558) !important;
+}
 .dg-account { position: relative; flex-shrink: 0; }
 .dg-account::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 10px; }
-.dg-account .dg-account-trigger {
+html body.user-app .dg-account .dg-account-trigger {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 4px 6px 4px 4px;
-    border: 1px solid #f3c6dc;
-    border-radius: 999px;
-    background: #fff;
+    border: 1px solid #f3c6dc !important;
+    border-radius: 999px !important;
+    background: #fff !important;
+    box-shadow: 0 2px 8px rgba(232, 88, 154, .08) !important;
     cursor: pointer;
     font-family: inherit;
     transition: box-shadow .15s ease, border-color .15s ease;
