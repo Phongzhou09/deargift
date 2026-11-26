@@ -12,6 +12,7 @@ import hashlib
 import io
 import http.server
 import signal
+import socket
 import socketserver
 import threading
 import time
@@ -120,6 +121,8 @@ def is_local_request(handler):
     if forwarded:
         return False
     client_ip = handler.client_address[0] if handler.client_address else ''
+    if client_ip.startswith('::ffff:'):
+        client_ip = client_ip[7:]
     host = handler.headers.get('Host', '')
     if (client_ip in ['127.0.0.1', '::1', 'localhost']) and ('localhost' in host or '127.0.0.1' in host):
         return True
@@ -1302,6 +1305,8 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         if path == '/api/admin/login':
             client_ip = self.headers.get('CF-Connecting-IP') or self.headers.get('X-Forwarded-For') or (self.client_address[0] if self.client_address else 'unknown')
             client_ip = client_ip.split(',')[0].strip()
+            if client_ip.startswith('::ffff:'):
+                client_ip = client_ip[7:]
             now = datetime.now().timestamp()
             if len(ADMIN_FAILED_LOGINS) > 128:
                 _cleanup_failed_logins(now)
@@ -2494,9 +2499,26 @@ class _DearGiftHTTPServer(socketserver.ThreadingTCPServer):
     daemon_threads = True
 
 
+class _DearGiftDualStackServer(_DearGiftHTTPServer):
+    address_family = socket.AF_INET6
+
+    def server_bind(self):
+        self.socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+        return super().server_bind()
+
+
+def _create_http_server():
+    if getattr(socket, 'has_dualstack_ipv6', lambda: False)():
+        try:
+            return _DearGiftDualStackServer(("::", PORT), DearGiftHandler)
+        except OSError:
+            pass
+    return _DearGiftHTTPServer(("", PORT), DearGiftHandler)
+
+
 def run():
     db.init_db()
-    with _DearGiftHTTPServer(("", PORT), DearGiftHandler) as httpd:
+    with _create_http_server() as httpd:
         def _handle_sigterm(signum, frame):
             threading.Thread(target=httpd.shutdown, daemon=True).start()
 
