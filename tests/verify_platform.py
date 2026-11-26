@@ -141,6 +141,11 @@ def run_tests():
             "/login.html",
             "/register.html",
             "/my-gifts.html",
+            "/my-gifts.php",
+            "/my-gifts.php?view=all",
+            "/orders.php",
+            "/transactions.php",
+            "/support.php",
             "/settings.php",
             "/payment.php",
             "/b.html",
@@ -152,6 +157,10 @@ def run_tests():
         ]:
             with urllib.request.urlopen(BASE + page, timeout=5) as r:
                 assert r.status == 200, f"{page} returned {r.status}"
+                if page == "/settings.php":
+                    stxt = r.read().decode("utf-8", errors="ignore")
+                    assert "user_a93e79" not in stxt, "Stale user_a93e79 found in settings.php!"
+                    assert "cdn-cgi" not in stxt, "Stale cdn-cgi found in settings.php!"
         # Admin page requires local or key; we connect from 127.0.0.1 so /admin returns 200
         with urllib.request.urlopen(BASE + "/admin", timeout=5) as r:
             assert r.status == 200
@@ -216,7 +225,7 @@ def run_tests():
         gid = gres["gift_id"]
         scode = gres["share_code"]
 
-        # Isolation: op1 sees gift, op2 does not, guest does not
+        # Isolation: op1 sees gift/order, op2 does not, guest does not
         _, my1 = json_req(op1, "/api/my-gifts")
         _, my2 = json_req(op2, "/api/my-gifts")
         _, myg = json_req(anon, "/api/my-gifts")
@@ -224,11 +233,23 @@ def run_tests():
         assert not any(g["id"] == gid for g in my2.get("gifts", [])), "Other user saw gift!"
         assert myg.get("gifts") == [] and myg.get("require_login"), "Guest saw gift!"
 
-        # Bank webhook activation
+        _, ord1 = json_req(op1, "/api/my-orders")
+        _, ordg = json_req(anon, "/api/my-orders")
+        assert any(o["id"] == gid and o.get("qr_url") for o in ord1.get("orders", [])), "Creator missing order with QR!"
+        assert ordg.get("orders") == [] and ordg.get("require_login"), "Guest saw orders!"
+
+        # Bank webhook activation + transaction verification
         st, wres = json_req(
             anon, "/api/webhook/bank", "POST", {"content": f"CHUYEN KHOAN DEAR {scode}"}
         )
         assert st == 200 and scode in wres.get("matched", []), f"Webhook failed: {wres}"
+
+        _, tx1 = json_req(op1, "/api/my-transactions")
+        _, tx2 = json_req(op2, "/api/my-transactions")
+        _, txg = json_req(anon, "/api/my-transactions")
+        assert any(t["gift_id"] == gid and t["share_code"] == scode for t in tx1.get("transactions", [])), "Missing transaction after payment!"
+        assert not any(t["gift_id"] == gid for t in tx2.get("transactions", [])), "Other user saw transaction!"
+        assert txg.get("transactions") == [] and txg.get("require_login"), "Guest saw transactions!"
 
         # Verify active gift view page works
         with urllib.request.urlopen(BASE + f"/gift.php?uid={gid}", timeout=5) as r:

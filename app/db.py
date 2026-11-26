@@ -415,7 +415,29 @@ def _seed_initial_data(db_sess: _DBSession) -> None:
                 ),
             )
 
-    # 4. Ideas
+    # 4. Backfill payment_transactions for existing paid gifts if empty
+    if _count_rows(db_sess, "payment_transactions") == 0:
+        paid_rows = db_sess.execute(
+            "SELECT id, share_code, amount, created_at FROM gifts WHERE paid = 1 OR status = 'active'"
+        ).fetchall()
+        for pr in paid_rows:
+            db_sess.execute(
+                """
+                INSERT INTO payment_transactions (gift_id, share_code, amount, gateway, transaction_ref, raw_payload, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    _val(pr, "id"),
+                    _val(pr, "share_code"),
+                    int(_val(pr, "amount") or 0),
+                    "vietqr",
+                    _val(pr, "share_code"),
+                    "{}",
+                    _val(pr, "created_at") or now_str,
+                ),
+            )
+
+    # 5. Ideas
     if _count_rows(db_sess, "ideas") == 0:
         raw_ideas = _load_json_if_exists("ideas.json")
         if isinstance(raw_ideas, list):
@@ -703,6 +725,61 @@ def get_gifts_for_user(user: Dict[str, Any]) -> List[Dict[str, Any]]:
     with get_connection() as db_sess:
         rows = db_sess.execute(sql, tuple(params)).fetchall()
     return [_gift_row_to_dict(r) for r in rows]
+
+
+def get_transactions_for_user(user: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Return payment transaction history joined with gifts owned by the user."""
+    init_db()
+    u_id = str(user.get("id") or "").strip().lower()
+    u_name = str(user.get("username") or "").strip().lower()
+    u_email = str(user.get("email") or "").strip().lower()
+
+    clauses = []
+    params: List[str] = []
+    if u_id:
+        clauses.append("LOWER(COALESCE(g.user_id, '')) = ?")
+        params.append(u_id)
+    if u_email:
+        clauses.append("LOWER(g.user_email) = ?")
+        params.append(u_email)
+        clauses.append("LOWER(g.username) = ?")
+        params.append(u_email)
+    if u_name:
+        clauses.append("LOWER(g.username) = ?")
+        params.append(u_name)
+        clauses.append("LOWER(g.user_email) = ?")
+        params.append(u_name)
+
+    if not clauses:
+        return []
+
+    sql = f"""
+        SELECT pt.id, pt.gift_id, pt.share_code, pt.amount, pt.gateway, pt.transaction_ref, pt.created_at,
+               g.recipient_name, g.template_id, g.template_slug, g.status AS gift_status, g.transfer_content
+        FROM payment_transactions pt
+        INNER JOIN gifts g ON pt.gift_id = g.id
+        WHERE {' OR '.join(clauses)}
+        ORDER BY pt.created_at DESC, pt.id DESC
+    """
+    with get_connection() as db_sess:
+        rows = db_sess.execute(sql, tuple(params)).fetchall()
+    return [
+        {
+            "id": int(_val(r, "id")),
+            "gift_id": _val(r, "gift_id") or "",
+            "share_code": _val(r, "share_code") or "",
+            "amount": int(_val(r, "amount") or 0),
+            "gateway": _val(r, "gateway") or "manual",
+            "transaction_ref": _val(r, "transaction_ref") or "",
+            "created_at": _val(r, "created_at") or "",
+            "recipient_name": _val(r, "recipient_name") or "Người thương",
+            "template_id": _val(r, "template_id") or "69",
+            "template_slug": _val(r, "template_slug") or "mon-qua-nho-2010",
+            "gift_status": _val(r, "gift_status") or "active",
+            "transfer_content": _val(r, "transfer_content") or "",
+        }
+        for r in rows
+    ]
 
 
 def create_gift(gift: Dict[str, Any]) -> Dict[str, Any]:

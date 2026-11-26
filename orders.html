@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đơn Hàng &amp; Thanh Toán · DearGift</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css?v=1794032998">
+  <link rel="stylesheet" href="css/pastel-theme.css?v=1790426802">
+  <link rel="stylesheet" href="css/dashboard-shell.css?v=1790426720">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .dg-act-btn {
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #e9e5eb;
+      background: #fff;
+      color: #3d3551;
+      text-decoration: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .dg-act-btn:hover { border-color: #d51e68; color: #d51e68; }
+    .dg-act-btn.pay {
+      border-color: transparent;
+      background: linear-gradient(135deg, #f34f87, #bc1457);
+      color: #fff;
+    }
+    .dg-act-btn.del:hover { border-color: #ef4444; color: #dc2626; background: #fef2f2; }
+  </style>
+</head>
+<body class="user-app">
+
+  <header class="workspace-topnav"></header>
+
+  <main class="main-content">
+    <div class="top-header">
+      <div>
+        <h1>Đơn Hàng Quà Tặng</h1>
+        <p>Quản lý toàn bộ đơn quà đã khởi tạo, trạng thái thanh toán VietQR và thao tác kích hoạt nhanh.</p>
+      </div>
+      <div></div>
+    </div>
+
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon-wrapper" style="background:#ffe4e6;color:#e8589a;"><i data-lucide="shopping-bag"></i></div>
+        <div>
+          <div style="font-size:24px;font-weight:800;color:#1b171c;" id="ord-total">0</div>
+          <div style="font-size:12.5px;color:#756d77;font-weight:600;">Tổng số đơn</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrapper" style="background:#d1fae5;color:#059669;"><i data-lucide="check-circle"></i></div>
+        <div>
+          <div style="font-size:24px;font-weight:800;color:#1b171c;" id="ord-paid">0</div>
+          <div style="font-size:12.5px;color:#756d77;font-weight:600;">Đã thanh toán</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrapper" style="background:#fef3c7;color:#d97706;"><i data-lucide="hourglass"></i></div>
+        <div>
+          <div style="font-size:24px;font-weight:800;color:#1b171c;" id="ord-pending">0</div>
+          <div style="font-size:12.5px;color:#756d77;font-weight:600;">Chờ thanh toán</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrapper" style="background:#eff6ff;color:#2563eb;"><i data-lucide="banknote"></i></div>
+        <div>
+          <div style="font-size:24px;font-weight:800;color:#1b171c;" id="ord-amount">0đ</div>
+          <div style="font-size:12.5px;color:#756d77;font-weight:600;">Tổng tiền đã thanh toán</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="filter-bar" style="flex-wrap:wrap;justify-content:space-between;">
+      <div class="tabs" style="margin:0;">
+        <button type="button" class="tab-btn active" onclick="setOrderFilter('all', this)">Tất cả</button>
+        <button type="button" class="tab-btn" onclick="setOrderFilter('pending', this)">Chờ thanh toán</button>
+        <button type="button" class="tab-btn" onclick="setOrderFilter('active', this)">Đã kích hoạt</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex:1;max-width:340px;min-width:220px;">
+        <i data-lucide="search" style="width:16px;height:16px;color:#8b828d;flex-shrink:0;"></i>
+        <input type="text" id="order-search" class="search-input" placeholder="Tìm mã đơn #DG, người nhận..." oninput="renderOrders()">
+      </div>
+    </section>
+
+    <section class="recent-gifts-card">
+      <div class="gifts-table-wrapper">
+        <table class="gifts-table">
+          <thead>
+            <tr>
+              <th>Mã Đơn</th>
+              <th>Người Nhận</th>
+              <th>Mẫu Quà</th>
+              <th>Số Tiền</th>
+              <th>Nội Dung CK</th>
+              <th>Trạng Thái</th>
+              <th>Ngày Tạo</th>
+              <th style="text-align:right;">Thao Tác</th>
+            </tr>
+          </thead>
+          <tbody id="orders-tbody">
+            <tr><td colspan="8" style="text-align:center;color:#756d77;padding:32px;">Đang tải dữ liệu đơn hàng...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div class="bottom-nav"></div>
+
+  <script src="js/dashboard-workspace.js"></script>
+  <script>
+    var allOrders = [];
+    var templateMap = {};
+    var orderFilter = 'all';
+
+    function setOrderFilter(f, btn) {
+      orderFilter = f;
+      document.querySelectorAll('.tab-btn').forEach(function (b) { b.classList.remove('active'); });
+      if (btn) btn.classList.add('active');
+      renderOrders();
+    }
+
+    function loadOrders() {
+      Promise.all([
+        fetch('/api/my-orders').then(function (r) { return r.json(); }),
+        DG.getTemplateMetaMap(),
+      ]).then(function (pair) {
+        var res = pair[0] || {};
+        templateMap = pair[1] || {};
+        allOrders = res.orders || [];
+        updateStats();
+        renderOrders();
+      }).catch(function () {
+        allOrders = [];
+        updateStats();
+        renderOrders();
+      });
+    }
+
+    function updateStats() {
+      var total = allOrders.length;
+      var paid = allOrders.filter(function (o) { return o.status === 'active' || o.paid; });
+      var pending = allOrders.filter(function (o) { return o.status !== 'active' && !o.paid; });
+      var sumAmt = paid.reduce(function (acc, o) { return acc + Number(o.amount || 0); }, 0);
+
+      document.getElementById('ord-total').textContent = total;
+      document.getElementById('ord-paid').textContent = paid.length;
+      document.getElementById('ord-pending').textContent = pending.length;
+      document.getElementById('ord-amount').textContent = sumAmt.toLocaleString('vi-VN') + 'đ';
+    }
+
+    function deleteOrder(id) {
+      if (!confirm('Xóa đơn hàng này?')) return;
+      fetch('/api/gifts/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.status === 'success') {
+            DG.toast('✓ Đã xóa đơn hàng!');
+            loadOrders();
+          } else {
+            DG.toast((res && res.message) || 'Không thể xóa đơn.', true);
+          }
+        })
+        .catch(function () { DG.toast('Lỗi kết nối.', true); });
+    }
+
+    function payOrderIdx(i) {
+      var ord = (window.__filteredOrders || [])[i];
+      if (ord) DG.openPayModal(ord, loadOrders);
+    }
+
+    function renderOrders() {
+      var q = (document.getElementById('order-search').value || '').trim().toLowerCase();
+      var rows = allOrders.filter(function (o) {
+        var isPaid = (o.status === 'active' || o.paid);
+        if (orderFilter === 'pending' && isPaid) return false;
+        if (orderFilter === 'active' && !isPaid) return false;
+        if (q) {
+          var hay = [o.share_code, o.id, o.recipient_name, o.transfer_content, o.template_slug].join(' ').toLowerCase();
+          if (hay.indexOf(q) === -1) return false;
+        }
+        return true;
+      });
+      window.__filteredOrders = rows;
+
+      var tbody = document.getElementById('orders-tbody');
+      if (!rows.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#756d77;padding:36px;">Chưa có đơn hàng nào phù hợp.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = rows.map(function (o, i) {
+        var isPaid = (o.status === 'active' || o.paid);
+        var scode = o.share_code || o.id;
+        var tpl = templateMap[String(o.template_id || '')] || {};
+        var tplTitle = tpl.title || o.template_slug || ('Mẫu #' + (o.template_id || '69'));
+        var viewUrl = '/gift.php?uid=' + encodeURIComponent(o.id);
+        var badge = isPaid
+          ? '<span class="badge success">Đã kích hoạt</span>'
+          : '<span class="badge warning">Chờ thanh toán</span>';
+        var actions = isPaid
+          ? '<a href="' + DG.escapeHtml(viewUrl) + '" target="_blank" class="dg-act-btn">Mở quà</a>'
+          : '<button type="button" class="dg-act-btn pay" onclick="payOrderIdx(' + i + ')">Thanh toán</button>' +
+            '<a href="' + DG.escapeHtml(viewUrl) + '" target="_blank" class="dg-act-btn">Xem QR</a>' +
+            '<button type="button" class="dg-act-btn del" onclick="deleteOrder(\'' + DG.escapeHtml(o.id) + '\')">Xóa</button>';
+
+        return (
+          '<tr>' +
+            '<td style="font-family:monospace;font-weight:800;color:#d51e68;">#' + DG.escapeHtml(scode) + '</td>' +
+            '<td style="font-weight:700;">' + DG.escapeHtml(o.recipient_name || 'Người thương') + '</td>' +
+            '<td>' + DG.escapeHtml(tplTitle) + '</td>' +
+            '<td style="font-weight:700;">' + DG.escapeHtml(DG.formatVnd(o.amount)) + '</td>' +
+            '<td style="font-family:monospace;font-size:12px;color:#5c5266;">' + DG.escapeHtml(o.transfer_content || ('DEAR ' + scode)) + '</td>' +
+            '<td>' + badge + '</td>' +
+            '<td style="color:#756d77;font-size:12px;">' + DG.escapeHtml(DG.formatDate(o.created_at)) + '</td>' +
+            '<td style="text-align:right;"><div style="display:inline-flex;gap:6px;">' + actions + '</div></td>' +
+          '</tr>'
+        );
+      }).join('');
+    }
+
+    DG.boot('orders', loadOrders);
+  </script>
+</body>
+</html>

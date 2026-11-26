@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hỗ Trợ Khách Hàng · DearGift</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css?v=1794032998">
+  <link rel="stylesheet" href="css/pastel-theme.css?v=1790426802">
+  <link rel="stylesheet" href="css/dashboard-shell.css?v=1790426720">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="user-app">
+
+  <header class="workspace-topnav"></header>
+
+  <main class="main-content">
+    <div class="top-header">
+      <div>
+        <h1>Trung Tâm Hỗ Trợ</h1>
+        <p>Giải đáp nhanh về thanh toán VietQR, kích hoạt quà tặng hoặc gửi yêu cầu trực tiếp tới quản trị viên.</p>
+      </div>
+      <div></div>
+    </div>
+
+    <div class="dashboard-split">
+      <section class="recent-gifts-card">
+        <h2 style="margin:0;font-size:17px;font-weight:800;color:#1b171c;">Gửi yêu cầu hỗ trợ / Góp ý mẫu mới</h2>
+        <form id="supportForm" style="display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;">Tên của bạn</label>
+            <input type="text" id="sup-name" required style="width:100%;padding:10px 14px;border:1px solid #e9e5eb;border-radius:12px;box-sizing:border-box;font-family:inherit;">
+          </div>
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;">Zalo / SĐT / Email liên hệ</label>
+            <input type="text" id="sup-contact" required style="width:100%;padding:10px 14px;border:1px solid #e9e5eb;border-radius:12px;box-sizing:border-box;font-family:inherit;">
+          </div>
+          <div>
+            <label style="display:block;font-size:12.5px;font-weight:700;margin-bottom:6px;">Nội dung cần hỗ trợ (kèm mã đơn #DG nếu có)</label>
+            <textarea id="sup-content" rows="4" required placeholder="Mô tả vấn đề thanh toán, chỉnh sửa quà hoặc góp ý của bạn..." style="width:100%;padding:10px 14px;border:1px solid #e9e5eb;border-radius:12px;box-sizing:border-box;font-family:inherit;"></textarea>
+          </div>
+          <button type="submit" id="sup-btn" class="btn btn-primary" style="align-self:flex-start;padding:11px 22px;border-radius:12px;border:none;color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;">Gửi yêu cầu hỗ trợ</button>
+        </form>
+      </section>
+
+      <section class="progress-card">
+        <h2 style="margin:0;font-size:17px;font-weight:800;color:#1b171c;">Câu hỏi thường gặp</h2>
+        <div style="display:flex;flex-direction:column;gap:12px;font-size:13px;color:#5c5266;line-height:1.55;">
+          <div style="background:#faf7f9;padding:12px 14px;border-radius:14px;">
+            <strong style="display:block;color:#1b171c;margin-bottom:4px;">Chuyển khoản xong bao lâu quà mở?</strong>
+            Hệ thống tự động đối soát Casso/VietQR trong 3–10 giây khi nội dung chuyển khoản giữ đúng cú pháp <code>DEAR DG...</code>.
+          </div>
+          <div style="background:#faf7f9;padding:12px 14px;border-radius:14px;">
+            <strong style="display:block;color:#1b171c;margin-bottom:4px;">Quên mã đơn quà tìm ở đâu?</strong>
+            Vào mục <a href="orders.php" style="color:#d51e68;font-weight:700;">Đơn hàng</a> hoặc <a href="my-gifts.php?view=all" style="color:#d51e68;font-weight:700;">Quà đã tạo</a> để lấy lại link mở quà và mã QR.
+          </div>
+          <div style="background:#faf7f9;padding:12px 14px;border-radius:14px;">
+            <strong style="display:block;color:#1b171c;margin-bottom:4px;">Cần hỗ trợ trực tiếp?</strong>
+            Xem thêm thông tin liên hệ chính thức tại trang <a href="contact.php" style="color:#d51e68;font-weight:700;">Liên hệ</a>.
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div class="bottom-nav"></div>
+
+  <script src="js/dashboard-workspace.js"></script>
+  <script>
+    DG.boot('support', function (user) {
+      document.getElementById('sup-name').value = user.full_name || user.username || '';
+      document.getElementById('sup-contact').value = user.phone || user.email || '';
+
+      document.getElementById('supportForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var btn = document.getElementById('sup-btn');
+        btn.disabled = true;
+        fetch('/api_submit_idea.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: document.getElementById('sup-name').value.trim(),
+            contact: document.getElementById('sup-contact').value.trim(),
+            content: document.getElementById('sup-content').value.trim(),
+          }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (res) {
+            DG.toast((res && res.message) || '✓ Đã gửi yêu cầu hỗ trợ!');
+            document.getElementById('sup-content').value = '';
+          })
+          .catch(function () { DG.toast('Không thể gửi yêu cầu.', true); })
+          .finally(function () { btn.disabled = false; });
+      });
+    });
+  </script>
+</body>
+</html>

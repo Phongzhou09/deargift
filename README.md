@@ -30,7 +30,10 @@ deargift/
 ├── index.html              # Trang chủ
 ├── templates.php           # Kho mẫu quà tặng
 ├── gift-builder.php        # Trình thiết kế quà tặng
-├── my-gifts.html           # Quản lý đơn quà khách hàng
+├── my-gifts.html           # Tổng quan & thư viện quà đã tạo (/my-gifts.php, ?view=all)
+├── orders.html             # Quản lý đơn hàng & thanh toán VietQR (/orders.php)
+├── transactions.html       # Lịch sử giao dịch đã xác nhận (/transactions.php)
+├── support.html            # Trung tâm hỗ trợ & gửi yêu cầu (/support.php)
 ├── payment.php             # Trang thanh toán VietQR
 ├── login.html / register.html / settings.php / about.php / contact.php
 ├── admin.html              # Trang quản trị Admin CMS (/admin)

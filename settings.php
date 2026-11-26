@@ -102,38 +102,33 @@
         </div>
     </a>
 
-    <!-- Menu links - Standardized 7 menus -->
+    <!-- Menu links -->
     <div class="sidebar-menu">
         <a href="my-gifts.php" class="menu-item ">
             <i data-lucide="layout-dashboard" style="width: 18px; height: 18px;"></i>
-            <span class="sidebar-text">Overview</span>
+            <span class="sidebar-text">Tổng quan</span>
+        </a>
+        <a href="my-gifts.php?view=all" class="menu-item ">
+            <i data-lucide="library" style="width: 18px; height: 18px;"></i>
+            <span class="sidebar-text">Quà đã tạo</span>
         </a>
         <a href="orders.php" class="menu-item ">
             <i data-lucide="shopping-bag" style="width: 18px; height: 18px;"></i>
-            <span class="sidebar-text">Orders</span>
+            <span class="sidebar-text">Đơn hàng</span>
         </a>
         <a href="transactions.php" class="menu-item ">
             <i data-lucide="credit-card" style="width: 18px; height: 18px;"></i>
-            <span class="sidebar-text">Transactions</span>
-        </a>
-        <a href="vouchers.php" class="menu-item ">
-            <i data-lucide="ticket" style="width: 18px; height: 18px;"></i>
-            <span class="sidebar-text">Voucher</span>
-        </a>
-        <a href="affiliates.php" class="menu-item ">
-            <i data-lucide="users" style="width: 18px; height: 18px;"></i>
-            <span class="sidebar-text">Affiliates</span>
+            <span class="sidebar-text">Giao dịch</span>
         </a>
         <a href="support.php" class="menu-item ">
             <i data-lucide="help-circle" style="width: 18px; height: 18px;"></i>
-            <span class="sidebar-text">Support</span>
+            <span class="sidebar-text">Hỗ trợ</span>
         </a>
         <a href="settings.php" class="menu-item active">
             <i data-lucide="settings" style="width: 18px; height: 18px;"></i>
-            <span class="sidebar-text">Settings</span>
+            <span class="sidebar-text">Cài đặt</span>
         </a>
-        
-            </div>
+    </div>
 
     <!-- Ad Box -->
     <div class="sidebar-footer-card">
@@ -142,10 +137,11 @@
                 <i data-lucide="gift" style="width:20px;height:20px;color:#e8589a;"></i>
             </div>
         </div>
-        <h4>Share DearGift</h4>
-        <p>Invite friends to create something meaningful.</p>
-        <button onclick="window.location.href='affiliates.php'" class="btn btn-primary btn-sm" style="width: 100%; border-radius: 50px; padding: 8px 12px; font-size: 12px; font-weight: 700; background-color: #e8589a; border: none; box-shadow: 0 4px 10px rgba(244,63,94,0.2);">
-            🎁 Invite now        </button>
+        <h4>Chia sẻ DearGift</h4>
+        <p>Tạo những món quà 3D đầy bất ngờ dành tặng người thương.</p>
+        <button onclick="window.location.href='templates.php'" class="btn btn-primary btn-sm" style="width: 100%; border-radius: 50px; padding: 8px 12px; font-size: 12px; font-weight: 700; background-color: #e8589a; border: none; box-shadow: 0 4px 10px rgba(244,63,94,0.2);">
+            🎁 Tạo quà ngay
+        </button>
     </div>
 
     <!-- Collapse trigger -->
@@ -155,156 +151,10 @@
     </div>
 </div>
 
-<header class="workspace-topnav">
-    <a class="workspace-brand" href="index.php" aria-label="DearGift - Home">
-        <span class="workspace-brand-mark"><i data-lucide="gift"></i></span>
-        <span class="workspace-brand-name">Dear<span>Gift</span></span>
-    </a>
-
-    <nav class="workspace-nav" aria-label="Dashboard navigation">
-        <a href="my-gifts.php" class=""><i data-lucide="layout-grid"></i><span>Overview</span></a>
-        <a href="my-gifts.php?view=all" class=""><i data-lucide="library"></i><span>Created</span></a>
-        <a href="orders.php" class=""><i data-lucide="shopping-bag"></i><span>Orders</span></a>
-        <a href="transactions.php" class=""><i data-lucide="credit-card"></i><span>Transactions</span></a>
-        <a href="settings.php" class="active"><i data-lucide="settings"></i><span>Settings</span></a>
-    </nav>
-
-    <div class="workspace-account">
-        <a href="support.php" class="workspace-icon-btn " aria-label="Support"><i data-lucide="circle-help"></i></a>
-                                        <div class="dg-account ">
-                    <button class="dg-account-trigger" type="button" aria-haspopup="true" aria-expanded="false"
-                            onclick="dgToggleAccountMenu(this)" title="Open account menu">
-                        <span class="dg-account-avatar"><img src="https://ui-avatars.com/api/?name=user_a93e79&amp;background=fff1f2&amp;color=db2777&amp;bold=true&amp;size=128" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=user_a93e79&amp;background=fff1f2&amp;color=db2777&amp;bold=true';" alt=""></span>
-                        <span class="dg-account-name">user_a93e79</span>
-                        <span class="dg-account-burger" aria-hidden="true"><i data-lucide="menu"></i></span>
-                    </button>
-                    <div class="dg-account-menu" role="menu">
-                        <div class="dg-account-head">
-                            <img src="https://ui-avatars.com/api/?name=user_a93e79&amp;background=fff1f2&amp;color=db2777&amp;bold=true&amp;size=128" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=user_a93e79&amp;background=fff1f2&amp;color=db2777&amp;bold=true';" alt="">
-                            <div>
-                                <strong>user_a93e79</strong>
-                                <small><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="9beee8fee9c4faa2a8feaca2dbeffee8effff4f6faf2f5a2a2a9a8b5f8f4f6">[email&#160;protected]</a></small>
-                            </div>
-                        </div>
-                        <div class="dg-account-grid">
-                                                        <a href="my-gifts.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="layout-grid"></i></span>
-                                <span><b>Overview</b><small>Stats &amp; shortcuts</small></span>
-                            </a>
-                                                        <a href="my-gifts.php?view=all" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="library"></i></span>
-                                <span><b>My gifts</b><small>Links, QR, edit</small></span>
-                            </a>
-                                                        <a href="orders.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="shopping-bag"></i></span>
-                                <span><b>Orders</b><small>Payment status</small></span>
-                            </a>
-                                                        <a href="transactions.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="credit-card"></i></span>
-                                <span><b>Transactions</b><small>Payment history</small></span>
-                            </a>
-                                                        <a href="settings.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="settings"></i></span>
-                                <span><b>Settings</b><small>Profile &amp; security</small></span>
-                            </a>
-                                                        <a href="support.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="circle-help"></i></span>
-                                <span><b>Support</b><small>Get help</small></span>
-                            </a>
-                                                    </div>
-                        <a href="templates.php" class="dg-account-cta"><i data-lucide="plus"></i> Create a new gift</a>
-                                                <a href="index.php" class="dg-account-home" role="menuitem"><i data-lucide="house"></i> Back to home</a>
-                        <a href="logout.php" class="dg-account-logout" role="menuitem"><i data-lucide="log-out"></i> Sign out</a>
-                    </div>
-                </div>
-                <style>
-                /* Menu tài khoản (PC): nút có icon ☰, bấm để mở, có mô tả từng mục */
-                .dg-account .dg-account-trigger{display:flex;align-items:center;gap:8px;padding:4px 6px 4px 4px;border:1px solid #f3c6dc;border-radius:999px;background:#fff;cursor:pointer;transition:box-shadow .15s,border-color .15s}
-                .dg-account .dg-account-trigger:hover,.dg-account.is-open .dg-account-trigger{border-color:#e8589a;box-shadow:0 4px 14px rgba(232,88,154,.18)}
-                .dg-account-avatar{width:28px;height:28px;border-radius:50%;overflow:hidden;flex:none;background:#fffaf3}
-                .dg-account-avatar img{width:100%;height:100%;object-fit:cover;display:block}
-                .dg-account-name{font-weight:700;color:#3d3551;font-size:13px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-                .dg-account-burger{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fdeaf3;color:#d6377f}
-                .dg-account-burger svg{width:16px;height:16px}
-                .dg-account{position:relative}
-                .dg-account .dg-account-menu{display:none;position:absolute;right:0;top:100%;z-index:1000;background:#fff;text-align:left;width:340px;padding:0;overflow:hidden;border:1px solid #f6dbe8;border-radius:18px;box-shadow:0 18px 44px rgba(61,53,81,.16);margin-top:10px}
-                .dg-account::after{content:"";position:absolute;left:0;right:0;top:100%;height:12px}
-                .dg-account.is-open .dg-account-menu,.dg-account:hover .dg-account-menu{display:block}
-                .dg-account-head{display:flex;gap:12px;align-items:center;padding:14px 16px;background:linear-gradient(135deg,#fff1f7,#f4efff)}
-                .dg-account-head img{width:40px;height:40px;border-radius:50%;object-fit:cover}
-                .dg-account-head strong{display:block;font-size:14px;color:#2f2740}
-                .dg-account-head small{display:block;font-size:11.5px;color:#7a7090;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-                .dg-account-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:10px}
-                .dg-account-item{display:flex;gap:9px;align-items:center;padding:9px;border-radius:12px;color:#2f2740;text-decoration:none}
-                .dg-account-item:hover{background:#fff1f7}
-                .dg-account-ico{width:32px;height:32px;flex:none;border-radius:10px;display:flex;align-items:center;justify-content:center;background:#f6f1ff;color:#7c5ce0}
-                .dg-account-ico svg{width:16px;height:16px}
-                .dg-account-item b{display:block;font-size:13px;font-weight:700}
-                .dg-account-item small{display:block;font-size:10.5px;color:#8a809b;line-height:1.3}
-                .dg-account-cta{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 10px 10px;padding:10px;border-radius:12px;background:linear-gradient(135deg,#ff8fbf,#e8589a);color:#fff !important;font-weight:700;font-size:13px;text-decoration:none}
-                .dg-account-cta svg{width:15px;height:15px}
-                .dg-account-admin{border-top:1px solid #f6e9f0;padding:8px 10px}
-                .dg-account-admin>span{display:block;padding:2px 8px 4px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#b0a6bf}
-                .dg-account-admin a,.dg-account-logout{display:flex;align-items:center;gap:8px;padding:8px;border-radius:10px;font-size:13px;color:#3d3551;text-decoration:none}
-                .dg-account-admin a:hover{background:#f6f1ff}
-                .dg-account-admin svg,.dg-account-logout svg{width:15px;height:15px}
-                .dg-account-home{display:flex;align-items:center;gap:8px;padding:10px 18px;border-top:1px solid #f6e9f0;font-size:13px;color:#3d3551;text-decoration:none}.dg-account-home:hover{background:#fff7fb}.dg-account-home svg{width:15px;height:15px}
-                .dg-account-logout{margin:0;border-top:1px solid #f6e9f0;border-radius:0;padding:12px 18px;color:#e8589a;font-weight:700}
-                .dg-account-logout:hover{background:#fff1f7}
-                </style>
-                <script>
-                // Thông báo nhỏ dùng chung (trang nào chưa có showToast thì dùng bản này)
-                if (typeof window.showToast !== 'function') {
-                    window.showToast = function (msg) {
-                        var t = document.createElement('div');
-                        t.textContent = msg;
-                        t.style.cssText = 'position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:99999;padding:10px 16px;border-radius:999px;background:#2f2740;color:#fff;font-size:13px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.2);opacity:0;transition:opacity .2s';
-                        document.body.appendChild(t);
-                        requestAnimationFrame(function () { t.style.opacity = '1'; });
-                        setTimeout(function () { t.style.opacity = '0'; setTimeout(function () { t.remove(); }, 250); }, 1800);
-                    };
-                }
-                function dgToggleAccountMenu(btn) {
-                    var box = btn.closest('.dg-account');
-                    var open = !box.classList.contains('is-open');
-                    box.classList.toggle('is-open', open);
-                    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-                }
-                document.addEventListener('click', function (e) {
-                    document.querySelectorAll('.dg-account.is-open').forEach(function (box) {
-                        if (!box.contains(e.target)) { box.classList.remove('is-open'); box.querySelector('.dg-account-trigger').setAttribute('aria-expanded', 'false'); }
-                    });
-                });
-                document.addEventListener('keydown', function (e) {
-                    if (e.key === 'Escape') document.querySelectorAll('.dg-account.is-open').forEach(function (box) { box.classList.remove('is-open'); });
-                });
-                </script>
-    </div>
-</header>
+<header class="workspace-topnav"></header>
 
 <!-- Mobile Bottom Navigation -->
-<div class="bottom-nav">
-    <a href="my-gifts.php" class="bottom-nav-item ">
-        <i data-lucide="layout-dashboard" style="width: 20px; height: 20px;"></i>
-        <span>Overview</span>
-    </a>
-    <a href="my-gifts.php?view=all" class="bottom-nav-item ">
-        <i data-lucide="library" style="width: 20px; height: 20px;"></i>
-        <span>Created</span>
-    </a>
-    <a href="orders.php" class="bottom-nav-item ">
-        <i data-lucide="shopping-bag" style="width: 20px; height: 20px;"></i>
-        <span>Orders</span>
-    </a>
-    <a href="transactions.php" class="bottom-nav-item ">
-        <i data-lucide="credit-card" style="width: 20px; height: 20px;"></i>
-        <span>Transactions</span>
-    </a>
-    <a href="settings.php" class="bottom-nav-item active">
-        <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
-        <span>Settings</span>
-    </a>
-</div>
+<div class="bottom-nav"></div>
 
 <script>
     function toggleMobileSidebar() {
@@ -336,56 +186,9 @@
     </div>
     
     <div style="display: flex; align-items: center; gap: 12px;">
-        <a href="index.php" class="btn btn-secondary btn-sm" style="border-radius: 50px; display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; border-color: #fbcfe8; background-color: white; color: #e8589a; font-weight: 700; box-shadow: 0 2px 4px rgba(232,88,154,0.02);">
+        <a href="index.html" class="btn btn-secondary btn-sm" style="border-radius: 50px; display: flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 13px; border-color: #fbcfe8; background-color: white; color: #e8589a; font-weight: 700; box-shadow: 0 2px 4px rgba(232,88,154,0.02);">
             <i data-lucide="home" style="width: 15px; height: 15px;"></i> Về trang chủ
         </a>
-        
-                                        <div class="dg-account ">
-                    <button class="dg-account-trigger" type="button" aria-haspopup="true" aria-expanded="false"
-                            onclick="dgToggleAccountMenu(this)" title="Open account menu">
-                        <span class="dg-account-avatar"><img src="https://ui-avatars.com/api/?name=user_a93e79&amp;background=fff1f2&amp;color=db2777&amp;bold=true&amp;size=128" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=user_a93e79&amp;background=fff1f2&amp;color=db2777&amp;bold=true';" alt=""></span>
-                        <span class="dg-account-name">user_a93e79</span>
-                        <span class="dg-account-burger" aria-hidden="true"><i data-lucide="menu"></i></span>
-                    </button>
-                    <div class="dg-account-menu" role="menu">
-                        <div class="dg-account-head">
-                            <img src="https://ui-avatars.com/api/?name=user_a93e79&amp;background=fff1f2&amp;color=db2777&amp;bold=true&amp;size=128" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=user_a93e79&amp;background=fff1f2&amp;color=db2777&amp;bold=true';" alt="">
-                            <div>
-                                <strong>user_a93e79</strong>
-                                <small><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="2f5a5c4a5d704e161c4a18166f5b4a5c5b4b40424e464116161d1c014c4042">[email&#160;protected]</a></small>
-                            </div>
-                        </div>
-                        <div class="dg-account-grid">
-                                                        <a href="my-gifts.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="layout-grid"></i></span>
-                                <span><b>Overview</b><small>Stats &amp; shortcuts</small></span>
-                            </a>
-                                                        <a href="my-gifts.php?view=all" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="library"></i></span>
-                                <span><b>My gifts</b><small>Links, QR, edit</small></span>
-                            </a>
-                                                        <a href="orders.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="shopping-bag"></i></span>
-                                <span><b>Orders</b><small>Payment status</small></span>
-                            </a>
-                                                        <a href="transactions.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="credit-card"></i></span>
-                                <span><b>Transactions</b><small>Payment history</small></span>
-                            </a>
-                                                        <a href="settings.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="settings"></i></span>
-                                <span><b>Settings</b><small>Profile &amp; security</small></span>
-                            </a>
-                                                        <a href="support.php" class="dg-account-item" role="menuitem">
-                                <span class="dg-account-ico"><i data-lucide="circle-help"></i></span>
-                                <span><b>Support</b><small>Get help</small></span>
-                            </a>
-                                                    </div>
-                        <a href="templates.php" class="dg-account-cta"><i data-lucide="plus"></i> Create a new gift</a>
-                                                <a href="index.php" class="dg-account-home" role="menuitem"><i data-lucide="house"></i> Back to home</a>
-                        <a href="logout.php" class="dg-account-logout" role="menuitem"><i data-lucide="log-out"></i> Sign out</a>
-                    </div>
-                </div>
     </div>
 </div>
 
@@ -412,31 +215,28 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 20px; padding-bottom: 20px; border-bottom: 1px solid #fff7ee; margin-bottom: 10px;">
-                        <img src="https://ui-avatars.com/api/?name=user_a93e79&amp;background=fff1f2&amp;color=db2777&amp;bold=true&amp;size=128" alt="Avatar" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=user_a93e79&background=fff1f2&color=db2777&bold=true';" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid #fffaf3; background-color: #fffaf3;">
-                        <div style="display: flex; gap: 8px;">
-                            <form method="POST" enctype="multipart/form-data" id="avatarForm">
-                                <input type="hidden" name="csrf_token" value="86de16f51478ea79b1b37a3846e93480f8a436abf7af47c48058f82595ec3843">                                <input type="hidden" name="action" value="upload_avatar">
-                                <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display:none;" onchange="document.getElementById('avatarForm').submit()">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('avatarInput').click()" style="font-size: 13px; padding: 6px 16px; border-radius: 8px;">Thay đổi ảnh</button>
-                            </form>
-                                                    </div>
+                        <img data-user-avatar src="assets/images/logo-heart-180.png" alt="Avatar" referrerpolicy="no-referrer" style="width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid #fffaf3; background-color: #fffaf3;">
+                        <div style="display: flex; flex-direction: column; gap: 4px;">
+                            <strong class="user-display-name" style="font-size:15px;color:#3d3551;">Đang tải...</strong>
+                            <span class="user-display-email" style="font-size:12.5px;color:#7a7090;"></span>
+                        </div>
                     </div>
 
                     <form method="POST">
-                        <input type="hidden" name="csrf_token" value="86de16f51478ea79b1b37a3846e93480f8a436abf7af47c48058f82595ec3843">                        <input type="hidden" name="action" value="update_profile">
+                        <input type="hidden" name="action" value="update_profile">
                         <div class="s-row">
                             <div style="width: 120px;">
-                                <div class="s-label">Tên đăng nhập</div>
-                                <div class="s-desc">Dùng để đăng nhập</div>
+                                <div class="s-label">Họ tên hiển thị</div>
+                                <div class="s-desc">Hiển thị trên hồ sơ</div>
                             </div>
-                            <div style="flex:1;"><input type="text" name="username" class="form-input-s" value="user_a93e79" required></div>
+                            <div style="flex:1;"><input type="text" name="full_name" class="form-input-s" value="" required></div>
                         </div>
                         <div class="s-row">
                             <div style="width: 120px;">
                                 <div class="s-label">Email</div>
                                 <div class="s-desc">Không thể đổi</div>
                             </div>
-                            <div class="s-val"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="33464056416c520a0056040a7347564047575c5e525a5d0a0a01001d505c5e">[email&#160;protected]</a></div>
+                            <div class="s-val user-display-email"></div>
                         </div>
                         <div class="s-row">
                             <div style="width: 120px;"><div class="s-label">Số điện thoại</div></div>
@@ -595,7 +395,7 @@
             <p style="font-size: 14px; color: #3d3551;">Thao tác này là vĩnh viễn và không thể khôi phục. Mọi dữ liệu của bạn sẽ bị xóa sạch.</p>
             <form method="POST">
                 <input type="hidden" name="csrf_token" value="86de16f51478ea79b1b37a3846e93480f8a436abf7af47c48058f82595ec3843">                <input type="hidden" name="action" value="delete_account">
-                <input type="text" name="confirm_username" class="modal-input" placeholder="Nhập đúng tên tài khoản: user_a93e79" required autocomplete="off">
+                <input type="text" name="confirm_username" class="modal-input" placeholder="Nhập đúng tên đăng nhập" required autocomplete="off">
                 <div style="display: flex; gap: 12px; margin-top: 24px;">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('deleteModal').classList.remove('active')" style="flex:1; padding:10px;">Hủy</button>
                     <button type="submit" class="btn btn-primary" style="flex:1; padding:10px; background:#ef4444; border-color:#ef4444;">Xóa ngay</button>
@@ -605,7 +405,6 @@
     </div>
 
     <script>
-        lucide.createIcons();
         function toggleSidebarCollapse() {
             document.getElementById('dashboard_sidebar').classList.toggle('collapsed');
             const isCollapsed = document.getElementById('dashboard_sidebar').classList.contains('collapsed');
@@ -613,119 +412,105 @@
             lucide.createIcons();
         }
     </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' crossorigin="anonymous"></script>
+    <script src="js/dashboard-workspace.js"></script>
+    <script id="dg-settings-sync-script">
+    DG.boot('settings', function(user) {
+        var username = user.username || '';
+        var fullName = user.full_name || username;
+        var phone = user.phone || '';
 
-<script id="dg-settings-sync-script">
-document.addEventListener('DOMContentLoaded', function() {
-    var rawUser = localStorage.getItem('deargift_user') || localStorage.getItem('deargift_customer');
-    if (!rawUser) {
-        // Not logged in -> redirect to login
-        window.location.href = 'login.html';
-        return;
-    }
+        var fnInput = document.querySelector('input[name="full_name"]');
+        if (fnInput) fnInput.value = fullName;
 
-    var user = JSON.parse(rawUser);
-    var email = user.email || '';
-    var username = user.username || (email ? email.split('@')[0] : 'khachhang');
-    var fullName = user.full_name || user.name || username;
-    var phone = user.phone || '';
+        var pInput = document.querySelector('input[name="phone"]');
+        if (pInput) pInput.value = phone;
 
-    // Fill display elements
-    document.querySelectorAll('.user-display-name, .dg-account-name, .sidebar-user-name, [data-user-name]').forEach(function(el) {
-        el.textContent = fullName;
-    });
-    document.querySelectorAll('.user-display-email, .dg-account-email, .sidebar-user-email, [data-user-email]').forEach(function(el) {
-        el.textContent = email;
-    });
-    
-    // Fill form fields
-    var uInput = document.querySelector('input[name="username"]');
-    if (uInput) uInput.value = username;
+        var cInput = document.querySelector('input[name="confirm_username"]');
+        if (cInput) cInput.placeholder = 'Nhập đúng tên đăng nhập: ' + username;
 
-    var pInput = document.querySelector('input[name="phone"]');
-    if (pInput && phone) pInput.value = phone;
+        document.querySelectorAll('form').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var act = (form.querySelector('input[name="action"]') || {}).value;
 
-    var cInput = document.querySelector('input[name="confirm_username"]');
-    if (cInput) cInput.placeholder = 'Nhập đúng tên tài khoản: ' + username;
-
-    // Email badge
-    document.querySelectorAll('.email-display-val').forEach(function(el) {
-        el.textContent = email;
-    });
-
-    // Intercept form submissions
-    document.querySelectorAll('form').forEach(function(form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            var act = (form.querySelector('input[name="action"]') || {}).value;
-            
-            if (act === 'update_profile') {
-                var newUsername = (form.querySelector('input[name="username"]') || {}).value || username;
-                var newPhone = (form.querySelector('input[name="phone"]') || {}).value || '';
-                user.username = newUsername;
-                user.full_name = newUsername;
-                user.phone = newPhone;
-                localStorage.setItem('deargift_user', JSON.stringify(user));
-                localStorage.setItem('deargift_customer', JSON.stringify(user));
-                fetch('/settings.php', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'update_profile', username: newUsername, phone: newPhone})
-                }).catch(function(){});
-                if (typeof window.showToast === 'function') {
-                    window.showToast('✓ Cập nhật hồ sơ thành công!');
+                if (act === 'update_profile') {
+                    var newFullName = ((form.querySelector('input[name="full_name"]') || {}).value || fullName).trim();
+                    var newPhone = ((form.querySelector('input[name="phone"]') || {}).value || '').trim();
+                    fetch('/settings.php', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({action: 'update_profile', full_name: newFullName, phone: newPhone})
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(res) {
+                        if (res && res.success && res.user) {
+                            user = res.user;
+                            fullName = user.full_name || username;
+                            localStorage.setItem('deargift_user', JSON.stringify(user));
+                            localStorage.setItem('deargift_customer', JSON.stringify(user));
+                            document.querySelectorAll('.user-display-name, .dg-account-name, .dg-menu-name').forEach(function(el) {
+                                el.textContent = fullName;
+                            });
+                            DG.toast('✓ Cập nhật hồ sơ thành công!');
+                        } else {
+                            DG.toast((res && res.message) || 'Cập nhật hồ sơ thất bại!', true);
+                        }
+                    })
+                    .catch(function() { DG.toast('Lỗi kết nối khi lưu hồ sơ.', true); });
+                } else if (act === 'change_password') {
+                    var newPwd = (form.querySelector('input[name="new_password"]') || {}).value;
+                    if (!newPwd || newPwd.length < 6) {
+                        DG.toast('Mật khẩu mới phải có ít nhất 6 ký tự!', true);
+                        return;
+                    }
+                    fetch('/settings.php', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({action: 'change_password', new_password: newPwd})
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(res) {
+                        if (res && res.success) {
+                            form.reset();
+                            document.getElementById('pwModal').classList.remove('active');
+                            DG.toast('✓ Đổi mật khẩu thành công!');
+                        } else {
+                            DG.toast((res && res.message) || 'Đổi mật khẩu thất bại!', true);
+                        }
+                    })
+                    .catch(function() { DG.toast('Lỗi kết nối khi đổi mật khẩu.', true); });
+                } else if (act === 'delete_account') {
+                    var confirmVal = ((form.querySelector('input[name="confirm_username"]') || {}).value || '').trim();
+                    if (confirmVal !== username) {
+                        DG.toast('Tên đăng nhập xác nhận không khớp!', true);
+                        return;
+                    }
+                    fetch('/settings.php', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({action: 'delete_account'})
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(res) {
+                        if (res && res.success) {
+                            localStorage.removeItem('deargift_user');
+                            localStorage.removeItem('deargift_customer');
+                            document.cookie = 'currentUser=; path=/; max-age=0';
+                            window.location.href = 'index.html';
+                        } else {
+                            DG.toast((res && res.message) || 'Không thể xóa tài khoản.', true);
+                        }
+                    })
+                    .catch(function() { DG.toast('Lỗi kết nối.', true); });
+                } else if (act === 'logout_all') {
+                    DG.logout();
                 } else {
-                    alert('✓ Cập nhật hồ sơ thành công!');
+                    DG.toast('✓ Đã lưu cài đặt!');
                 }
-            } else if (act === 'change_password') {
-                var curPwd = (form.querySelector('input[name="current_password"]') || {}).value;
-                var newPwd = (form.querySelector('input[name="new_password"]') || {}).value;
-                if (!newPwd || newPwd.length < 6) {
-                    alert('Mật khẩu mới phải có ít nhất 6 ký tự!');
-                    return;
-                }
-                user.password = newPwd;
-                localStorage.setItem('deargift_user', JSON.stringify(user));
-                fetch('/settings.php', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'change_password', username: username, new_password: newPwd})
-                }).catch(function(){});
-                form.reset();
-                if (typeof window.showToast === 'function') {
-                    window.showToast('✓ Đổi mật khẩu thành công!');
-                } else {
-                    alert('✓ Đổi mật khẩu thành công!');
-                }
-            } else if (act === 'delete_account') {
-                var confirmVal = (form.querySelector('input[name="confirm_username"]') || {}).value;
-                if (confirmVal !== username) {
-                    alert('Tên tài khoản xác nhận không đúng!');
-                    return;
-                }
-                localStorage.removeItem('deargift_user');
-                localStorage.removeItem('deargift_customer');
-                document.cookie = "currentUser=; path=/; max-age=0";
-                fetch('/settings.php', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({action: 'delete_account', username: username})
-                }).catch(function(){});
-                alert('Tài khoản đã được xóa.');
-                window.location.href = 'index.html';
-            } else {
-                if (typeof window.showToast === 'function') {
-                    window.showToast('✓ Đã lưu cài đặt!');
-                } else {
-                    alert('✓ Đã lưu cài đặt!');
-                }
-            }
+            });
         });
     });
-});
-</script>
-
-<script src="js/header-auth.js?v=1794500000" defer></script>
+    </script>
 </body>
 </html>
 

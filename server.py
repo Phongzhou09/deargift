@@ -562,6 +562,15 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         if path in ['/my-gifts.php', '/my-gifts.html', '/my-gifts']:
             return self.serve_file('my-gifts.html')
 
+        if path in ['/orders.php', '/orders.html', '/orders']:
+            return self.serve_file('orders.html')
+
+        if path in ['/transactions.php', '/transactions.html', '/transactions']:
+            return self.serve_file('transactions.html')
+
+        if path in ['/support.php', '/support.html', '/support']:
+            return self.serve_file('support.html')
+
         if path in ['/payment.php', '/payment.html', '/payment']:
             return self.serve_file('payment.php')
 
@@ -655,6 +664,62 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 "status": "success",
                 "user": user.get('username') or user.get('email'),
                 "gifts": user_gifts
+            })
+            return
+
+        # API: /api/my-orders (Customer Orders with VietQR payment info)
+        if path in ['/api/my-orders', '/api/orders']:
+            user = self.get_current_user()
+            if not user:
+                self.send_json_response({
+                    "status": "guest",
+                    "require_login": True,
+                    "orders": []
+                })
+                return
+            settings = get_settings()
+            bank_code = settings.get('bank_code', 'MB')
+            account_number = settings.get('account_number', '2006999988836')
+            account_name = settings.get('account_name', 'NGUYEN VAN PHONG')
+            bank_name = settings.get('bank_name', 'MBBank')
+            user_gifts = db.get_gifts_for_user(user)
+            orders = []
+            for g in user_gifts:
+                amt = int(g.get('amount') or 0)
+                scode = g.get('share_code') or g.get('id')
+                t_content = g.get('transfer_content') or f"DEAR {scode}"
+                qr_url = f"https://img.vietqr.io/image/{bank_code}-{account_number}-compact2.png?amount={amt}&addInfo={urllib.parse.quote(t_content)}&accountName={urllib.parse.quote(account_name)}"
+                item = dict(g)
+                item['qr_url'] = qr_url
+                item['bank'] = {
+                    'code': bank_code,
+                    'name': bank_name,
+                    'account': account_number,
+                    'account_name': account_name,
+                }
+                orders.append(item)
+            self.send_json_response({
+                "status": "success",
+                "user": user.get('username') or user.get('email'),
+                "orders": orders
+            })
+            return
+
+        # API: /api/my-transactions (Customer Payment Transactions)
+        if path in ['/api/my-transactions', '/api/transactions']:
+            user = self.get_current_user()
+            if not user:
+                self.send_json_response({
+                    "status": "guest",
+                    "require_login": True,
+                    "transactions": []
+                })
+                return
+            txs = db.get_transactions_for_user(user)
+            self.send_json_response({
+                "status": "success",
+                "user": user.get('username') or user.get('email'),
+                "transactions": txs
             })
             return
 
