@@ -338,7 +338,7 @@
   });
 
   function requireAuthAndBoot(activeKey, onReady) {
-    fetch('/api/me')
+    fetch('/api/me', { credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (!res || !res.logged_in || !res.user) {
@@ -346,8 +346,13 @@
             localStorage.removeItem('deargift_user');
             localStorage.removeItem('deargift_customer');
           } catch (e) {}
-          var redirectTarget = window.location.pathname + window.location.search;
-          window.location.href = '/login.html?redirect=' + encodeURIComponent(redirectTarget);
+          var guestUser = { username: 'guest', full_name: 'Khách', email: 'Chưa đăng nhập' };
+          buildWorkspaceChrome(guestUser, activeKey);
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+          }
+          toast('Bạn chưa đăng nhập. Dữ liệu cá nhân sẽ hiển thị sau khi đăng nhập.', true);
+          if (typeof onReady === 'function') onReady(guestUser);
           return;
         }
         try {
