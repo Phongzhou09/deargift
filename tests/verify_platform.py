@@ -121,6 +121,7 @@ def run_tests():
             "/app/db.py",
             "/app/schema.sql",
             "/server.py",
+            "/railway.toml",
             "/.gitignore",
             "/tests/verify_platform.py",
             "/templates_data.json",
@@ -131,6 +132,42 @@ def run_tests():
             except urllib.error.HTTPError as e:
                 assert e.code == 404, f"Expected 404 for {blocked}, got {e.code}"
         print("[PASS] Security blocks on system/DB/code files OK")
+
+        # 1b. Railway healthcheck, robots, favicon, Gzip/ETag/304 & Cache-Control checks
+        with urllib.request.urlopen(BASE + "/health", timeout=3) as r:
+            assert r.status == 200
+            assert "no-store" in r.headers.get("Cache-Control", "").lower()
+            hdata = json.loads(r.read().decode("utf-8"))
+            assert hdata.get("status") == "ok", f"Bad /health response: {hdata}"
+        with urllib.request.urlopen(BASE + "/robots.txt", timeout=3) as r:
+            assert r.status == 200 and "Disallow: /api/" in r.read().decode("utf-8")
+        with urllib.request.urlopen(BASE + "/favicon.ico", timeout=3) as r:
+            assert r.status == 200 and len(r.read()) > 100
+            assert "immutable" in r.headers.get("Cache-Control", "").lower()
+
+        for gz_path in ["/", "/api/templates", "/demo.php?id=69"]:
+            req = urllib.request.Request(BASE + gz_path, headers={"Accept-Encoding": "gzip"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                assert r.status == 200
+                assert r.headers.get("Content-Encoding") == "gzip", f"Expected gzip on {gz_path}, got {r.headers.get('Content-Encoding')}"
+                assert "accept-encoding" in r.headers.get("Vary", "").lower(), f"Missing Vary on {gz_path}"
+                etag = r.headers.get("ETag")
+                assert etag, f"Missing ETag on {gz_path}"
+                raw_gz = r.read()
+                import gzip as _gzip
+                assert len(_gzip.decompress(raw_gz)) > len(raw_gz)
+            req_304 = urllib.request.Request(BASE + gz_path, headers={"Accept-Encoding": "gzip", "If-None-Match": etag})
+            try:
+                urllib.request.urlopen(req_304, timeout=5)
+                raise AssertionError(f"Expected 304 Not Modified on {gz_path}")
+            except urllib.error.HTTPError as e:
+                assert e.code == 304, f"Expected 304 on {gz_path}, got {e.code}"
+
+        with urllib.request.urlopen(BASE + "/api/stats", timeout=3) as r:
+            assert "no-store" in r.headers.get("Cache-Control", "").lower(), f"Expected no-store on /api/stats, got {r.headers.get('Cache-Control')}"
+        with urllib.request.urlopen(BASE + "/assets/images/logo-heart-32.png", timeout=3) as r:
+            assert r.status == 200 and "immutable" in r.headers.get("Cache-Control", "").lower()
+        print("[PASS] Healthcheck, robots, favicon, Gzip, ETag/304 & Cache-Control OK")
 
         # 2. Main pages & endpoints
         for page in [

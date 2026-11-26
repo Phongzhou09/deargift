@@ -25,7 +25,9 @@ deargift/
 ├── templates/              # Mã nguồn từng mẫu quà tương tác 3D
 ├── templates_v3_meta/      # Form cấu hình riêng cho từng mẫu trong Gift Builder
 ├── uploads/                # Ảnh & nhạc mẫu / tải lên
-├── server.py               # HTTP Server Python (routing, API, auth, VietQR, compression)
+├── server.py               # HTTP Server Python (routing, API, auth, VietQR, Gzip, range streaming)
+├── railway.toml            # Cấu hình Railway (App Sleeping / Serverless, healthcheck /health)
+├── robots.txt              # Chặn crawler tải media/API gây tốn băng thông Railway
 ├── templates_data.json     # Danh sách 56 mẫu quà tặng
 ├── index.html              # Trang chủ
 ├── templates.php           # Kho mẫu quà tặng
@@ -42,15 +44,28 @@ deargift/
 
 ---
 
-## 🗄️ Cơ Sở Dữ Liệu (SQLite)
+## 🗄️ Cơ Sở Dữ Liệu (SQLite / PostgreSQL)
 
-Hệ thống tự động khởi tạo database SQLite tại `data/deargift.db` (hoặc theo biến môi trường `DB_PATH`) qua `app/db.py` & `app/schema.sql`:
+Hệ thống tự động khởi tạo database qua `app/db.py` (`app/schema.sql` cho SQLite hoặc `app/schema_pg.sql` khi có biến môi trường `DATABASE_URL`):
 - `users`: tài khoản khách hàng & quản trị viên (mật khẩu mã hóa PBKDF2-SHA256).
 - `gifts`: đơn quà tặng, nội dung thư, ảnh, nhạc, trạng thái thanh toán, liên kết chủ sở hữu.
 - `payment_transactions`: lịch sử xác nhận thanh toán (VietQR / Casso / webhook / admin).
 - `settings`, `ideas`, `reviews`, `admin_sessions`.
 
-> **Lưu ý khi deploy trên Railway / Render:** Nên gắn **Persistent Volume** vào `/app/data` (hoặc đặt biến môi trường `DB_PATH=/data/deargift.db`) để dữ liệu khách hàng và file `uploads/` không bị reset khi deploy lại.
+> **Lưu ý khi deploy trên Railway ($5 Credit / Hobby):**
+> - Dùng SQLite + gắn 1 Persistent Volume nhỏ (`DB_PATH=/app/data/deargift.db`) thường tiết kiệm hơn nhiều so với bật dịch vụ PostgreSQL riêng chạy 24/7.
+> - Nếu dùng PostgreSQL (`DATABASE_URL`), hãy tắt chế độ giữ kết nối thừa để không cản container vào trạng thái ngủ (server mở/đóng kết nối theo từng truy vấn).
+
+---
+
+## ☁️ Tối Ưu Hóa Chi Phí & Tài Nguyên Trên Railway
+
+Cấu hình trong `railway.toml` và `server.py` được tối ưu để giữ mức tiêu thụ nằm gọn trong gói $5 credit:
+- **App Sleeping (Serverless)**: `sleepApplication = true` kết hợp không chạy timer nền giữ outbound socket, giúp container tự ngủ khi không có truy cập trong 5–10 phút ($0 RAM/CPU lúc rảnh).
+- **Giảm mạnh Egress ($0.05/GB)**: nén Gzip động & tĩnh kèm cache RAM giới hạn 16 MB cho mọi HTML/JSON/CSS/JS/SVG/API (`/`, `/templates.php`, `/demo.php`, `/gift.php`, `/api/templates`...), hỗ trợ `ETag` + `304 Not Modified`, cache trình duyệt 30 ngày `immutable` cho ảnh/font/nhạc/video (`.mp3`, `.m4a`, `.mp4`, `.webp`, `.woff2`), `no-store` cho dữ liệu cá nhân/thanh toán, và `robots.txt` chặn bot cào thư mục media lớn.
+- **Giảm RAM & CPU**: stream media HTTP `206 Partial Content` theo chunk 64 KB thay vì nạp cả file MP3/MP4 vào RAM; xử lý đa luồng `daemon_threads = True`; tắt log thừa trên `/health`; thoát êm khi nhận `SIGTERM`.
+
+> Khi kích hoạt thay đổi trên Railway Dashboard -> Service **Settings** -> **Serverless (App Sleeping)**, Railway yêu cầu redeploy (push lên GitHub nhánh `main` sẽ tự động build & deploy miễn phí).
 
 ---
 

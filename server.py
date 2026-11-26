@@ -8,9 +8,12 @@ Author / Owner: Nguyễn Văn Phong
 """
 
 import gzip
+import hashlib
 import io
 import http.server
+import signal
 import socketserver
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -86,7 +89,7 @@ PROTECTED_SYSTEM_FILES = {
     'server.py', 'db.py', 'schema.sql', 'deargift.db', 'cloudflared.exe',
     'settings.json', 'users.json', 'gifts.json', 'ideas.json', 'reviews.json',
     'templates_data.json', 'start.sh', 'render.yaml', 'requirements.txt',
-    'procfile', 'nixpacks.toml', '.gitignore', '.python-version'
+    'procfile', 'nixpacks.toml', 'railway.toml', '.gitignore', '.python-version'
 }
 
 def is_protected_system_file(path_str):
@@ -97,7 +100,7 @@ def is_protected_system_file(path_str):
         or clean in ('app', 'data', 'tests', 'scratch')
         or '/.git' in clean
         or clean.endswith('.map')
-        or clean in ['.env', 'render.yaml', 'requirements.txt', 'procfile', 'nixpacks.toml', 'server.py', 'users.json', 'gifts.json', 'settings.json']
+        or clean in ['.env', 'render.yaml', 'requirements.txt', 'procfile', 'nixpacks.toml', 'railway.toml', 'server.py', 'users.json', 'gifts.json', 'settings.json']
     ):
         return True
     # Allow public asset data (e.g. assets/data/*.json, templates/*.json)
@@ -296,24 +299,147 @@ def save_templates(data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
+_NO_STORE_PREFIXES = (
+    '/health', '/healthz', '/ping', '/ajax_', '/admin',
+    '/my-gifts', '/orders', '/transactions', '/settings', '/payment',
+    '/gift-builder', '/login', '/register', '/logout', '/auth_',
+    '/gift.php', '/gift/', '/v3/', '/templates/_v3/live',
+    '/api/stats', '/api/gifts', '/api/my-', '/api/auth/', '/api/admin/',
+    '/api/settings', '/api/gift/', '/api/webhook/', '/api_submit', '/api_csrf'
+)
+
+def _is_no_store_path(path_str):
+    p_clean = (path_str or '/').lower().split('?', 1)[0]
+    if p_clean in ('/health', '/healthz', '/ping') or p_clean.startswith(_NO_STORE_PREFIXES):
+        return True
+    if '/builder.' in p_clean:
+        return True
+    return False
+
+_STATIC_CACHE_LOCK = threading.Lock()
+_STATIC_GZ_CACHE = {}  # path -> (mtime_ns, size, raw_bytes, gz_bytes_or_empty, etag, mtime, mem_sz)
+_STATIC_CACHE_BYTES = 0
+_STATIC_CACHE_MAX_BYTES = 16 * 1024 * 1024
+_STATIC_CACHE_MAX_FILE = 1024 * 1024
+
+def _get_cached_static_file(file_path, allow_gzip=True):
+    """Return (raw_bytes, gz_bytes_or_none, etag, mtime) using bounded 16MB RAM cache."""
+    global _STATIC_CACHE_BYTES
+    fs = os.stat(file_path)
+    mtime_ns = getattr(fs, 'st_mtime_ns', int(fs.st_mtime * 1_000_000_000))
+    fsize = fs.st_size
+    etag = f'"{int(fs.st_mtime)}-{fsize}"'
+
+    if fsize > _STATIC_CACHE_MAX_FILE:
+        with open(file_path, 'rb') as f:
+            raw_data = f.read()
+        gz_data = None
+        if allow_gzip and fsize > 256:
+            cand = gzip.compress(raw_data, compresslevel=5)
+            if len(cand) < len(raw_data):
+                gz_data = cand
+        return raw_data, gz_data, etag, fs.st_mtime
+
+    with _STATIC_CACHE_LOCK:
+        cached = _STATIC_GZ_CACHE.get(file_path)
+        if cached and cached[0] == mtime_ns and cached[1] == fsize:
+            _, _, raw_data, gz_data, cached_etag, cached_mtime, _ = cached
+            if allow_gzip and gz_data is None and fsize > 256:
+                cand = gzip.compress(raw_data, compresslevel=5)
+                gz_data = cand if len(cand) < len(raw_data) else b''
+                mem_sz = len(raw_data) + len(gz_data)
+                _STATIC_GZ_CACHE[file_path] = (mtime_ns, fsize, raw_data, gz_data, cached_etag, cached_mtime, mem_sz)
+                _STATIC_CACHE_BYTES += len(gz_data)
+            return raw_data, (gz_data if gz_data else None), cached_etag, cached_mtime
+
+    with open(file_path, 'rb') as f:
+        raw_data = f.read()
+    gz_data = None
+    if allow_gzip and fsize > 256:
+        cand = gzip.compress(raw_data, compresslevel=5)
+        gz_data = cand if len(cand) < len(raw_data) else b''
+
+    mem_sz = len(raw_data) + (len(gz_data) if gz_data else 0)
+    with _STATIC_CACHE_LOCK:
+        old = _STATIC_GZ_CACHE.pop(file_path, None)
+        if old:
+            _STATIC_CACHE_BYTES -= old[6]
+        while _STATIC_GZ_CACHE and (_STATIC_CACHE_BYTES + mem_sz > _STATIC_CACHE_MAX_BYTES or len(_STATIC_GZ_CACHE) >= 96):
+            oldest_k = next(iter(_STATIC_GZ_CACHE))
+            evicted = _STATIC_GZ_CACHE.pop(oldest_k)
+            _STATIC_CACHE_BYTES -= evicted[6]
+        _STATIC_GZ_CACHE[file_path] = (mtime_ns, fsize, raw_data, gz_data, etag, fs.st_mtime, mem_sz)
+        _STATIC_CACHE_BYTES += mem_sz
+    return raw_data, (gz_data if gz_data else None), etag, fs.st_mtime
+
+def _cleanup_failed_logins(now_ts):
+    stale = [
+        ip for ip, rec in ADMIN_FAILED_LOGINS.items()
+        if (rec.get('lockout_until', 0) and rec.get('lockout_until', 0) + 3600 < now_ts)
+        or (not rec.get('lockout_until', 0) and rec.get('count', 0) == 0)
+    ]
+    for ip in stale:
+        ADMIN_FAILED_LOGINS.pop(ip, None)
+    while len(ADMIN_FAILED_LOGINS) > 512:
+        ADMIN_FAILED_LOGINS.pop(next(iter(ADMIN_FAILED_LOGINS)), None)
+
+
 class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
+        self._cache_control_sent = False
         super().__init__(*args, directory=DIRECTORY, **kwargs)
+
+    def log_message(self, format, *args):
+        if args and isinstance(args[0], str) and args[0].startswith(('GET /health', 'HEAD /health', 'GET /ping')):
+            return
+        super().log_message(format, *args)
+
+    def send_response(self, code, message=None):
+        self._cache_control_sent = False
+        super().send_response(code, message)
+
+    def send_header(self, keyword, value):
+        if keyword.lower() == 'cache-control':
+            self._cache_control_sent = True
+        super().send_header(keyword, value)
+
+    def _etag_matches(self, etag):
+        if not etag:
+            return False
+        inm = (self.headers.get('If-None-Match') or '').strip()
+        if not inm:
+            return False
+        if inm == '*':
+            return True
+        norm_target = etag[2:] if etag.startswith('W/') else etag
+        for part in inm.split(','):
+            cand = part.strip()
+            if cand.startswith('W/'):
+                cand = cand[2:]
+            if cand == norm_target:
+                return True
+        return False
 
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
-        # Aggressive Bandwidth Saving: Client & CDN Cache Headers
-        p_clean = self.path.lower().split('?')[0]
-        if any(p_clean.endswith(ext) for ext in ('.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.mp3', '.mp4', '.wav', '.ogg')):
-            self.send_header('Cache-Control', 'public, max-age=2592000, immutable')
-        elif any(p_clean.endswith(ext) for ext in ('.css', '.js')):
-            self.send_header('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400')
-        elif any(p_clean.endswith(ext) for ext in ('.html', '.php', '.json')) or p_clean in ('', '/'):
-            self.send_header('Cache-Control', 'public, max-age=300, must-revalidate')
+        if not self._cache_control_sent:
+            p_clean = (self.path or '/').lower().split('?', 1)[0]
+            if _is_no_store_path(p_clean):
+                self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, private')
+            elif p_clean.startswith('/api/'):
+                self.send_header('Cache-Control', 'public, max-age=300, must-revalidate')
+            elif any(p_clean.endswith(ext) for ext in ('.png', '.jpg', '.jpeg', '.webp', '.avif', '.gif', '.svg', '.ico', '.woff', '.woff2', '.ttf', '.otf', '.mp3', '.m4a', '.mp4', '.webm', '.wav', '.ogg')):
+                self.send_header('Cache-Control', 'public, max-age=2592000, immutable')
+            elif any(p_clean.endswith(ext) for ext in ('.css', '.js')):
+                self.send_header('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400')
+            elif p_clean.endswith('.txt'):
+                self.send_header('Cache-Control', 'public, max-age=86400')
+            elif any(p_clean.endswith(ext) for ext in ('.html', '.php', '.json')) or p_clean in ('', '/'):
+                self.send_header('Cache-Control', 'public, max-age=300, must-revalidate')
         super().end_headers()
 
     def send_head(self):
-        # Serve static files with automatic Gzip compression & ETag support
+        # Serve static files with cached Gzip compression & ETag support
         path = self.translate_path(self.path)
         if os.path.isdir(path):
             parts = urllib.parse.urlsplit(self.path)
@@ -338,32 +464,33 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(404, "File not found")
             return None
 
-        # ETag & 304 Not Modified check (Saves 100% bandwidth on cached files)
+        compress_types = ('text/', 'application/javascript', 'text/javascript', 'application/json', 'image/svg+xml')
+        is_compressible = any(ctype.startswith(t) for t in compress_types)
         etag = f'"{int(fs.st_mtime)}-{fs.st_size}"'
-        if self.headers.get('If-None-Match') == etag:
+        if self._etag_matches(etag):
             self.send_response(304)
             self.send_header('ETag', etag)
+            if is_compressible:
+                self.send_header('Vary', 'Accept-Encoding')
             self.end_headers()
             return None
 
-        # Compress text, js, css, json, svg with Gzip on the fly
-        accepts_gzip = 'gzip' in self.headers.get('Accept-Encoding', '')
-        compress_types = ('text/', 'application/javascript', 'application/json', 'image/svg+xml')
-        should_compress = accepts_gzip and any(ctype.startswith(t) for t in compress_types) and fs.st_size > 256
+        accepts_gzip = 'gzip' in (self.headers.get('Accept-Encoding') or '').lower()
+        should_compress = accepts_gzip and is_compressible and fs.st_size > 256
 
         if should_compress:
             try:
-                with open(path, 'rb') as orig_f:
-                    raw_data = orig_f.read()
-                compressed_data = gzip.compress(raw_data, compresslevel=6)
-                self.send_response(200)
-                self.send_header("Content-Type", ctype)
-                self.send_header("Content-Encoding", "gzip")
-                self.send_header("Content-Length", str(len(compressed_data)))
-                self.send_header("ETag", etag)
-                self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
-                self.end_headers()
-                return io.BytesIO(compressed_data)
+                _, compressed_data, cached_etag, cached_mtime = _get_cached_static_file(path, allow_gzip=True)
+                if compressed_data:
+                    self.send_response(200)
+                    self.send_header("Content-Type", ctype)
+                    self.send_header("Content-Encoding", "gzip")
+                    self.send_header("Vary", "Accept-Encoding")
+                    self.send_header("Content-Length", str(len(compressed_data)))
+                    self.send_header("ETag", cached_etag)
+                    self.send_header("Last-Modified", self.date_time_string(cached_mtime))
+                    self.end_headers()
+                    return io.BytesIO(compressed_data)
             except Exception:
                 pass
 
@@ -375,6 +502,8 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         self.send_response(200)
         self.send_header("Content-Type", ctype)
+        if is_compressible:
+            self.send_header("Vary", "Accept-Encoding")
         self.send_header("Content-Length", str(fs[6]))
         self.send_header("ETag", etag)
         self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
@@ -424,11 +553,15 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        path = parsed.path
+        query = urllib.parse.parse_qs(parsed.query)
+
+        # Lightweight Railway / load-balancer healthcheck (no-store, zero DB query)
+        if path in ('/health', '/healthz', '/ping'):
+            return self.send_json_response({"status": "ok", "service": "deargift"}, allow_etag=False)
+
         if self.path.startswith('/api/gift-settings'):
-            self.send_response(200)
-            self.send_header('Content-Type', 'application/json; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
             resp_data = {
                 "success": True,
                 "data": {
@@ -441,21 +574,36 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     }
                 }
             }
-            self.wfile.write(json.dumps(resp_data).encode('utf-8'))
-            return
-        parsed = urllib.parse.urlparse(self.path)
-        path = parsed.path
-        query = urllib.parse.parse_qs(parsed.query)
+            return self.send_json_response(resp_data)
 
         # Block access to internal/sensitive system files
         if is_protected_system_file(path):
             self.send_error(404, "File not found")
             return
 
+        # Serve /favicon.ico cleanly from brand icon (prevents noisy 404 egress)
+        if path == '/favicon.ico' and not os.path.exists(os.path.join(DIRECTORY, 'favicon.ico')):
+            fav_png = os.path.join(DIRECTORY, 'assets', 'images', 'logo-heart-32.png')
+            if os.path.exists(fav_png):
+                try:
+                    raw_fav, _, _, _ = _get_cached_static_file(fav_png, allow_gzip=False)
+                    return self.send_bytes_response(raw_fav, content_type='image/png', allow_etag=True, compressible=False)
+                except Exception:
+                    pass
+
         # Media file handling (Video and Audio with full HTTP 206 Range support)
         if path.lower().endswith(('.mp4', '.webm', '.mp3', '.m4a', '.wav', '.ogg')):
             fname = os.path.basename(path)
-            ctype = 'video/mp4' if fname.endswith('.mp4') else ('video/webm' if fname.endswith('.webm') else ('audio/mpeg' if fname.endswith('.mp3') else 'audio/wav'))
+            fname_low = fname.lower()
+            ext_mime_map = {
+                '.mp4': 'video/mp4',
+                '.webm': 'video/webm',
+                '.mp3': 'audio/mpeg',
+                '.m4a': 'audio/mp4',
+                '.ogg': 'audio/ogg',
+                '.wav': 'audio/wav',
+            }
+            ctype = next((m for ext, m in ext_mime_map.items() if fname_low.endswith(ext)), 'application/octet-stream')
             
             # Direct path check
             direct = os.path.join(DIRECTORY, path.lstrip('/'))
@@ -1155,7 +1303,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             client_ip = self.headers.get('CF-Connecting-IP') or self.headers.get('X-Forwarded-For') or (self.client_address[0] if self.client_address else 'unknown')
             client_ip = client_ip.split(',')[0].strip()
             now = datetime.now().timestamp()
-            
+            if len(ADMIN_FAILED_LOGINS) > 128:
+                _cleanup_failed_logins(now)
+
             # Anti Brute-Force Check
             rec = ADMIN_FAILED_LOGINS.get(client_ip, {'count': 0, 'lockout_until': 0})
             if rec.get('lockout_until', 0) > now:
@@ -1314,12 +1464,6 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             demo_path = os.path.join(DIRECTORY, 'demos', 'demo_69.html')
         
         if demo_path and os.path.exists(demo_path):
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.send_header('Content-Security-Policy', "frame-ancestors *")
-            self.send_header('X-Frame-Options', 'ALLOWALL')
-            self.end_headers()
             with open(demo_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
             content = self.clean_asset_paths(content)
@@ -1621,7 +1765,14 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 content += helper_script
 
-            self.wfile.write(content.encode('utf-8'))
+            self.send_bytes_response(
+                content,
+                content_type='text/html; charset=utf-8',
+                extra_headers={
+                    'Content-Security-Policy': 'frame-ancestors *',
+                    'X-Frame-Options': 'ALLOWALL',
+                },
+            )
         else:
             self.send_error(404, "Demo template not found")
 
@@ -1799,11 +1950,7 @@ try {{
 </body>
 </html>"""
         html = self.clean_asset_paths(html)
-        self.send_response(200)
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(html.encode('utf-8'))
+        self.send_bytes_response(html)
 
     def serve_custom_gift(self, uid, slug=None):
         gift = get_gift(uid) if uid else None
@@ -1897,11 +2044,7 @@ setInterval(pollStatus, 2500);
 </script>
 </body>
 </html>"""
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
-            self.end_headers()
-            self.wfile.write(pending_html.encode('utf-8'))
+            self.send_bytes_response(pending_html, allow_etag=False)
             return
 
         # Active gift: serve full template
@@ -1984,11 +2127,7 @@ setInterval(pollStatus, 2500);
         """
         content = content.replace('</body>', f'{override_js}</body>')
 
-        self.send_response(200)
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(content.encode('utf-8'))
+        self.send_bytes_response(content)
 
     def clean_asset_paths(self, content):
         # DO NOT strip <base> tags because templates rely on remote styles/scripts/images!
@@ -2077,31 +2216,101 @@ setInterval(pollStatus, 2500);
             self.send_header('Set-Cookie', cookie)
         self.end_headers()
 
-    def send_json_response(self, data, status=200, cookie=None):
-        body = json.dumps(data, ensure_ascii=False).encode('utf-8')
+    def send_bytes_response(self, raw_bytes, content_type='text/html; charset=utf-8', status=200, cookie=None, allow_etag=None, compressible=True, extra_headers=None):
+        if isinstance(raw_bytes, str):
+            raw_bytes = raw_bytes.encode('utf-8')
+        if allow_etag is None:
+            allow_etag = (self.command in ('GET', 'HEAD') and status == 200 and not cookie and not _is_no_store_path(self.path))
+
+        etag = None
+        if allow_etag:
+            digest = hashlib.md5(raw_bytes, usedforsecurity=False).hexdigest()[:12]
+            etag = f'"{digest}-{len(raw_bytes)}"'
+            if self._etag_matches(etag):
+                self.send_response(304)
+                self.send_header('ETag', etag)
+                if compressible:
+                    self.send_header('Vary', 'Accept-Encoding')
+                self.end_headers()
+                return
+
+        payload = raw_bytes
+        use_gzip = False
+        if compressible and len(raw_bytes) >= 256 and 'gzip' in (self.headers.get('Accept-Encoding') or '').lower():
+            gz = gzip.compress(raw_bytes, compresslevel=5)
+            if len(gz) < len(raw_bytes):
+                payload = gz
+                use_gzip = True
+
         self.send_response(status)
-        self.send_header('Content-Type', 'application/json; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-CSRF-Token, X-User')
+        self.send_header('Content-Type', content_type)
+        if use_gzip:
+            self.send_header('Content-Encoding', 'gzip')
+        if compressible:
+            self.send_header('Vary', 'Accept-Encoding')
+        if etag:
+            self.send_header('ETag', etag)
+        self.send_header('Content-Length', str(len(payload)))
         if cookie:
             self.send_header('Set-Cookie', cookie)
-        self.send_header('Content-Length', str(len(body)))
+        if extra_headers:
+            for k, v in extra_headers.items():
+                self.send_header(k, v)
         self.end_headers()
-        self.wfile.write(body)
+        if self.command != 'HEAD':
+            try:
+                self.wfile.write(payload)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                pass
+
+    def send_json_response(self, data, status=200, cookie=None, allow_etag=None):
+        body = json.dumps(data, ensure_ascii=False).encode('utf-8')
+        self.send_bytes_response(
+            body,
+            content_type='application/json; charset=utf-8',
+            status=status,
+            cookie=cookie,
+            allow_etag=allow_etag,
+            extra_headers={
+                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-CSRF-Token, X-User',
+            },
+        )
 
     def serve_file(self, filename, cookie=None):
         file_path = os.path.join(DIRECTORY, filename)
-        if os.path.exists(file_path):
+        if not os.path.exists(file_path):
+            self.send_error(404, f"{filename} not found")
+            return
+        try:
+            accepts_gzip = 'gzip' in (self.headers.get('Accept-Encoding') or '').lower()
+            raw_data, gz_data, etag, mtime = _get_cached_static_file(file_path, allow_gzip=accepts_gzip)
+            allow_etag = (cookie is None and not _is_no_store_path(self.path))
+            if allow_etag and self._etag_matches(etag):
+                self.send_response(304)
+                self.send_header('ETag', etag)
+                self.send_header('Vary', 'Accept-Encoding')
+                self.end_headers()
+                return
+
+            payload = gz_data if (accepts_gzip and gz_data) else raw_data
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
-            self.send_header('Access-Control-Allow-Origin', '*')
+            if accepts_gzip and gz_data:
+                self.send_header('Content-Encoding', 'gzip')
+            self.send_header('Vary', 'Accept-Encoding')
+            if allow_etag:
+                self.send_header('ETag', etag)
+            self.send_header('Last-Modified', self.date_time_string(mtime))
+            self.send_header('Content-Length', str(len(payload)))
             if cookie:
                 self.send_header('Set-Cookie', cookie)
             self.end_headers()
-            with open(file_path, 'rb') as f:
-                self.wfile.write(f.read())
-        else:
+            try:
+                self.wfile.write(payload)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                pass
+        except OSError:
             self.send_error(404, f"{filename} not found")
 
     def serve_media_with_range(self, file_path, content_type):
@@ -2111,23 +2320,61 @@ setInterval(pollStatus, 2500);
 
         file_size = os.path.getsize(file_path)
         range_header = self.headers.get('Range')
+        chunk_size = 65536
 
         if not range_header:
+            etag = None
+            try:
+                fs = os.stat(file_path)
+                etag = f'"{int(fs.st_mtime)}-{fs.st_size}"'
+                if self._etag_matches(etag):
+                    self.send_response(304)
+                    self.send_header('ETag', etag)
+                    self.end_headers()
+                    return
+            except OSError:
+                pass
             self.send_response(200)
             self.send_header('Content-Type', content_type)
             self.send_header('Content-Length', str(file_size))
             self.send_header('Accept-Ranges', 'bytes')
-            self.send_header('Access-Control-Allow-Origin', '*')
+            if etag:
+                self.send_header('ETag', etag)
             self.end_headers()
-            with open(file_path, 'rb') as f:
-                self.wfile.write(f.read())
+            try:
+                with open(file_path, 'rb') as f:
+                    while True:
+                        chunk = f.read(chunk_size)
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                pass
             return
 
         try:
-            bytes_range = range_header.strip().split('=')[1]
-            parts = bytes_range.split('-')
-            start = int(parts[0]) if parts[0] else 0
-            end = int(parts[1]) if len(parts) > 1 and parts[1] else file_size - 1
+            unit, _, range_spec = range_header.strip().partition('=')
+            if unit.lower() != 'bytes' or not range_spec:
+                raise ValueError("Unsupported range unit")
+            first_range = range_spec.split(',')[0].strip()
+            start_str, _, end_str = first_range.partition('-')
+            if not start_str and not end_str:
+                raise ValueError("Empty range")
+            if not start_str:
+                suffix = int(end_str)
+                if suffix <= 0:
+                    raise ValueError("Invalid suffix")
+                start = max(0, file_size - suffix)
+                end = file_size - 1
+            else:
+                start = int(start_str)
+                end = int(end_str) if end_str else file_size - 1
+            if file_size == 0 or start >= file_size or start < 0 or end < start:
+                self.send_response(416, "Range Not Satisfiable")
+                self.send_header('Content-Range', f'bytes */{file_size}')
+                self.send_header('Content-Length', '0')
+                self.end_headers()
+                return
             if end >= file_size:
                 end = file_size - 1
             length = end - start + 1
@@ -2137,12 +2384,22 @@ setInterval(pollStatus, 2500);
             self.send_header('Content-Range', f'bytes {start}-{end}/{file_size}')
             self.send_header('Content-Length', str(length))
             self.send_header('Accept-Ranges', 'bytes')
-            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
 
-            with open(file_path, 'rb') as f:
-                f.seek(start)
-                self.wfile.write(f.read(length))
+            try:
+                with open(file_path, 'rb') as f:
+                    f.seek(start)
+                    remaining = length
+                    while remaining > 0:
+                        chunk = f.read(min(chunk_size, remaining))
+                        if not chunk:
+                            break
+                        self.wfile.write(chunk)
+                        remaining -= len(chunk)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                pass
+        except ValueError as e:
+            self.send_error(416, f"Invalid range: {e}")
         except Exception as e:
             self.send_error(500, f"Range error: {e}")
 
@@ -2229,17 +2486,28 @@ setInterval(pollStatus, 2500);
                 content = content.replace('class="gb-section active" id="sec-v3"', 'class="gb-section" id="sec-v3" style="display:none;"')
                 content = content.replace('class="gb-section " id="sec-letter"', 'class="gb-section active" id="sec-letter"')
 
-        self.send_response(200)
-        self.send_header('Content-Type', 'text/html; charset=utf-8')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.end_headers()
-        self.wfile.write(content.encode('utf-8'))
+        self.send_bytes_response(content, allow_etag=False)
+
+
+class _DearGiftHTTPServer(socketserver.ThreadingTCPServer):
+    allow_reuse_address = True
+    daemon_threads = True
 
 
 def run():
-    db_path = db.init_db()
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.ThreadingTCPServer(("", PORT), DearGiftHandler) as httpd:
+    db.init_db()
+    with _DearGiftHTTPServer(("", PORT), DearGiftHandler) as httpd:
+        def _handle_sigterm(signum, frame):
+            threading.Thread(target=httpd.shutdown, daemon=True).start()
+
+        for sig_name in ('SIGTERM', 'SIGINT'):
+            sig = getattr(signal, sig_name, None)
+            if sig is not None:
+                try:
+                    signal.signal(sig, _handle_sigterm)
+                except Exception:
+                    pass
+
         print(f"=======================================================")
         print(f"🚀 DearGift Full Production Server is running on port {PORT}!")
         print(f"👉 Client Home:    http://localhost:{PORT}/")
