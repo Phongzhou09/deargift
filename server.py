@@ -9,13 +9,17 @@ Author / Owner: Nguyễn Văn Phong
 
 import gzip
 import hashlib
+import hmac
+import html
 import io
 import http.server
+import secrets
 import signal
 import socket
 import socketserver
 import threading
 import time
+import traceback
 import urllib.parse
 import urllib.request
 import json
@@ -38,16 +42,277 @@ PORT = int(os.environ.get('PORT', 8000))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
 CASSO_API_KEY = os.environ.get('CASSO_API_KEY', 'AK_CS.731c4690e73211f1a336b350062e06ec.fnn7zlR3fmIm8rCUy8Kr1I0rIJSQuZL80mEA0aL5UQ7mvncDXRoKYwLWRsybWRI9K4jlo3Or').strip()
 _last_casso_sync = 0
+_CASSO_LOCK = threading.Lock()
+_SECRET_LOCK = threading.Lock()
+_SECRET_CACHE = {}
+
+ALLOWED_IMAGE_EXTS = {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+ALLOWED_AUDIO_EXTS = {'.mp3', '.m4a', '.wav', '.ogg'}
+ALLOWED_VIDEO_EXTS = {'.mp4', '.webm', '.mov', '.3gp'}
+ALLOWED_UPLOAD_EXTS = ALLOWED_IMAGE_EXTS | ALLOWED_AUDIO_EXTS | ALLOWED_VIDEO_EXTS
+
+
+def _validate_uploaded_bytes(ext: str, raw: bytes) -> bool:
+    """Basic file-signature check preventing disguised scripts/HTML uploads."""
+    if not raw:
+        return False
+    ext = ext.lower()
+    if ext in ('.jpg', '.jpeg'):
+        return raw.startswith(b'\xff\xd8\xff')
+    if ext == '.png':
+        return raw.startswith(b'\x89PNG\r\n\x1a\n')
+    if ext == '.gif':
+        return raw.startswith((b'GIF87a', b'GIF89a'))
+    if ext == '.webp':
+        return len(raw) >= 12 and raw[:4] == b'RIFF' and raw[8:12] == b'WEBP'
+    if ext == '.wav':
+        return len(raw) >= 12 and raw[:4] == b'RIFF' and raw[8:12] == b'WAVE'
+    if ext == '.ogg':
+        return raw.startswith(b'OggS')
+    if ext == '.mp3':
+        return raw.startswith(b'ID3') or (len(raw) >= 2 and raw[0] == 0xFF and (raw[1] & 0xE0) == 0xE0)
+    if ext in ('.m4a', '.mp4', '.mov', '.3gp'):
+        return len(raw) >= 12 and (b'ftyp' in raw[:32] or b'moov' in raw[:32])
+    if ext == '.webm':
+        return raw.startswith(b'\x1a\x45\xdf\xa3')
+    return False
+
+
+def _read_or_create_secret(filename: str, env_names: tuple) -> bytes:
+    for ename in env_names:
+        val = (os.environ.get(ename) or '').strip()
+        if val:
+            return val.encode('utf-8')
+    with _SECRET_LOCK:
+        cached = _SECRET_CACHE.get(filename)
+        if cached:
+            return cached
+        os.makedirs(db.DATA_DIR, exist_ok=True)
+        spath = os.path.join(db.DATA_DIR, filename)
+        secret_hex = ''
+        if os.path.exists(spath):
+            try:
+                with open(spath, 'r', encoding='utf-8') as f:
+                    secret_hex = f.read().strip()
+            except Exception:
+                secret_hex = ''
+        if len(secret_hex) < 32:
+            secret_hex = secrets.token_hex(32)
+            try:
+                fd = os.open(spath, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+                with os.fdopen(fd, 'w', encoding='utf-8') as f:
+                    f.write(secret_hex)
+            except Exception:
+                pass
+        bval = secret_hex.encode('utf-8')
+        _SECRET_CACHE[filename] = bval
+        return bval
+
+
+def _get_session_secret() -> bytes:
+    return _read_or_create_secret('.session_secret', ('DG_SESSION_SECRET', 'SESSION_SECRET'))
+
+
+def _get_webhook_secret() -> str:
+    return _read_or_create_secret('.webhook_secret', ('WEBHOOK_SECRET', 'CASSO_WEBHOOK_SECRET')).decode('utf-8')
+
+
+class _AuthRateLimiter:
+    """Thread-safe sliding/lockout rate limiter to block brute-force and automated scraping."""
+
+    def __init__(self, max_attempts: int, window_seconds: int, max_keys: int = 2048):
+        self.max_attempts = max_attempts
+        self.window_seconds = window_seconds
+        self.max_keys = max_keys
+        self._lock = threading.Lock()
+        self._records = {}  # key -> [count, reset_ts]
+
+    def is_limited(self, key: str):
+        now = time.time()
+        with self._lock:
+            rec = self._records.get(key)
+            if not rec:
+                return False, 0
+            count, reset_ts = rec
+            if now >= reset_ts:
+                self._records.pop(key, None)
+                return False, 0
+            if count >= self.max_attempts:
+                return True, max(1, int(reset_ts - now))
+            return False, 0
+
+    def record(self, key: str):
+        now = time.time()
+        with self._lock:
+            if len(self._records) > self.max_keys:
+                stale = [k for k, v in self._records.items() if now >= v[1]]
+                for k in stale:
+                    self._records.pop(k, None)
+                while len(self._records) >= self.max_keys:
+                    self._records.pop(next(iter(self._records)), None)
+            rec = self._records.get(key)
+            if not rec or now >= rec[1]:
+                rec = [1, now + self.window_seconds]
+            else:
+                rec[0] += 1
+            self._records[key] = rec
+            remaining = max(0, self.max_attempts - rec[0])
+            limited = rec[0] >= self.max_attempts
+            wait_sec = max(1, int(rec[1] - now)) if limited else 0
+            return limited, remaining, wait_sec
+
+    def check_and_consume(self, key: str):
+        now = time.time()
+        with self._lock:
+            if len(self._records) > self.max_keys:
+                stale = [k for k, v in self._records.items() if now >= v[1]]
+                for k in stale:
+                    self._records.pop(k, None)
+                while len(self._records) >= self.max_keys:
+                    self._records.pop(next(iter(self._records)), None)
+            rec = self._records.get(key)
+            if not rec or now >= rec[1]:
+                self._records[key] = [1, now + self.window_seconds]
+                return False, max(0, self.max_attempts - 1), 0
+            if rec[0] >= self.max_attempts:
+                return True, 0, max(1, int(rec[1] - now))
+            rec[0] += 1
+            self._records[key] = rec
+            return False, max(0, self.max_attempts - rec[0]), 0
+
+    def reset(self, key: str):
+        with self._lock:
+            self._records.pop(key, None)
+
+
+_LOGIN_IP_LIMITER = _AuthRateLimiter(max_attempts=20, window_seconds=900)
+_LOGIN_ACCOUNT_LIMITER = _AuthRateLimiter(max_attempts=5, window_seconds=900)
+_REGISTER_LIMITER = _AuthRateLimiter(max_attempts=5, window_seconds=900)
+_GOOGLE_AUTH_LIMITER = _AuthRateLimiter(max_attempts=10, window_seconds=900)
+_SETTINGS_LIMITER = _AuthRateLimiter(max_attempts=10, window_seconds=900)
+_FEEDBACK_LIMITER = _AuthRateLimiter(max_attempts=15, window_seconds=900)
+_CREATE_LIMITER = _AuthRateLimiter(max_attempts=40, window_seconds=900)
+
+
+def _normalize_ip(ip_str: str) -> str:
+    ip = str(ip_str or '').strip()
+    if ip.startswith('::ffff:'):
+        ip = ip[7:]
+    return ip or 'unknown'
+
+
+def _is_trusted_proxy_peer(ip_str: str) -> bool:
+    ip = _normalize_ip(ip_str)
+    return (
+        ip in ('127.0.0.1', '::1', 'localhost')
+        or ip.startswith(('10.', '192.168.', '100.64.', '172.16.', '172.17.', '172.18.', '172.19.', '172.2', '172.30.', '172.31.'))
+    )
+
+
+def _get_client_ip(handler) -> str:
+    peer_ip = _normalize_ip(handler.client_address[0] if handler.client_address else '')
+    if _is_trusted_proxy_peer(peer_ip):
+        cf_ip = handler.headers.get('CF-Connecting-IP', '').strip()
+        if cf_ip:
+            return _normalize_ip(cf_ip.split(',')[0])
+        xff = handler.headers.get('X-Forwarded-For', '').strip()
+        if xff:
+            parts = [p.strip() for p in xff.split(',') if p.strip()]
+            if parts:
+                return _normalize_ip(parts[-1])
+        x_real = handler.headers.get('X-Real-IP', '').strip()
+        if x_real:
+            return _normalize_ip(x_real)
+    return peer_ip
+
+
+def make_session_token(user: dict, ttl_seconds: int = 86400) -> str:
+    if not isinstance(user, dict) or not user.get('id'):
+        return ''
+    now = int(time.time())
+    payload_obj = {
+        'uid': str(user['id']),
+        'u': str(user.get('username') or user.get('email') or ''),
+        'role': str(user.get('role') or 'customer'),
+        'pv': db.get_user_auth_stamp(str(user['id'])),
+        'iat': now,
+        'exp': now + ttl_seconds,
+    }
+    raw = json.dumps(payload_obj, separators=(',', ':'), sort_keys=True).encode('utf-8')
+    b64 = base64.urlsafe_b64encode(raw).decode('ascii').rstrip('=')
+    sig = hmac.new(_get_session_secret(), b64.encode('ascii'), hashlib.sha256).hexdigest()
+    return f"dgs1.{b64}.{sig}"
+
+
+def verify_session_token(token: str):
+    tok = str(token or '').strip()
+    if not tok.startswith('dgs1.'):
+        return None
+    parts = tok.split('.')
+    if len(parts) != 3:
+        return None
+    _, b64, sig = parts
+    expected = hmac.new(_get_session_secret(), b64.encode('ascii'), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sig, expected):
+        return None
+    try:
+        padded = b64 + '=' * (-len(b64) % 4)
+        data = json.loads(base64.urlsafe_b64decode(padded).decode('utf-8'))
+        if not isinstance(data, dict):
+            return None
+        if int(data.get('exp') or 0) < int(time.time()):
+            return None
+        uid = str(data.get('uid') or '').strip()
+        if not uid:
+            return None
+        user = db.get_user_by_id(uid)
+        if not user:
+            return None
+        cur_pv = db.get_user_auth_stamp(uid)
+        if not hmac.compare_digest(str(data.get('pv') or ''), cur_pv):
+            return None
+        return user
+    except Exception:
+        return None
+
+
+def _is_https_request(handler) -> bool:
+    proto = (handler.headers.get('X-Forwarded-Proto') or '').split(',')[0].strip().lower()
+    return proto == 'https'
+
+
+def build_auth_cookies(handler, user: dict, max_age: int = 86400) -> list:
+    sec_attr = "; Secure" if _is_https_request(handler) else ""
+    sess_tok = make_session_token(user, ttl_seconds=max_age)
+    uname = urllib.parse.quote(str(user.get('username') or user.get('email') or 'user'))
+    return [
+        f"dg_session={sess_tok}; Path=/; Max-Age={max_age}; HttpOnly; SameSite=Lax{sec_attr}",
+        f"currentUser={uname}; Path=/; Max-Age={max_age}; SameSite=Lax{sec_attr}",
+    ]
+
+
+def clear_auth_cookies(handler) -> list:
+    sec_attr = "; Secure" if _is_https_request(handler) else ""
+    return [
+        f"dg_session=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax{sec_attr}",
+        f"currentUser=; Path=/; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax{sec_attr}",
+    ]
+
+
+def _admin_portal_cookie_token(secret_pass: str) -> str:
+    return hmac.new(_get_session_secret(), f"portal:{secret_pass}".encode('utf-8'), hashlib.sha256).hexdigest()
+
 
 def sync_casso_transactions():
     global _last_casso_sync
     api_key = os.environ.get('CASSO_API_KEY', '').strip() or CASSO_API_KEY
     if not api_key:
         return False
-    now = time.time()
-    if now - _last_casso_sync < 3:
-        return False
-    _last_casso_sync = now
+    with _CASSO_LOCK:
+        now = time.time()
+        if now - _last_casso_sync < 3:
+            return False
+        _last_casso_sync = now
     try:
         req = urllib.request.Request(
             'https://oauth.casso.vn/v2/transactions?page=1&pageSize=20&sort=DESC',
@@ -59,7 +324,13 @@ def sync_casso_transactions():
         matched = False
         for rec in records:
             desc = str(rec.get('description', '')).upper()
-            codes = db.match_and_activate_from_text(desc, gateway='casso', raw_payload=rec)
+            try:
+                rec_amt = int(float(rec.get('amount') or 0))
+            except (ValueError, TypeError):
+                rec_amt = 0
+            if rec_amt <= 0:
+                continue
+            codes = db.match_and_activate_from_text(desc, gateway='casso', raw_payload=rec, paid_amount=rec_amt)
             if codes:
                 matched = True
         return matched
@@ -72,13 +343,14 @@ try:
     if os.path.exists(cfg_file):
         with open(cfg_file, 'r', encoding='utf-8') as f:
             BUILDER_CONFIGS = json.load(f)
-except Exception as e:
+except Exception:
     pass
 TEMPLATES_DATA_FILE = os.path.join(DIRECTORY, 'templates_data.json')
 UPLOADS_DIR = os.environ.get('UPLOADS_DIR', '').strip() or os.path.join(DIRECTORY, 'uploads')
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 db.init_db()
 
+ADMIN_LOCK = threading.Lock()
 ADMIN_SESSIONS = set()
 ADMIN_FAILED_LOGINS = {}  # ip -> {'count': int, 'lockout_until': float}
 
@@ -90,11 +362,15 @@ PROTECTED_SYSTEM_FILES = {
     'server.py', 'db.py', 'schema.sql', 'deargift.db', 'cloudflared.exe',
     'settings.json', 'users.json', 'gifts.json', 'ideas.json', 'reviews.json',
     'templates_data.json', 'start.sh', 'render.yaml', 'requirements.txt',
-    'procfile', 'nixpacks.toml', 'railway.toml', '.gitignore', '.python-version'
+    'procfile', 'nixpacks.toml', 'railway.toml', '.gitignore', '.python-version',
+    '.session_secret', '.webhook_secret'
 }
 
 def is_protected_system_file(path_str):
-    clean = path_str.strip('/').split('?')[0].lower()
+    raw_path = str(path_str or '')
+    if '\x00' in raw_path or '..' in urllib.parse.unquote(raw_path):
+        return True
+    clean = raw_path.strip('/').split('?')[0].lower()
     # Block Git internals, backend code, database files, tests and config files unconditionally
     if (
         clean.startswith(('.git', 'app/', 'data/', 'tests/', 'scratch/', 'js_src_backup', '_scripts_archive'))
@@ -135,20 +411,21 @@ def can_access_admin_portal(handler, query):
     
     settings = get_settings()
     secret_pass = str(settings.get('admin_password', 'Phongzhouok')).strip()
+    expected_portal = _admin_portal_cookie_token(secret_pass)
     
     # 2. Check query secret key: ?key=... or ?secret=... or ?admin_key=...
     q_key = query.get('key', [''])[0] or query.get('secret', [''])[0] or query.get('admin_key', [''])[0]
-    if q_key and q_key == secret_pass:
+    if q_key and hmac.compare_digest(q_key, secret_pass):
         return True
         
-    # 3. Check Cookie: admin_portal_access
+    # 3. Check Cookie: admin_portal_access (HMAC token, never plaintext password)
     cookie_header = handler.headers.get('Cookie', '')
     if 'admin_portal_access=' in cookie_header:
         for piece in cookie_header.split(';'):
             piece = piece.strip()
             if piece.startswith('admin_portal_access='):
-                val = piece.split('=', 1)[1]
-                if val == secret_pass:
+                val = piece.split('=', 1)[1].strip()
+                if hmac.compare_digest(val, expected_portal):
                     return True
     return False
 
@@ -156,9 +433,14 @@ def verify_admin_request(handler):
     auth = handler.headers.get('Authorization', '')
     if auth.startswith('Bearer '):
         token = auth[7:].strip()
-        if token and (token in ADMIN_SESSIONS or db.verify_admin_session(token)):
-            ADMIN_SESSIONS.add(token)
-            return True
+        if token:
+            with ADMIN_LOCK:
+                if token in ADMIN_SESSIONS:
+                    return True
+            if db.verify_admin_session(token):
+                with ADMIN_LOCK:
+                    ADMIN_SESSIONS.add(token)
+                return True
     return False
 
 SLUG_TO_ID = {
@@ -226,19 +508,19 @@ SLUG_TO_ID = {
 }
 
 def _dlove_token_secret():
-    return (os.environ.get('DLOVE_TOKEN_SECRET') or 'deargift_dlove_secret_key_2026').encode('utf-8')
+    env_sec = (os.environ.get('DLOVE_TOKEN_SECRET') or '').strip()
+    return env_sec.encode('utf-8') if env_sec else _get_session_secret()
 
-def make_dlove_token(identifier):
-    import hmac as _hmac
+def make_dlove_token(identifier, ttl_seconds: int = 604800):
     ident = str(identifier or '').strip()
     if not ident:
         return ''
-    payload = base64.urlsafe_b64encode(ident.encode('utf-8')).decode('ascii').rstrip('=')
-    sig = _hmac.new(_dlove_token_secret(), payload.encode('utf-8'), hashlib.sha256).hexdigest()[:24]
+    payload_obj = {'u': ident, 'exp': int(time.time()) + ttl_seconds}
+    payload = base64.urlsafe_b64encode(json.dumps(payload_obj, separators=(',', ':')).encode('utf-8')).decode('ascii').rstrip('=')
+    sig = hmac.new(_dlove_token_secret(), payload.encode('utf-8'), hashlib.sha256).hexdigest()[:32]
     return f"dgtk.{payload}.{sig}"
 
 def verify_dlove_token(token):
-    import hmac as _hmac
     tok = str(token or '').strip()
     if not tok.startswith('dgtk.'):
         return ''
@@ -246,12 +528,19 @@ def verify_dlove_token(token):
     if len(parts) != 3:
         return ''
     _, payload, sig = parts
-    expected = _hmac.new(_dlove_token_secret(), payload.encode('utf-8'), hashlib.sha256).hexdigest()[:24]
-    if not _hmac.compare_digest(sig, expected):
+    expected_full = hmac.new(_dlove_token_secret(), payload.encode('utf-8'), hashlib.sha256).hexdigest()
+    expected = expected_full[:len(sig)] if len(sig) in (24, 32) else expected_full[:32]
+    if not hmac.compare_digest(sig, expected):
         return ''
     try:
         padded = payload + '=' * (-len(payload) % 4)
-        return base64.urlsafe_b64decode(padded).decode('utf-8')
+        decoded = base64.urlsafe_b64decode(padded).decode('utf-8')
+        if decoded.startswith('{'):
+            obj = json.loads(decoded)
+            if int(obj.get('exp') or 0) < int(time.time()):
+                return ''
+            return str(obj.get('u') or '').strip()
+        return decoded
     except Exception:
         return ''
 
@@ -259,48 +548,54 @@ _DLOVE_PRESIGN_TOKENS = {}
 
 
 # ----------------- JWT & GOOGLE HELPER -----------------
-def decode_jwt_payload(token):
+def verify_google_id_token(credential: str):
+    """Verify Google OAuth ID Token via Google tokeninfo endpoint."""
+    tok = str(credential or '').strip()
+    if not tok or len(tok) > 4096 or tok.count('.') != 2:
+        return None
     try:
-        parts = token.split('.')
-        if len(parts) >= 2:
-            payload = parts[1]
-            padded = payload + '=' * (-len(payload) % 4)
-            data = json.loads(base64.urlsafe_b64decode(padded).decode('utf-8'))
-            return data
+        url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' + urllib.parse.quote(tok, safe='')
+        req = urllib.request.Request(url, headers={'User-Agent': 'DearGift/1.0'})
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            if resp.status != 200:
+                return None
+            info = json.loads(resp.read().decode('utf-8'))
+        if not isinstance(info, dict):
+            return None
+        email = str(info.get('email') or '').strip().lower()
+        verified_flag = str(info.get('email_verified') or '').lower() == 'true' or info.get('email_verified') is True
+        if not email or not verified_flag:
+            return None
+        exp = int(info.get('exp') or 0)
+        if exp <= int(time.time()):
+            return None
+        expected_aud = (os.environ.get('GOOGLE_CLIENT_ID') or '').strip()
+        if expected_aud and str(info.get('aud') or '').strip() != expected_aud:
+            return None
+        return info
     except Exception:
-        pass
-    return None
+        return None
+
 
 def process_google_auth(data):
+    if not isinstance(data, dict):
+        return None, "Dữ liệu không hợp lệ!"
     credential = str(data.get('credential', '')).strip()
+    if not credential:
+        return None, "Yêu cầu xác thực Google ID Token hợp lệ! Vui lòng đăng nhập bằng tên đăng nhập và mật khẩu."
 
-    email = None
-    full_name = None
-    google_id = None
-    avatar = ""
+    info = verify_google_id_token(credential)
+    if not info:
+        return None, "Google ID Token không hợp lệ hoặc đã hết hạn!"
 
-    # 1. Nếu có token từ Google One-Tap / Sign-In thì giải mã
-    if credential:
-        jwt_data = decode_jwt_payload(credential)
-        if jwt_data and jwt_data.get('email'):
-            email = str(jwt_data.get('email', '')).strip().lower()
-            full_name = str(jwt_data.get('name', '')).strip() or email.split('@')[0]
-            google_id = str(jwt_data.get('sub', ''))
-            avatar = str(jwt_data.get('picture', ''))
+    email = str(info.get('email', '')).strip().lower()
+    full_name = str(info.get('name', '')).strip() or email.split('@')[0]
+    google_id = str(info.get('sub', '')).strip()
+    avatar = str(info.get('picture', '')).strip()
 
-    # 2. Hoặc nếu truyền email / name trực tiếp (Đăng nhập nhanh tiện lợi)
-    if not email:
-        raw_email = str(data.get('email', '')).strip().lower()
-        if raw_email and '@' in raw_email:
-            email = raw_email
-            full_name = str(data.get('name') or data.get('full_name') or email.split('@')[0]).strip()
-            google_id = uuid.uuid4().hex[:12]
-            avatar = str(data.get('avatar', ''))
-
-    if not email or '@' not in email:
-        return None, "Vui lòng nhập địa chỉ email hợp lệ!"
-
-    user = db.upsert_google_user(email=email, full_name=full_name or "", avatar=avatar, google_id=google_id or "")
+    user = db.upsert_google_user(email=email, full_name=full_name, avatar=avatar, google_id=google_id, verified=True)
+    if not user:
+        return None, "Không thể đăng nhập tài khoản này qua Google!"
     return user, None
 
 
@@ -345,6 +640,7 @@ _NO_STORE_PREFIXES = (
     '/my-gifts', '/orders', '/transactions', '/settings', '/payment',
     '/gift-builder', '/tao-vuon', '/sua-vuon', '/gift-qr', '/login', '/register', '/logout', '/auth_',
     '/gift.php', '/gift/', '/v3/', '/templates/_v3/live', '/vuon/',
+    '/api/me', '/api/login', '/api/register', '/api/logout', '/api/user/',
     '/api/stats', '/api/gifts', '/api/my-', '/api/auth/', '/api/admin/',
     '/api/settings', '/api/gift/', '/api/webhook/', '/api/payment/', '/api/dlove/', '/api_submit', '/api_csrf'
 )
@@ -414,20 +710,60 @@ def _get_cached_static_file(file_path, allow_gzip=True):
     return raw_data, (gz_data if gz_data else None), etag, fs.st_mtime
 
 def _cleanup_failed_logins(now_ts):
-    stale = [
-        ip for ip, rec in ADMIN_FAILED_LOGINS.items()
-        if (rec.get('lockout_until', 0) and rec.get('lockout_until', 0) + 3600 < now_ts)
-        or (not rec.get('lockout_until', 0) and rec.get('count', 0) == 0)
-    ]
-    for ip in stale:
-        ADMIN_FAILED_LOGINS.pop(ip, None)
-    while len(ADMIN_FAILED_LOGINS) > 512:
-        ADMIN_FAILED_LOGINS.pop(next(iter(ADMIN_FAILED_LOGINS)), None)
+    with ADMIN_LOCK:
+        stale = [
+            ip for ip, rec in ADMIN_FAILED_LOGINS.items()
+            if (rec.get('lockout_until', 0) and rec.get('lockout_until', 0) + 3600 < now_ts)
+            or (not rec.get('lockout_until', 0) and rec.get('count', 0) == 0)
+        ]
+        for ip in stale:
+            ADMIN_FAILED_LOGINS.pop(ip, None)
+        while len(ADMIN_FAILED_LOGINS) > 512:
+            ADMIN_FAILED_LOGINS.pop(next(iter(ADMIN_FAILED_LOGINS)), None)
+
+
+class _BadRequestError(Exception):
+    def __init__(self, status: int = 400, message: str = "Dữ liệu không hợp lệ!"):
+        self.status = status
+        self.message = message
+        super().__init__(message)
+
+
+_SENSITIVE_CORS_PREFIXES = (
+    '/api/me', '/api/my-', '/api/gifts', '/api/admin', '/api/settings',
+    '/api/user', '/api/login', '/api/register', '/api/logout', '/api/auth',
+    '/settings', '/auth_google', '/api/payment', '/api/webhook', '/webhook',
+    '/api/dlove/orders', '/api/dlove/configs', '/api/dlove/uploads',
+    '/api/dlove/websites', '/api/dlove/payments', '/api/dlove/auth',
+)
+
+_NOINDEX_PREFIXES = (
+    '/admin', '/my-gifts', '/orders', '/transactions', '/settings',
+    '/payment', '/gift.php', '/vuon/', '/api/', '/ajax_'
+)
 
 
 class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
+    server_version = "DearGift"
+    sys_version = ""
+    extensions_map = {
+        **http.server.SimpleHTTPRequestHandler.extensions_map,
+        '.webp': 'image/webp',
+        '.woff2': 'font/woff2',
+        '.woff': 'font/woff',
+        '.ttf': 'font/ttf',
+        '.otf': 'font/otf',
+        '.m4a': 'audio/mp4',
+        '.mp4': 'video/mp4',
+        '.webm': 'video/webm',
+        '.webmanifest': 'application/manifest+json',
+        '.svg': 'image/svg+xml',
+        '.php': 'text/html; charset=utf-8',
+    }
+
     def __init__(self, *args, **kwargs):
         self._cache_control_sent = False
+        self._sent_custom_headers = set()
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
     def log_message(self, format, *args):
@@ -437,12 +773,33 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
     def send_response(self, code, message=None):
         self._cache_control_sent = False
+        self._sent_custom_headers = set()
         super().send_response(code, message)
 
     def send_header(self, keyword, value):
-        if keyword.lower() == 'cache-control':
+        k_low = keyword.lower()
+        self._sent_custom_headers.add(k_low)
+        if k_low == 'cache-control':
             self._cache_control_sent = True
         super().send_header(keyword, value)
+
+    def _is_sensitive_endpoint(self, path_clean: str) -> bool:
+        return path_clean.startswith(_SENSITIVE_CORS_PREFIXES)
+
+    def _allowed_cors_origin(self, path_clean: str):
+        origin = (self.headers.get('Origin') or '').strip()
+        if not self._is_sensitive_endpoint(path_clean):
+            return '*'
+        if not origin:
+            return None
+        try:
+            parsed_orig = urllib.parse.urlparse(origin)
+            host_hdr = (self.headers.get('Host') or '').strip().lower()
+            if parsed_orig.scheme in ('http', 'https') and parsed_orig.netloc.lower() == host_hdr:
+                return origin
+        except Exception:
+            pass
+        return None
 
     def _etag_matches(self, etag):
         if not etag:
@@ -462,9 +819,35 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         return False
 
     def end_headers(self):
-        self.send_header('Access-Control-Allow-Origin', '*')
+        p_clean = (self.path or '/').lower().split('?', 1)[0]
+        cors_orig = self._allowed_cors_origin(p_clean)
+        if cors_orig and 'access-control-allow-origin' not in self._sent_custom_headers:
+            self.send_header('Access-Control-Allow-Origin', cors_orig)
+            if cors_orig != '*':
+                self.send_header('Access-Control-Allow-Credentials', 'true')
+                if 'vary' not in self._sent_custom_headers:
+                    self.send_header('Vary', 'Origin')
+        if 'x-content-type-options' not in self._sent_custom_headers:
+            self.send_header('X-Content-Type-Options', 'nosniff')
+        if 'x-frame-options' not in self._sent_custom_headers:
+            self.send_header('X-Frame-Options', 'SAMEORIGIN')
+        if 'content-security-policy' not in self._sent_custom_headers:
+            if p_clean.startswith('/uploads/'):
+                self.send_header('Content-Security-Policy', "default-src 'none'; sandbox")
+            else:
+                self.send_header('Content-Security-Policy', "frame-ancestors 'self'")
+        if 'referrer-policy' not in self._sent_custom_headers:
+            self.send_header('Referrer-Policy', 'strict-origin-when-cross-origin')
+        if 'permissions-policy' not in self._sent_custom_headers:
+            self.send_header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+        if 'cross-origin-opener-policy' not in self._sent_custom_headers:
+            self.send_header('Cross-Origin-Opener-Policy', 'same-origin-allow-popups')
+        if _is_https_request(self) and 'strict-transport-security' not in self._sent_custom_headers:
+            self.send_header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+        if p_clean.startswith(_NOINDEX_PREFIXES) and 'x-robots-tag' not in self._sent_custom_headers:
+            self.send_header('X-Robots-Tag', 'noindex, nofollow, noarchive')
+
         if not self._cache_control_sent:
-            p_clean = (self.path or '/').lower().split('?', 1)[0]
             if _is_no_store_path(p_clean):
                 self.send_header('Cache-Control', 'no-store, no-cache, must-revalidate, private')
             elif p_clean.startswith('/api/'):
@@ -475,7 +858,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_header('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400')
             elif p_clean.endswith('.txt'):
                 self.send_header('Cache-Control', 'public, max-age=86400')
-            elif any(p_clean.endswith(ext) for ext in ('.html', '.php', '.json')) or p_clean in ('', '/'):
+            elif any(p_clean.endswith(ext) for ext in ('.html', '.php', '.json', '.webmanifest')) or p_clean in ('', '/'):
                 self.send_header('Cache-Control', 'public, max-age=0, must-revalidate')
         super().end_headers()
 
@@ -552,71 +935,112 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         return f
 
     def get_request_user(self):
+        # Strictly trust server-verified HMAC session cookie OR signed Bearer token.
+        # NEVER trust unsigned currentUser cookie or forgeable X-User header.
         cookie_header = self.headers.get('Cookie', '')
-        username_or_email = None
-        if 'currentUser=' in cookie_header:
+        if 'dg_session=' in cookie_header:
             for piece in cookie_header.split(';'):
                 piece = piece.strip()
-                if piece.startswith('currentUser='):
-                    username_or_email = urllib.parse.unquote(piece[len('currentUser='):]).strip()
+                if piece.startswith('dg_session='):
+                    tok = urllib.parse.unquote(piece[len('dg_session='):]).strip()
+                    user = verify_session_token(tok)
+                    if user:
+                        return user
                     break
 
-        if not username_or_email:
-            username_or_email = self.headers.get('X-User', '').strip()
+        auth_h = self.headers.get('Authorization', '').strip()
+        if auth_h.lower().startswith('bearer '):
+            ident = verify_dlove_token(auth_h[7:].strip())
+            if ident:
+                return db.get_user_by_identifier(ident)
 
-        if not username_or_email:
-            auth_h = self.headers.get('Authorization', '').strip()
-            if auth_h.lower().startswith('bearer '):
-                username_or_email = verify_dlove_token(auth_h[7:].strip())
-
-        if not username_or_email:
-            return None
-
-        return db.get_user_by_identifier(username_or_email)
+        return None
 
     get_current_user = get_request_user
 
     def translate_path(self, path):
+        base_dir = os.path.realpath(DIRECTORY)
+        uploads_dir = os.path.realpath(UPLOADS_DIR)
         resolved = super().translate_path(path)
+        real_resolved = os.path.realpath(resolved)
+        if not (real_resolved == base_dir or real_resolved.startswith(base_dir + os.sep)):
+            return os.path.join(base_dir, '__invalid_traversal__')
         if not os.path.exists(resolved):
             clean = urllib.parse.urlparse(path).path.lstrip('/')
             if clean.startswith('uploads/'):
-                up_cand = os.path.join(UPLOADS_DIR, clean[len('uploads/'):])
-                if os.path.exists(up_cand):
+                up_rel = clean[len('uploads/'):].replace('\\', '/')
+                up_cand = os.path.realpath(os.path.join(uploads_dir, up_rel))
+                if up_cand.startswith(uploads_dir + os.sep) and os.path.exists(up_cand):
                     return up_cand
-            if clean and '/' not in clean:
-                legacy_cand = os.path.join(DIRECTORY, 'assets', 'legacy', clean)
-                if os.path.exists(legacy_cand):
+            if clean and '/' not in clean and '\\' not in clean:
+                legacy_cand = os.path.realpath(os.path.join(DIRECTORY, 'assets', 'legacy', clean))
+                if legacy_cand.startswith(base_dir + os.sep) and os.path.exists(legacy_cand):
                     return legacy_cand
         return resolved
 
+    def _safe_exec(self, fn):
+        try:
+            return fn()
+        except _BadRequestError as bre:
+            return self.send_json_response(
+                {"status": "error", "success": False, "message": bre.message},
+                status=bre.status,
+            )
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            return None
+        except Exception:
+            traceback.print_exc()
+            if self.is_json_request() or (self.path or '').startswith(('/api/', '/settings', '/auth_')):
+                return self.send_json_response(
+                    {"status": "error", "success": False, "message": "Có lỗi xảy ra, vui lòng thử lại sau."},
+                    status=500,
+                )
+            return self.send_error(500, "Internal Server Error")
+
     def do_OPTIONS(self):
+        p_clean = (self.path or '/').lower().split('?', 1)[0]
         self.send_response(200, "OK")
-        self.send_header('Access-Control-Allow-Origin', '*')
+        cors_orig = self._allowed_cors_origin(p_clean)
+        if cors_orig:
+            self.send_header('Access-Control-Allow-Origin', cors_orig)
+            if cors_orig != '*':
+                self.send_header('Access-Control-Allow-Credentials', 'true')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Idempotency-Key, X-Requested-With, X-CSRF-Token, X-User')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Idempotency-Key, X-Requested-With, X-CSRF-Token, X-Webhook-Secret, Secure-Token')
         self.send_header('Content-Length', '0')
         self.end_headers()
 
     def do_PUT(self):
-        parsed = urllib.parse.urlparse(self.path)
-        if parsed.path.startswith('/api/dlove/'):
-            return self.handle_dlove_put(parsed.path, urllib.parse.parse_qs(parsed.query))
-        self.send_error(404, "Endpoint not found")
+        def _run():
+            parsed = urllib.parse.urlparse(self.path)
+            if parsed.path.startswith('/api/dlove/'):
+                return self.handle_dlove_put(parsed.path, urllib.parse.parse_qs(parsed.query))
+            self.send_error(404, "Endpoint not found")
+        return self._safe_exec(_run)
 
     def do_PATCH(self):
-        parsed = urllib.parse.urlparse(self.path)
-        if parsed.path.startswith('/api/dlove/'):
-            return self.handle_dlove_post(parsed.path, urllib.parse.parse_qs(parsed.query))
-        self.send_error(404, "Endpoint not found")
+        def _run():
+            parsed = urllib.parse.urlparse(self.path)
+            if parsed.path.startswith('/api/dlove/'):
+                return self.handle_dlove_post(parsed.path, urllib.parse.parse_qs(parsed.query))
+            self.send_error(404, "Endpoint not found")
+        return self._safe_exec(_run)
 
     def do_DELETE(self):
-        parsed = urllib.parse.urlparse(self.path)
-        if parsed.path.startswith('/api/dlove/'):
-            return self.send_json_response({"success": True, "data": {}})
-        self.send_error(404, "Endpoint not found")
+        def _run():
+            parsed = urllib.parse.urlparse(self.path)
+            if parsed.path.startswith('/api/dlove/'):
+                user = self.get_current_user()
+                if not user and not verify_admin_request(self):
+                    return self.send_json_response({"success": False, "message": "Vui lòng đăng nhập!"}, status=401)
+                return self.send_json_response({"success": True, "data": {}})
+            self.send_error(404, "Endpoint not found")
+        return self._safe_exec(_run)
 
     def do_GET(self):
+        return self._safe_exec(self._handle_do_GET)
+
+    def _handle_do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
@@ -669,9 +1093,15 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             }
             ctype = next((m for ext, m in ext_mime_map.items() if fname_low.endswith(ext)), 'application/octet-stream')
             
-            # Direct path check
-            direct = os.path.join(DIRECTORY, path.lstrip('/'))
-            if os.path.exists(direct) and os.path.isfile(direct):
+            # Direct path check with traversal containment
+            base_dir_real = os.path.realpath(DIRECTORY)
+            uploads_dir_real = os.path.realpath(UPLOADS_DIR)
+            direct = os.path.realpath(os.path.join(DIRECTORY, path.lstrip('/')))
+            in_safe_dir = (
+                direct.startswith(base_dir_real + os.sep)
+                or direct.startswith(uploads_dir_real + os.sep)
+            )
+            if in_safe_dir and os.path.exists(direct) and os.path.isfile(direct):
                 return self.serve_media_with_range(direct, ctype)
 
             cand_paths = [
@@ -714,7 +1144,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             if can_access_admin_portal(self, query):
                 settings = get_settings()
                 secret_pass = str(settings.get('admin_password', 'Phongzhouok')).strip()
-                cookie_val = f"admin_portal_access={secret_pass}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800"
+                portal_tok = _admin_portal_cookie_token(secret_pass)
+                sec_attr = "; Secure" if _is_https_request(self) else ""
+                cookie_val = f"admin_portal_access={portal_tok}; Path=/; HttpOnly; SameSite=Lax; Max-Age=604800{sec_attr}"
                 return self.serve_file('admin.html', cookie=cookie_val)
             else:
                 self.send_response(404)
@@ -805,12 +1237,21 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             if not gift:
                 return self.send_json_response({"success": False, "message": "Không tìm thấy đơn hàng"}, status=404)
             settings = get_settings()
-            amt = int(gift.get('amount') or 0)
+            amt = max(0, int(gift.get('amount') or 0))
             scode = gift.get('share_code') or gift.get('id')
             t_content = gift.get('transfer_content') or f"DEAR {scode}"
             qr_url = f"https://img.vietqr.io/image/{settings['bank_code']}-{settings['account_number']}-compact2.png?amount={amt}&addInfo={urllib.parse.quote(t_content)}&accountName={urllib.parse.quote(settings['account_name'])}"
-            g_out = dict(gift)
-            g_out['qr_url'] = qr_url
+            # Expose only payment checkout summary — strip letter content, PIN/passcode, photos, user PII
+            g_out = {
+                "id": gift.get("id"),
+                "share_code": scode,
+                "recipient_name": gift.get("recipient_name") or "Người thương",
+                "amount": amt,
+                "transfer_content": t_content,
+                "status": gift.get("status") or "pending",
+                "paid": bool(gift.get("paid")),
+                "qr_url": qr_url,
+            }
             return self.send_json_response({
                 "success": True,
                 "gift": g_out,
@@ -829,12 +1270,12 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             return self.serve_file('settings.php')
 
         if path in ['/logout.php', '/logout']:
-            self.send_redirect('/login.html', cookie="currentUser=; path=/; max-age=0")
+            self.send_redirect('/login.html', cookie=clear_auth_cookies(self))
             return
 
         # CSRF Token API
         if path == '/api_csrf_token.php':
-            token = f"csrf_{uuid.uuid4().hex}"
+            token = f"csrf_{secrets.token_hex(16)}"
             self.send_json_response({"success": True, "csrf_token": token, "token": token})
             return
 
@@ -851,15 +1292,24 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response({"status": "pending", "paid": False})
             return
 
-        # Bank Webhook via GET (e.g. for testing or simple GET webhook triggers)
+        # Bank Webhook via GET (STRICTLY requires admin or configured webhook secret header)
         if path in ['/api/webhook/bank', '/webhook_bank.php']:
+            if not self._verify_webhook_request():
+                self.send_json_response({"error": 403, "success": False, "message": "Forbidden: webhook secret required"}, status=403)
+                return
             content = str(query.get('content', [''])[0] or query.get('code', [''])[0] or '').upper()
             explicit = query.get('code', [''])[0].strip().upper()
-            matched_codes = db.match_and_activate_from_text(content, explicit_code=explicit, gateway='bank_get', raw_payload=query)
+            paid_amt = None
+            if 'amount' in query:
+                try:
+                    paid_amt = int(float(query['amount'][0]))
+                except (ValueError, TypeError):
+                    paid_amt = 0
+            matched_codes = db.match_and_activate_from_text(content, explicit_code=explicit, gateway='bank_get', raw_payload=query, paid_amount=paid_amt)
             if matched_codes:
                 self.send_json_response({"error": 0, "success": True, "message": f"Đã tự động kích hoạt quà! Mã: {', '.join(matched_codes)}", "matched": matched_codes})
             else:
-                self.send_json_response({"error": 0, "success": True, "message": "Không tìm thấy mã quà khớp", "query": query})
+                self.send_json_response({"error": 0, "success": True, "message": "Không tìm thấy mã quà khớp", "matched": []})
             return
 
         # API: /api/templates
@@ -1026,35 +1476,157 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         return super().do_GET()
 
+    def do_HEAD(self):
+        return self.do_GET()
+
+    def _verify_webhook_request(self) -> bool:
+        if verify_admin_request(self):
+            return True
+        expected = _get_webhook_secret()
+        if not expected:
+            return False
+        candidates = [
+            self.headers.get('X-Webhook-Secret', ''),
+            self.headers.get('Secure-Token', ''),
+            self.headers.get('X-Secrete-Key', ''),
+        ]
+        auth_h = self.headers.get('Authorization', '').strip()
+        if auth_h.lower().startswith(('bearer ', 'apikey ')):
+            candidates.append(auth_h.split(' ', 1)[1].strip())
+        for cand in candidates:
+            if cand and hmac.compare_digest(cand.strip(), expected):
+                return True
+        return False
+
+    def _user_owns_gift(self, user, gift) -> bool:
+        if verify_admin_request(self):
+            return True
+        if not user or not gift:
+            return False
+        user_keys = {
+            str(user.get('id') or '').strip().lower(),
+            str(user.get('username') or '').strip().lower(),
+            str(user.get('email') or '').strip().lower(),
+        } - {'', 'guest'}
+        gift_keys = {
+            str(gift.get('user_id') or '').strip().lower(),
+            str(gift.get('username') or '').strip().lower(),
+            str(gift.get('user_email') or '').strip().lower(),
+        } - {'', 'guest'}
+        return bool(user_keys & gift_keys)
+
+    def _parse_template_catalog_price(self, template_id: str, settings: dict) -> int:
+        tid_s = str(template_id or '').strip()
+        for t in get_templates():
+            if str(t.get('id', '')).strip() == tid_s:
+                p_str = str(t.get('price', '') or '').strip().lower()
+                if p_str in ('miễn phí', 'free', '0', '0đ', ''):
+                    return 0
+                digits = re.sub(r'[^0-9]', '', p_str)
+                return int(digits) if digits else 0
+        try:
+            return max(0, int(float(settings.get('price_amount') or 50000)))
+        except (ValueError, TypeError):
+            return 50000
+
+    def _calculate_authoritative_gift_price(self, data: dict, template_id: str, photos: list, fly_photos: list, music: str, settings: dict) -> int:
+        base_price = self._parse_template_catalog_price(template_id, settings)
+        dur = str(data.get('duration') or '').strip().lower()
+        dur_map = {'': 0, 'free': 0, '15d': 0, '7d': 0, '30d': 0, 'one_year': 30000, 'lifetime': 60000}
+        dur_price = dur_map.get(dur, 0)
+
+        qr_raw = str(data.get('enable_qr') or '').strip().lower()
+        qr_price = 10000 if qr_raw in ('1', 'true', 'on', 'yes') else 0
+
+        music_upload = str(data.get('music_upload') or '').strip()
+        music_price = 10000 if music_upload.startswith('uploads/') else 0
+
+        use_default = str(data.get('use_default_photos') or '').strip().lower() in ('1', 'true', 'on', 'yes')
+        photo_price = 0
+        if not use_default:
+            uploaded_cnt = sum(1 for u in (photos + fly_photos) if isinstance(u, str) and u.lstrip('/').startswith('uploads/'))
+            photo_price = min(40, uploaded_cnt) * 5000
+
+        tip_raw = data.get('tip_amount_val') or data.get('tip') or 0
+        if isinstance(tip_raw, list):
+            tip_raw = tip_raw[0]
+        try:
+            tip_amt = max(0, min(int(float(str(tip_raw or 0).strip())), 10_000_000))
+        except (ValueError, TypeError):
+            tip_amt = 0
+
+        return max(0, base_price + dur_price + qr_price + music_price + photo_price + tip_amt)
+
     def do_POST(self):
+        return self._safe_exec(self._handle_do_POST)
+
+    def _handle_do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
+        client_ip = _get_client_ip(self)
 
         # Block access to internal/sensitive system files
         if is_protected_system_file(path):
             self.send_error(404, "File not found")
             return
 
+        if path in ['/logout.php', '/logout', '/api/logout']:
+            cookies = clear_auth_cookies(self)
+            if self.is_json_request() or path.startswith('/api/'):
+                self.send_json_response({"status": "success", "success": True, "message": "Đã đăng xuất!"}, cookie=cookies)
+            else:
+                self.send_redirect('/login.html', cookie=cookies)
+            return
+
         # Route Live Preview (POST - from v3LivePreview)
         if path in ['/templates/_v3/live.php', '/templates/_v3/live.html']:
-            data = self.read_request_data()
+            data = self.read_request_data(max_bytes=2 * 1024 * 1024)
             return self.serve_live_preview(data)
 
-        # Bank Webhook for Auto Payment Approval (Casso, SeAPay, PayOS, MBBank App / SMS forwarders)
+        # Bank Webhook for Auto Payment Approval (STRICTLY requires verified secret + amount check)
         casso_paths = [
-            '/api/webhook/bank', '/api/payment/webhook', '/webhook_bank.php', 
-            '/api/casso/webhook', '/api/seapay/webhook', '/casso/webhook', 
+            '/api/webhook/bank', '/api/payment/webhook', '/webhook_bank.php',
+            '/api/casso/webhook', '/api/seapay/webhook', '/casso/webhook',
             '/webhook/casso', '/webhook', '/api/webhook', '/webhook.php',
             '/casso', '/casso.php', '/api/casso', '/api/casso.php',
             '/casso-webhook', '/casso_webhook', '/casso_webhook.php'
         ]
         if path.rstrip('/') in [p.rstrip('/') for p in casso_paths]:
-            data = self.read_request_data()
-            raw_text = json.dumps(data, ensure_ascii=False).upper() if isinstance(data, (dict, list)) else str(data).upper()
-            explicit_code = str(data.get('code') or data.get('share_code') or '').strip().upper() if isinstance(data, dict) else ''
+            if not self._verify_webhook_request():
+                self.send_json_response({
+                    "error": 403,
+                    "success": False,
+                    "message": "Forbidden: invalid webhook secret"
+                }, status=403)
+                return
+            data = self.read_request_data(max_bytes=256 * 1024, allow_list=True)
+            matched_codes = []
+            # Support Casso array payload: {"error": 0, "data": [{"description": "...", "amount": 50000}]}
+            records = data.get('data') if isinstance(data, dict) and isinstance(data.get('data'), list) else None
+            if records is not None:
+                for rec in records:
+                    if not isinstance(rec, dict):
+                        continue
+                    desc = str(rec.get('description') or '').upper()
+                    try:
+                        rec_amt = int(float(rec.get('amount') or 0))
+                    except (ValueError, TypeError):
+                        rec_amt = 0
+                    if rec_amt <= 0:
+                        continue
+                    matched_codes.extend(db.match_and_activate_from_text(desc, gateway='webhook', raw_payload=rec, paid_amount=rec_amt))
+            else:
+                raw_text = json.dumps(data, ensure_ascii=False).upper() if isinstance(data, (dict, list)) else str(data).upper()
+                explicit_code = str(data.get('code') or data.get('share_code') or '').strip().upper() if isinstance(data, dict) else ''
+                paid_amt = None
+                if isinstance(data, dict) and 'amount' in data and data.get('amount') is not None:
+                    try:
+                        paid_amt = int(float(data.get('amount')))
+                    except (ValueError, TypeError):
+                        paid_amt = 0
+                matched_codes = db.match_and_activate_from_text(raw_text, explicit_code=explicit_code, gateway='webhook', raw_payload=data, paid_amount=paid_amt)
 
-            matched_codes = db.match_and_activate_from_text(raw_text, explicit_code=explicit_code, gateway='webhook', raw_payload=data)
             if matched_codes:
                 self.send_json_response({
                     "error": 0,
@@ -1063,7 +1635,6 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     "matched": matched_codes
                 })
             else:
-                # Trả về error: 0 để Casso xác nhận kiểm tra webhook (Test Webhook) thành công
                 self.send_json_response({
                     "error": 0,
                     "success": True,
@@ -1077,84 +1648,148 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_response({"success": True})
             return
 
-        # 2. Google OAuth Authentication (Customer Google Sign-In)
+        # 2. Google OAuth Authentication (Verified ID Token Only)
         if path in ['/auth_google.php', '/api/auth/google']:
-            data = self.read_request_data()
+            limited, _, wait_sec = _GOOGLE_AUTH_LIMITER.check_and_consume(client_ip)
+            if limited:
+                self.send_json_response({
+                    "success": False,
+                    "status": "error",
+                    "message": f"Quá nhiều yêu cầu xác thực. Vui lòng thử lại sau {wait_sec} giây!"
+                }, status=429)
+                return
+            data = self.read_request_data(max_bytes=65536)
             user, err = process_google_auth(data)
             if user:
                 safe_user = {k: v for k, v in user.items() if k != 'password'}
-                cookie_val = f"currentUser={urllib.parse.quote(user.get('username'))}; Path=/; Max-Age=86400"
                 self.send_json_response({
                     "success": True,
                     "status": "success",
                     "message": f"Chào mừng {user.get('full_name')}!",
                     "redirect": "/templates.php",
                     "user": safe_user
-                }, cookie=cookie_val)
+                }, cookie=build_auth_cookies(self, user))
             else:
                 self.send_json_response({"success": False, "status": "error", "message": err or "Đăng nhập Google thất bại!"}, status=400)
             return
 
-        # 3. API: Register User (handles /api/register and /register.php /register)
+        # 3. API: Register User (Strict Validation + Rate Limiting)
         if path in ['/api/register', '/register.php', '/register']:
-            data = self.read_request_data()
-            username = str(data.get('username', '')).strip()
-            email = str(data.get('email', '')).strip()
-            password = str(data.get('password', '')).strip()
-            full_name = str(data.get('full_name', username)).strip() or username
-
-            if not username or not email:
+            limited, wait_sec = _REGISTER_LIMITER.is_limited(client_ip)
+            if limited:
                 if self.is_json_request():
-                    self.send_json_response({"status": "error", "message": "Vui lòng nhập tên đăng nhập và email!"}, status=400)
+                    self.send_json_response({"status": "error", "message": f"Quá nhiều lần đăng ký từ IP của bạn. Thử lại sau {wait_sec} giây!"}, status=429)
                 else:
-                    self.send_redirect('/register.html?error=missing_fields')
+                    self.send_redirect('/register.html?error=rate_limited')
                 return
 
-            user_obj, err = db.register_user(username=username, email=email, password=password, full_name=full_name)
+            data = self.read_request_data(max_bytes=65536)
+            username = data.get('username', '')
+            email = data.get('email', '')
+            password = data.get('password', '')
+            full_name = data.get('full_name', username if isinstance(username, str) else '')
+
+            if not isinstance(username, str) or not isinstance(email, str) or not isinstance(password, str):
+                if self.is_json_request():
+                    self.send_json_response({"status": "error", "message": "Dữ liệu đăng ký không hợp lệ!"}, status=400)
+                else:
+                    self.send_redirect('/register.html?error=invalid_input')
+                return
+
+            user_obj, err = db.register_user(
+                username=username,
+                email=email,
+                password=password,
+                full_name=full_name if isinstance(full_name, str) else '',
+            )
             if not user_obj:
+                is_dup = bool(err and 'đã được sử dụng' in err)
+                status_code = 409 if is_dup else 400
                 if self.is_json_request():
-                    self.send_json_response({"status": "error", "message": err or "Đăng ký thất bại!"}, status=409)
+                    self.send_json_response({"status": "error", "message": err or "Đăng ký thất bại!"}, status=status_code)
                 else:
-                    self.send_redirect('/register.html?error=account_exists')
+                    self.send_redirect('/register.html?error=' + ('account_exists' if is_dup else 'invalid_input'))
                 return
 
+            _REGISTER_LIMITER.record(client_ip)
             safe_user = {k: v for k, v in user_obj.items() if k != 'password'}
-            cookie_val = f"currentUser={urllib.parse.quote(user_obj.get('username'))}; Path=/; Max-Age=86400"
+            cookies = build_auth_cookies(self, user_obj)
             if self.is_json_request():
                 self.send_json_response({
                     "status": "success",
                     "message": "Đăng ký tài khoản thành công!",
                     "user": safe_user,
                     "redirect": "/templates.php"
-                }, cookie=cookie_val)
+                }, cookie=cookies)
             else:
-                self.send_redirect('/templates.php', cookie=cookie_val)
+                self.send_redirect('/templates.php', cookie=cookies)
             return
 
-        # 4. API: Login User (handles /api/login and /login.php /login)
+        # 4. API: Login User (Rate-Limited + Strict Validation + Signed HttpOnly Session)
         if path in ['/api/login', '/login.php', '/login']:
-            data = self.read_request_data()
-            username = str(data.get('username', '')).strip()
-            password = str(data.get('password', '')).strip()
+            data = self.read_request_data(max_bytes=65536)
+            raw_user = data.get('username', '')
+            raw_pwd = data.get('password', '')
+            if not isinstance(raw_user, str) or not isinstance(raw_pwd, str):
+                if self.is_json_request():
+                    self.send_json_response({"status": "error", "message": "Dữ liệu đăng nhập không hợp lệ!"}, status=400)
+                else:
+                    self.send_redirect('/login.html?error=invalid_credentials')
+                return
+
+            username = raw_user.strip()
+            password = raw_pwd
+            if not username or len(username) > 254 or not password or not password.strip() or len(password) > 128:
+                if self.is_json_request():
+                    self.send_json_response({"status": "error", "message": "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu hợp lệ!"}, status=400)
+                else:
+                    self.send_redirect('/login.html?error=missing_fields')
+                return
+
+            acct_key = f"{client_ip}:{username.lower()}"
+            ip_lim, ip_wait = _LOGIN_IP_LIMITER.is_limited(client_ip)
+            acc_lim, acc_wait = _LOGIN_ACCOUNT_LIMITER.is_limited(acct_key)
+            if ip_lim or acc_lim:
+                wait_s = max(ip_wait, acc_wait)
+                if self.is_json_request():
+                    self.send_json_response({
+                        "status": "error",
+                        "message": f"Nhập sai quá nhiều lần. Vui lòng thử lại sau {wait_s} giây!"
+                    }, status=429)
+                else:
+                    self.send_redirect('/login.html?error=rate_limited')
+                return
 
             user = find_user_by_login(username, password)
             if user:
+                _LOGIN_ACCOUNT_LIMITER.reset(acct_key)
                 safe_user = {k: v for k, v in user.items() if k != 'password'}
-                cookie_val = f"currentUser={urllib.parse.quote(user.get('username'))}; Path=/; Max-Age=86400"
+                cookies = build_auth_cookies(self, user)
                 if self.is_json_request():
                     self.send_json_response({
                         "status": "success",
                         "message": "Đăng nhập thành công!",
                         "user": safe_user,
                         "redirect": "/templates.php"
-                    }, cookie=cookie_val)
+                    }, cookie=cookies)
                 else:
-                    self.send_redirect('/templates.php', cookie=cookie_val)
+                    self.send_redirect('/templates.php', cookie=cookies)
             else:
+                _LOGIN_IP_LIMITER.record(client_ip)
+                acc_now_lim, remaining, wait_s = _LOGIN_ACCOUNT_LIMITER.record(acct_key)
+                if acc_now_lim:
+                    if self.is_json_request():
+                        self.send_json_response({
+                            "status": "error",
+                            "message": f"Nhập sai quá 5 lần. Tài khoản tạm khóa {wait_s} giây!"
+                        }, status=429)
+                    else:
+                        self.send_redirect('/login.html?error=rate_limited')
+                    return
                 if self.is_json_request():
                     self.send_json_response({
                         "status": "error",
-                        "message": "Tên đăng nhập hoặc mật khẩu không chính xác!"
+                        "message": f"Tên đăng nhập hoặc mật khẩu không chính xác! Còn {remaining} lần thử."
                     }, status=401)
                 else:
                     self.send_redirect('/login.html?error=invalid_credentials')
@@ -1162,10 +1797,17 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 5. API: Submit Idea (Homepage Idea Modal)
         if path == '/api_submit_idea.php':
-            data = self.read_request_data()
-            name = str(data.get('name', 'Khách hàng')).strip()
-            contact = str(data.get('contact', '')).strip()
-            content = str(data.get('content', '')).strip()
+            limited, _, wait_sec = _FEEDBACK_LIMITER.check_and_consume(client_ip)
+            if limited:
+                self.send_json_response({"success": False, "message": f"Gửi quá nhanh, vui lòng thử lại sau {wait_sec} giây!"}, status=429)
+                return
+            data = self.read_request_data(max_bytes=16384)
+            name = db.sanitize_text(data.get('name', 'Khách hàng'), max_len=80) or 'Khách hàng'
+            contact = db.sanitize_text(data.get('contact', ''), max_len=120)
+            content = db.sanitize_text(data.get('content', ''), max_len=2000, allow_newlines=True)
+            if not content:
+                self.send_json_response({"success": False, "message": "Vui lòng nhập nội dung ý tưởng!"}, status=400)
+                return
             db.add_idea(name=name, contact=contact, content=content)
             self.send_json_response({
                 "success": True,
@@ -1175,11 +1817,18 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 6. API: Submit Review (Homepage Reviews Section)
         if path == '/api_submit_review.php':
-            data = self.read_request_data()
+            limited, _, wait_sec = _FEEDBACK_LIMITER.check_and_consume(client_ip)
+            if limited:
+                self.send_json_response({"success": False, "message": f"Gửi quá nhanh, vui lòng thử lại sau {wait_sec} giây!"}, status=429)
+                return
+            data = self.read_request_data(max_bytes=16384)
             user = self.get_request_user()
-            rating = int(data.get('rating', 5) or 5)
-            content = str(data.get('content', '')).strip()
-            author_name = user.get('full_name') if user else (str(data.get('author', 'Khách hàng')).strip() or 'Khách hàng')
+            try:
+                rating = max(1, min(5, int(data.get('rating', 5) or 5)))
+            except (ValueError, TypeError):
+                rating = 5
+            content = db.sanitize_text(data.get('content', ''), max_len=2000, allow_newlines=True)
+            author_name = user.get('full_name') if user else (db.sanitize_text(data.get('author', 'Khách hàng'), max_len=80) or 'Khách hàng')
             db.add_review(author=author_name, rating=rating, content=content)
             self.send_json_response({
                 "success": True,
@@ -1187,38 +1836,66 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             })
             return
 
-        # 7. API: User Settings / Profile Updates
+        # 7. API: User Settings / Profile Updates (STRICT Auth + Current Password + Ownership)
         if path in ['/settings.php', '/api/user/settings', '/api/settings/update']:
-            data = self.read_request_data()
+            data = self.read_request_data(max_bytes=65536)
             act = data.get('action')
             user = self.get_request_user()
             if not user:
-                uname = data.get('username') or data.get('confirm_username')
-                if uname:
-                    user = db.get_user_by_identifier(str(uname))
+                self.send_json_response({"status": "error", "success": False, "message": "Vui lòng đăng nhập để thực hiện thao tác này!"}, status=401)
+                return
 
-            if user:
-                if act == 'update_profile':
-                    new_name = data.get('full_name') or data.get('username')
-                    phone = data.get('phone') if 'phone' in data else None
-                    updated = db.update_user_profile(user['id'], full_name=new_name, phone=phone) or user
-                    safe_user = {k: v for k, v in updated.items() if k != 'password'}
-                    self.send_json_response({"status": "success", "success": True, "message": "Cập nhật hồ sơ thành công!", "user": safe_user})
-                    return
-                elif act == 'change_password':
-                    new_pwd = str(data.get('new_password', '')).strip()
-                    if new_pwd and len(new_pwd) >= 6:
-                        db.update_user_password(user['id'], new_pwd)
-                        self.send_json_response({"status": "success", "success": True, "message": "Đổi mật khẩu thành công!"})
-                    else:
-                        self.send_json_response({"status": "error", "success": False, "message": "Mật khẩu mới phải có ít nhất 6 ký tự!"}, status=400)
-                    return
-                elif act == 'delete_account':
-                    db.delete_user(user['id'])
-                    self.send_json_response({"status": "success", "success": True, "message": "Tài khoản đã được xóa!"}, cookie="currentUser=; path=/; max-age=0")
-                    return
+            lim_key = f"{client_ip}:{user['id']}"
+            limited, _, wait_sec = _SETTINGS_LIMITER.check_and_consume(lim_key)
+            if limited:
+                self.send_json_response({"status": "error", "success": False, "message": f"Thao tác quá nhanh! Vui lòng thử lại sau {wait_sec} giây."}, status=429)
+                return
 
-            self.send_json_response({"status": "success", "success": True, "message": "Đã lưu cài đặt!"})
+            if act == 'update_profile':
+                new_name = data.get('full_name')
+                phone = data.get('phone') if 'phone' in data else None
+                updated = db.update_user_profile(user['id'], full_name=new_name, phone=phone) or user
+                safe_user = {k: v for k, v in updated.items() if k != 'password'}
+                self.send_json_response({"status": "success", "success": True, "message": "Cập nhật hồ sơ thành công!", "user": safe_user})
+                return
+            elif act == 'change_password':
+                cur_pwd = data.get('current_password', '')
+                new_pwd = data.get('new_password', '')
+                if not isinstance(new_pwd, str) or not isinstance(cur_pwd, str):
+                    self.send_json_response({"status": "error", "success": False, "message": "Dữ liệu mật khẩu không hợp lệ!"}, status=400)
+                    return
+                matched, has_pwd = db.verify_user_password(user['id'], cur_pwd)
+                if has_pwd and not matched:
+                    self.send_json_response({"status": "error", "success": False, "message": "Mật khẩu hiện tại không chính xác!"}, status=403)
+                    return
+                pwd_val, pwd_err = db.validate_password(new_pwd, min_len=6, max_len=128)
+                if pwd_err or not pwd_val:
+                    self.send_json_response({"status": "error", "success": False, "message": pwd_err or "Mật khẩu mới không hợp lệ!"}, status=400)
+                    return
+                if not db.update_user_password(user['id'], pwd_val):
+                    self.send_json_response({"status": "error", "success": False, "message": "Không thể cập nhật mật khẩu!"}, status=500)
+                    return
+                fresh_user = db.get_user_by_id(user['id']) or user
+                self.send_json_response(
+                    {"status": "success", "success": True, "message": "Đổi mật khẩu thành công!"},
+                    cookie=build_auth_cookies(self, fresh_user),
+                )
+                return
+            elif act == 'delete_account':
+                confirm_u = str(data.get('confirm_username') or '').strip()
+                if not confirm_u or confirm_u != str(user.get('username') or '').strip():
+                    self.send_json_response({"status": "error", "success": False, "message": "Tên đăng nhập xác nhận không khớp!"}, status=400)
+                    return
+                cur_pwd = data.get('current_password', '')
+                matched, has_pwd = db.verify_user_password(user['id'], cur_pwd if isinstance(cur_pwd, str) else '')
+                if has_pwd and not matched:
+                    self.send_json_response({"status": "error", "success": False, "message": "Vui lòng nhập đúng mật khẩu hiện tại để xóa tài khoản!"}, status=403)
+                    return
+                db.delete_user(user['id'])
+                self.send_json_response({"status": "success", "success": True, "message": "Tài khoản đã được xóa!"}, cookie=clear_auth_cookies(self))
+                return
+
+            self.send_json_response({"status": "error", "success": False, "message": "Hành động không hợp lệ!"}, status=400)
             return
 
         # 8. API: Create Gift (handles /api/gifts/create and /gift-builder.php)
@@ -1239,34 +1916,51 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     self.send_redirect(login_redirect)
                 return
 
-            data = self.read_request_data()
+            limited, _, wait_sec = _CREATE_LIMITER.check_and_consume(client_ip)
+            if limited:
+                self.send_json_response({"success": False, "status": "error", "message": f"Tạo quà quá nhanh, thử lại sau {wait_sec} giây!"}, status=429)
+                return
+
+            data = self.read_request_data(max_bytes=26 * 1024 * 1024)
             settings = get_settings()
 
             recipient_name = data.get('recipient_name') or data.get('v3_recipient_name') or "Người thương"
+            if isinstance(recipient_name, list): recipient_name = recipient_name[0]
+            recipient_name = db.sanitize_text(str(recipient_name or "Người thương"), max_len=80) or "Người thương"
+
             birthday_day = data.get('birthday_day') or data.get('v3_calendar_day') or (data.get('v3', {}).get('calendar_day') if isinstance(data.get('v3'), dict) else None) or 19
             if isinstance(birthday_day, list): birthday_day = birthday_day[0]
-            try: birthday_day = int(birthday_day)
+            try: birthday_day = max(1, min(31, int(birthday_day)))
             except Exception: birthday_day = 19
 
             birthday_month = data.get('birthday_month') or data.get('v3_calendar_month') or (data.get('v3', {}).get('calendar_month') if isinstance(data.get('v3'), dict) else None) or 11
             if isinstance(birthday_month, list): birthday_month = birthday_month[0]
-            try: birthday_month = int(birthday_month)
+            try: birthday_month = max(1, min(12, int(birthday_month)))
             except Exception: birthday_month = 11
-            if isinstance(recipient_name, list): recipient_name = recipient_name[0]
+
             letter_title = data.get('letter_title') or "Gửi người thương!"
             if isinstance(letter_title, list): letter_title = letter_title[0]
+            letter_title = db.sanitize_text(str(letter_title or "Gửi người thương!"), max_len=120) or "Gửi người thương!"
+
             letter_content = data.get('letter_content') or data.get('val_letter_content') or "Chúc bạn luôn hạnh phúc và rạng rỡ mỗi ngày! ❤️"
             if isinstance(letter_content, list): letter_content = letter_content[0]
+            letter_content = db.sanitize_text(str(letter_content or ""), max_len=4000, allow_newlines=True)
+
             letter_signature = data.get('letter_signature') or "Nguyễn Văn Phong"
             if isinstance(letter_signature, list): letter_signature = letter_signature[0]
-            template_id = str(query.get('id', [data.get('template_id', '69')])[0])
+            letter_signature = db.sanitize_text(str(letter_signature or ""), max_len=80)
+
+            template_id = str(query.get('id', [data.get('template_id', '69')])[0]).strip()[:20]
             template_slug = data.get('template_slug', 'mon-qua-nho-2010')
             if isinstance(template_slug, list): template_slug = template_slug[0]
-            passcode = str(data.get('password_value', data.get('passcode', ''))).strip()
+            template_slug = re.sub(r'[^a-zA-Z0-9_-]', '', str(template_slug or 'mon-qua-nho-2010'))[:64]
+
+            passcode = db.sanitize_text(str(data.get('password_value', data.get('passcode', ''))).strip(), max_len=32)
             music = data.get('music_url') or data.get('music') or './assets/music/givemeyourforever.mp3'
             if isinstance(music, list): music = music[0]
+            music = db.sanitize_text(str(music or './assets/music/givemeyourforever.mp3'), max_len=500)
 
-            # Parse photos
+            # Parse photos (bounded to prevent array-flooding)
             photos = []
             if 'photos[]' in data:
                 p = data['photos[]']
@@ -1284,6 +1978,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     if isinstance(p, list): photos.extend(p)
                 except Exception:
                     pass
+            photos = [str(u).strip()[:500] for u in photos if isinstance(u, str) and str(u).strip()][:30]
 
             fly_photos = []
             if 'fly_photos[]' in data:
@@ -1294,21 +1989,22 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 p = data['fly_photos']
                 if isinstance(p, list): fly_photos.extend(p)
                 elif p: fly_photos.append(p)
+            fly_photos = [str(u).strip()[:500] for u in fly_photos if isinstance(u, str) and str(u).strip()][:30]
 
             uid = f"g_{uuid.uuid4().hex[:8]}"
-            share_code = f"DG{int(datetime.now().timestamp()) % 1000000:06d}"
-            
-            # Determine dynamic total price from form submission
-            amount_val = data.get('total_price_hidden') or data.get('total_price') or data.get('amount')
-            if isinstance(amount_val, list):
-                amount_val = amount_val[0]
-            try:
-                if amount_val is not None and str(amount_val).strip() != '':
-                    amount = int(float(str(amount_val).strip()))
-                else:
-                    amount = int(settings.get('price_amount', 50000))
-            except (ValueError, TypeError):
-                amount = int(settings.get('price_amount', 50000))
+            share_code = f"DG{secrets.token_hex(4).upper()}"
+            while get_gift(share_code) is not None:
+                share_code = f"DG{secrets.token_hex(4).upper()}"
+
+            # Server-authoritative pricing: NEVER trust client price to downgrade/bypass payment
+            amount = self._calculate_authoritative_gift_price(
+                data=data,
+                template_id=template_id,
+                photos=photos,
+                fly_photos=fly_photos,
+                music=music,
+                settings=settings,
+            )
 
             is_free = (amount <= 0)
             status = "active" if is_free else "pending"
@@ -1319,6 +2015,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
             sender_name = data.get('sender_name') or (user.get('full_name') if user else '') or letter_signature
             if isinstance(sender_name, list): sender_name = sender_name[0]
+            sender_name = db.sanitize_text(str(sender_name or ''), max_len=80)
 
             new_gift = {
                 "id": uid,
@@ -1372,9 +2069,12 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_response(response_payload)
             return
 
-        # 9. API: Confirm Payment
+        # 9. API: Confirm Payment (STRICTLY Admin Only — prevents self-activation)
         if path in ['/api/gifts/confirm_payment', '/api/gifts/pay']:
-            data = self.read_request_data()
+            if not verify_admin_request(self):
+                self.send_json_response({"status": "error", "success": False, "message": "Yêu cầu quyền quản trị viên để duyệt thanh toán!"}, status=403)
+                return
+            data = self.read_request_data(max_bytes=16384)
             code = str(data.get('code') or data.get('share_code') or data.get('gift_id') or query.get('code', [''])[0]).strip()
             target_gift = db.activate_gift(code, gateway='manual', raw_payload=data)
             if target_gift:
@@ -1391,63 +2091,78 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         # 10. API: Delete Gift
         if path == '/api/gifts/delete':
-            data = self.read_request_data()
+            data = self.read_request_data(max_bytes=16384)
             gift_id = data.get('id')
+            if not isinstance(gift_id, str) or not gift_id.strip():
+                self.send_json_response({"status": "error", "message": "Thiếu mã quà tặng!"}, status=400)
+                return
+            gift_id = gift_id.strip()
             is_admin = verify_admin_request(self)
             user = self.get_current_user()
+            gift = get_gift(gift_id)
             if not is_admin:
                 if not user:
                     self.send_json_response({"status": "error", "message": "Vui lòng đăng nhập!"}, status=401)
                     return
-                gift = get_gift(gift_id)
-                if gift:
-                    user_keys = {str(user.get('id', '')).lower(), str(user.get('username', '')).lower(), str(user.get('email', '')).lower()} - {''}
-                    gift_keys = {str(gift.get('user_id', '')).lower(), str(gift.get('username', '')).lower(), str(gift.get('user_email', '')).lower()} - {''}
-                    if not (user_keys & gift_keys):
-                        self.send_json_response({"status": "error", "message": "Không có quyền xóa món quà này!"}, status=403)
-                        return
+                if not gift:
+                    self.send_json_response({"status": "error", "message": "Không tìm thấy món quà!"}, status=404)
+                    return
+                if not self._user_owns_gift(user, gift):
+                    self.send_json_response({"status": "error", "message": "Không có quyền xóa món quà này!"}, status=403)
+                    return
+            elif not gift:
+                self.send_json_response({"status": "error", "message": "Không tìm thấy món quà!"}, status=404)
+                return
             db.delete_gift(gift_id)
             self.send_json_response({"status": "success", "message": "Đã xóa món quà!"})
             return
 
-        # 11. API: Admin Login
+        # 11. API: Admin Login (Lock-Protected Brute-Force Shield + Constant-Time Check)
         if path == '/api/admin/login':
-            client_ip = self.headers.get('CF-Connecting-IP') or self.headers.get('X-Forwarded-For') or (self.client_address[0] if self.client_address else 'unknown')
-            client_ip = client_ip.split(',')[0].strip()
-            if client_ip.startswith('::ffff:'):
-                client_ip = client_ip[7:]
             now = datetime.now().timestamp()
-            if len(ADMIN_FAILED_LOGINS) > 128:
-                _cleanup_failed_logins(now)
-
-            # Anti Brute-Force Check
-            rec = ADMIN_FAILED_LOGINS.get(client_ip, {'count': 0, 'lockout_until': 0})
+            with ADMIN_LOCK:
+                if len(ADMIN_FAILED_LOGINS) > 128:
+                    stale = [
+                        ip for ip, r in ADMIN_FAILED_LOGINS.items()
+                        if (r.get('lockout_until', 0) and r.get('lockout_until', 0) + 3600 < now)
+                        or (not r.get('lockout_until', 0) and r.get('count', 0) == 0)
+                    ]
+                    for ip in stale:
+                        ADMIN_FAILED_LOGINS.pop(ip, None)
+                rec = dict(ADMIN_FAILED_LOGINS.get(client_ip, {'count': 0, 'lockout_until': 0}))
             if rec.get('lockout_until', 0) > now:
-                wait_sec = int(rec['lockout_until'] - now)
+                wait_sec = max(1, int(rec['lockout_until'] - now))
                 self.send_json_response({"status": "error", "message": f"Nhập sai quá nhiều lần. IP của bạn tạm thời bị khóa trong {wait_sec} giây!"}, status=429)
                 return
 
-            data = self.read_request_data()
+            data = self.read_request_data(max_bytes=65536)
             settings = get_settings()
-            entered = str(data.get('password', '')).strip() if data else ''
-            admin_pwd = settings.get('admin_password', 'Phongzhouok')
-            
-            if entered and entered == admin_pwd:
-                ADMIN_FAILED_LOGINS.pop(client_ip, None)
-                token = uuid.uuid4().hex
-                ADMIN_SESSIONS.add(token)
+            raw_entered = data.get('password', '')
+            if not isinstance(raw_entered, str):
+                self.send_json_response({"status": "error", "message": "Dữ liệu không hợp lệ!"}, status=400)
+                return
+            entered = raw_entered.strip()
+            admin_pwd = str(settings.get('admin_password', 'Phongzhouok'))
+
+            if entered and len(entered) <= 128 and hmac.compare_digest(entered, admin_pwd):
+                token = secrets.token_hex(24)
+                with ADMIN_LOCK:
+                    ADMIN_FAILED_LOGINS.pop(client_ip, None)
+                    ADMIN_SESSIONS.add(token)
                 db.create_admin_session(token)
                 self.send_json_response({"status": "success", "token": token, "message": "Đăng nhập CMS quản trị thành công!"})
             else:
-                rec['count'] = rec.get('count', 0) + 1
-                if rec['count'] >= 5:
-                    rec['lockout_until'] = now + 900  # Lock 15 minutes
-                    ADMIN_FAILED_LOGINS[client_ip] = rec
-                    self.send_json_response({"status": "error", "message": "Nhập sai quá 5 lần. Địa chỉ IP của bạn bị khóa tạm thời 15 phút!"}, status=429)
-                else:
-                    ADMIN_FAILED_LOGINS[client_ip] = rec
-                    remaining = 5 - rec['count']
-                    self.send_json_response({"status": "error", "message": f"Mật khẩu quản trị không chính xác! Còn {remaining} lần thử."}, status=401)
+                with ADMIN_LOCK:
+                    cur = ADMIN_FAILED_LOGINS.get(client_ip, {'count': 0, 'lockout_until': 0})
+                    cur['count'] = cur.get('count', 0) + 1
+                    if cur['count'] >= 5:
+                        cur['lockout_until'] = now + 900  # Lock 15 minutes
+                        ADMIN_FAILED_LOGINS[client_ip] = cur
+                        self.send_json_response({"status": "error", "message": "Nhập sai quá 5 lần. Địa chỉ IP của bạn bị khóa tạm thời 15 phút!"}, status=429)
+                    else:
+                        ADMIN_FAILED_LOGINS[client_ip] = cur
+                        remaining = 5 - cur['count']
+                        self.send_json_response({"status": "error", "message": f"Mật khẩu quản trị không chính xác! Còn {remaining} lần thử."}, status=401)
             return
 
         # API: Admin Verify Session
@@ -1463,11 +2178,11 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             if not verify_admin_request(self):
                 self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
                 return
-            new_item = self.read_request_data()
-            if not new_item or not new_item.get('title'):
+            new_item = self.read_request_data(max_bytes=65536)
+            if not new_item or not isinstance(new_item.get('title'), str) or not new_item.get('title').strip():
                 self.send_json_response({"status": "error", "message": "Tiêu đề không được để trống"}, status=400)
                 return
-            
+
             templates = get_templates()
             new_id = max([int(t.get('id', 0)) for t in templates] + [0]) + 1
             new_item['id'] = new_id
@@ -1483,7 +2198,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             if not verify_admin_request(self):
                 self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
                 return
-            data = self.read_request_data()
+            data = self.read_request_data(max_bytes=16384)
             tpl_id = data.get('id')
             templates = get_templates()
             templates = [t for t in templates if str(t.get('id')) != str(tpl_id)]
@@ -1496,34 +2211,56 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             if not verify_admin_request(self):
                 self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
                 return
-            data = self.read_request_data()
+            data = self.read_request_data(max_bytes=65536)
             if not data:
                 self.send_json_response({"status": "error", "message": "Dữ liệu không hợp lệ"}, status=400)
                 return
             settings = get_settings()
-            settings['bank_code'] = data.get('bank_code', settings['bank_code'])
-            settings['account_number'] = data.get('account_number', settings['account_number'])
-            settings['account_name'] = data.get('account_name', settings['account_name'])
-            settings['price_amount'] = data.get('price_amount', settings['price_amount'])
+            if 'bank_code' in data and isinstance(data['bank_code'], str):
+                settings['bank_code'] = db.sanitize_text(data['bank_code'], max_len=32) or settings['bank_code']
+            if 'account_number' in data and isinstance(data['account_number'], str):
+                settings['account_number'] = db.sanitize_text(data['account_number'], max_len=40) or settings['account_number']
+            if 'account_name' in data and isinstance(data['account_name'], str):
+                settings['account_name'] = db.sanitize_text(data['account_name'], max_len=100) or settings['account_name']
+            if 'price_amount' in data and data['price_amount'] is not None:
+                try:
+                    settings['price_amount'] = max(0, min(100_000_000, int(float(data['price_amount']))))
+                except (ValueError, TypeError):
+                    self.send_json_response({"status": "error", "message": "Số tiền mặc định không hợp lệ!"}, status=400)
+                    return
             save_settings(settings)
             self.send_json_response({"status": "success", "message": "Đã cập nhật cấu hình thanh toán thành công!"})
             return
 
-        # 15. API: Admin Change Password
+        # 15. API: Admin Change Password (No Hardcoded Backdoor Fallback)
         if path == '/api/admin/change-password':
             if not verify_admin_request(self):
                 self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
                 return
-            data = self.read_request_data()
+            data = self.read_request_data(max_bytes=65536)
             settings = get_settings()
             cur_pwd = data.get('current_password')
             new_pwd = data.get('new_password')
-            if cur_pwd not in [settings.get('admin_password', 'admin'), 'admin', 'admin1911', 'Phongzhouok']:
+            if not isinstance(cur_pwd, str) or not cur_pwd:
+                self.send_json_response({"status": "error", "message": "Vui lòng nhập mật khẩu hiện tại!"}, status=400)
+                return
+            expected_pwd = str(settings.get('admin_password') or '')
+            if not expected_pwd or not hmac.compare_digest(cur_pwd, expected_pwd):
                 self.send_json_response({"status": "error", "message": "Mật khẩu hiện tại không đúng!"}, status=400)
                 return
-            
-            settings['admin_password'] = new_pwd
+            pwd_val, pwd_err = db.validate_password(new_pwd, min_len=8, max_len=128)
+            if pwd_err or not pwd_val:
+                self.send_json_response({"status": "error", "message": pwd_err or "Mật khẩu mới phải từ 8 đến 128 ký tự!"}, status=400)
+                return
+
+            settings['admin_password'] = pwd_val
             save_settings(settings)
+            cur_auth = self.headers.get('Authorization', '')
+            cur_tok = cur_auth[7:].strip() if cur_auth.startswith('Bearer ') else ''
+            with ADMIN_LOCK:
+                ADMIN_SESSIONS.clear()
+                if cur_tok:
+                    ADMIN_SESSIONS.add(cur_tok)
             self.send_json_response({"status": "success", "message": "Đổi mật khẩu thành công!"})
             return
 
@@ -1538,27 +2275,31 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 environ = {'REQUEST_METHOD': 'POST', 'CONTENT_TYPE': self.headers.get('Content-Type', '')}
                 form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ=environ)
-                
+
                 if 'file' in form:
                     fileitem = form['file']
                     if fileitem.filename:
-                        ext = os.path.splitext(fileitem.filename)[1].lower()
-                        if ext not in ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif', '.mp4', '.webm', '.mp3', '.m4a']:
+                        ext = os.path.splitext(os.path.basename(fileitem.filename))[1].lower()
+                        if ext not in ALLOWED_UPLOAD_EXTS:
                             self.send_json_response({"status": "error", "message": "Định dạng file không được phép!"}, status=400)
+                            return
+                        raw = fileitem.file.read(25 * 1024 * 1024 + 1)
+                        if len(raw) > 25 * 1024 * 1024 or not _validate_uploaded_bytes(ext, raw):
+                            self.send_json_response({"status": "error", "message": "Tệp không hợp lệ hoặc vượt quá 25MB!"}, status=400)
                             return
 
                         filename = f"{uuid.uuid4().hex[:12]}{ext}"
                         dest_path = os.path.join(UPLOADS_DIR, filename)
                         with open(dest_path, 'wb') as fout:
-                            fout.write(fileitem.file.read())
-                        
+                            fout.write(raw)
+
                         file_url = f"uploads/{filename}"
                         self.send_json_response({"status": "success", "url": file_url})
                         return
 
                 self.send_json_response({"status": "error", "message": "Không tìm thấy file"}, status=400)
-            except Exception as e:
-                self.send_json_response({"status": "error", "message": str(e)}, status=500)
+            except Exception:
+                self.send_json_response({"status": "error", "message": "Lỗi khi tải tệp lên!"}, status=500)
             return
 
         self.send_error(404, "Endpoint not found")
@@ -1906,7 +2647,11 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     with open(dp, 'r', encoding='utf-8') as f:
                         return self.send_json_response(json.load(f))
             g = self._find_dlove_gift(gid, by_slug=False)
-            if g and isinstance(g.get('v3'), dict) and g['v3'].get('character'):
+            if not g:
+                return self.send_json_response({"success": False, "message": "Không tìm thấy món quà."}, status=404)
+            if not (g.get('paid') or g.get('status') == 'active') and not self._user_owns_gift(self.get_current_user(), g):
+                return self.send_json_response({"success": False, "paymentRequired": True, "message": "Món quà chưa được thanh toán."}, status=403)
+            if isinstance(g.get('v3'), dict) and g['v3'].get('character'):
                 return self.send_json_response({"success": True, "data": g['v3']})
             return self.send_json_response({"success": False, "message": "Không tìm thấy món quà."}, status=404)
 
@@ -1929,6 +2674,8 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             g = get_gift(ocode)
             if not g:
                 return self.send_json_response({"success": False, "message": "Không tìm thấy đơn"}, status=404)
+            if not self._user_owns_gift(user, g):
+                return self.send_json_response({"success": False, "message": "Không có quyền xem đơn hàng này!"}, status=403)
             return self.send_json_response({"success": True, "data": {"order": self._dlove_gift_to_order(g)}})
 
         if sub.startswith('/payments/status/') or sub.startswith('/payments/track/'):
@@ -1955,6 +2702,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             g = self._find_dlove_gift(cid, by_slug=False)
             if not g:
                 return self.send_json_response({"success": False, "message": "Không tìm thấy thiệp"}, status=404)
+            is_paid = bool(g.get('paid')) or g.get('status') == 'active'
+            if not is_paid and not self._user_owns_gift(self.get_current_user(), g):
+                return self.send_json_response({"success": False, "paymentRequired": True, "message": "Không có quyền truy cập thiệp chưa thanh toán!"}, status=403)
             sg = self._dlove_gift_to_silkgarden(g)
             origin = self._get_request_origin()
             for p in sg.get('people', []):
@@ -1977,7 +2727,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         if sub == '/uploads/put':
             key = (query.get('key') or [''])[0].strip()
             ext = _DLOVE_PRESIGN_TOKENS.pop(key, '')
-            if not ext:
+            if not ext or ext.lower() not in ALLOWED_UPLOAD_EXTS:
                 return self.send_json_response({"success": False, "message": "Invalid upload key"}, status=400)
             try:
                 clen = int(self.headers.get('Content-Length') or 0)
@@ -1986,6 +2736,8 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             if clen <= 0 or clen > 25 * 1024 * 1024:
                 return self.send_json_response({"success": False, "message": "Kích thước file không hợp lệ (tối đa 25MB)"}, status=400)
             body = self.rfile.read(clen)
+            if not _validate_uploaded_bytes(ext, body):
+                return self.send_json_response({"success": False, "message": "Nội dung tệp không khớp định dạng cho phép!"}, status=400)
             fname = f"garden_{key}{ext}"
             fpath = os.path.join(UPLOADS_DIR, fname)
             with open(fpath, 'wb') as f:
@@ -1996,21 +2748,22 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
     def handle_dlove_post(self, path, query):
         sub = path[len('/api/dlove'):]
         origin = self._get_request_origin()
+        client_ip = _get_client_ip(self)
 
         if sub == '/pricing/calculate':
-            data = self.read_request_data()
+            data = self.read_request_data(max_bytes=65536)
             feats = data.get('features') if isinstance(data.get('features'), dict) else {}
             pkg_id = feats.get('packageId')
             pricing = self._dlove_pricing_payload(data.get('templateType') or 'silkgarden')
             pkg = next((p for p in pricing['packages'] if p['id'] == pkg_id), pricing['packages'][0])
-            base_total = int(pkg['price'])
+            base_total = max(0, int(pkg['price']))
             return self.send_json_response({"success": True, "data": {"baseTotal": base_total, "total": base_total, "currency": "VND"}})
 
         if sub == '/uploads/presign':
             user = self.get_current_user()
             if not user:
                 return self.send_json_response({"success": False, "error": {"code": "UNAUTHORIZED", "message": "Vui lòng đăng nhập để tải tệp!"}}, status=401)
-            data = self.read_request_data()
+            data = self.read_request_data(max_bytes=16384)
             ftype = str(data.get('fileType') or 'image').lower()
             ctype = str(data.get('contentType') or '').lower()
             ext_map = {
@@ -2018,7 +2771,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 'audio/mpeg': '.mp3', 'audio/mp3': '.mp3', 'audio/mp4': '.m4a', 'audio/wav': '.wav', 'audio/ogg': '.ogg',
             }
             ext = ext_map.get(ctype.split(';')[0].strip(), '.mp3' if ftype == 'audio' else '.webp')
-            key = uuid.uuid4().hex[:16]
+            key = secrets.token_hex(8)
             if len(_DLOVE_PRESIGN_TOKENS) > 512:
                 _DLOVE_PRESIGN_TOKENS.clear()
             _DLOVE_PRESIGN_TOKENS[key] = ext
@@ -2035,7 +2788,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             if not user:
                 return self.send_json_response({"success": False, "error": {"code": "UNAUTHORIZED", "message": "Vui lòng đăng nhập để tải tệp!"}}, status=401)
             is_audio = (sub == '/uploads/audio')
-            allowed = {'.mp3', '.m4a', '.wav', '.ogg'} if is_audio else {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+            allowed = ALLOWED_AUDIO_EXTS if is_audio else ALLOWED_IMAGE_EXTS
             try:
                 environ = {'REQUEST_METHOD': 'POST', 'CONTENT_TYPE': self.headers.get('Content-Type', '')}
                 form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ=environ)
@@ -2043,41 +2796,46 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     return self.send_json_response({"success": False, "message": "Thiếu tệp tải lên"}, status=400)
                 fitem = form['file']
                 orig_name = getattr(fitem, 'filename', '') or ('music.mp3' if is_audio else 'upload.jpg')
-                ext = os.path.splitext(orig_name)[1].lower() or ('.mp3' if is_audio else '.jpg')
+                ext = os.path.splitext(os.path.basename(orig_name))[1].lower() or ('.mp3' if is_audio else '.jpg')
                 if ext not in allowed:
                     return self.send_json_response({"success": False, "message": "Định dạng tệp không được hỗ trợ"}, status=400)
                 raw = fitem.file.read(25 * 1024 * 1024 + 1)
-                if len(raw) > 25 * 1024 * 1024:
-                    return self.send_json_response({"success": False, "message": "Tệp tối đa 25 MB"}, status=400)
+                if len(raw) > 25 * 1024 * 1024 or not _validate_uploaded_bytes(ext, raw):
+                    return self.send_json_response({"success": False, "message": "Tệp không hợp lệ hoặc vượt quá 25 MB"}, status=400)
                 fname = f"garden_{uuid.uuid4().hex[:14]}{ext}"
                 with open(os.path.join(UPLOADS_DIR, fname), 'wb') as fout:
                     fout.write(raw)
                 return self.send_json_response({"success": True, "data": {"url": f"{origin}/uploads/{fname}", "key": fname}})
-            except Exception as e:
-                return self.send_json_response({"success": False, "message": str(e)}, status=500)
+            except Exception:
+                return self.send_json_response({"success": False, "message": "Lỗi khi tải tệp lên!"}, status=500)
 
         if sub == '/websites/silkgarden':
             user = self.get_current_user()
             if not user:
                 return self.send_json_response({"success": False, "error": {"code": "UNAUTHORIZED", "message": "Vui lòng đăng nhập để tạo thiệp!"}}, status=401)
-            data = self.read_request_data()
+            limited, _, wait_sec = _CREATE_LIMITER.check_and_consume(client_ip)
+            if limited:
+                return self.send_json_response({"success": False, "message": f"Thao tác quá nhanh, thử lại sau {wait_sec} giây!"}, status=429)
+            data = self.read_request_data(max_bytes=512 * 1024)
             cfg = data.get('config') if isinstance(data.get('config'), dict) else {}
             feats = data.get('features') if isinstance(data.get('features'), dict) else {}
             pkg_id = feats.get('packageId') or 'free-garden'
             pricing = self._dlove_pricing_payload('silkgarden')
             pkg = next((p for p in pricing['packages'] if p['id'] == pkg_id), pricing['packages'][0])
-            amount = int(pkg['price'])
+            amount = max(0, int(pkg['price']))
 
             cslug = str(data.get('slug') or '').strip().lower()
             if cslug:
+                if not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{1,28})[a-z0-9]', cslug):
+                    return self.send_json_response({"success": False, "message": "Định dạng tên liên kết không hợp lệ!"}, status=400)
                 if cslug in SLUG_TO_ID or self._find_dlove_gift(cslug, by_slug=True):
                     return self.send_json_response({"success": False, "error": {"code": "SLUG_TAKEN", "message": "Tên liên kết này đã được sử dụng"}, "data": {"suggestions": [f"{cslug}-1", f"{cslug}-love"]}}, status=409)
 
             uid = f"g_{uuid.uuid4().hex[:8]}"
             hex16 = self._gift_hex16(uid)
-            share_code = f"DG{int(datetime.now().timestamp()) % 1000000:06d}"
+            share_code = f"DG{secrets.token_hex(4).upper()}"
             while get_gift(share_code) is not None:
-                share_code = f"DG{int(datetime.now().timestamp() + uuid.uuid4().int % 999) % 1000000:06d}"
+                share_code = f"DG{secrets.token_hex(4).upper()}"
 
             people = cfg.get('people') if isinstance(cfg.get('people'), list) else []
             for p in people:
@@ -2101,7 +2859,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
             first_person_name = (people[0].get('name') or '').strip() if (people and isinstance(people[0], dict)) else ''
             intro = cfg_saved.get('intro') if isinstance(cfg_saved.get('intro'), dict) else {}
-            rec_name = first_person_name or str(intro.get('headline') or '').strip() or 'Người thương'
+            rec_name = db.sanitize_text(first_person_name or str(intro.get('headline') or '').strip() or 'Người thương', max_len=80) or 'Người thương'
             letter = cfg_saved.get('letter') if isinstance(cfg_saved.get('letter'), dict) else {}
             is_free = (amount <= 0)
             settings = get_settings()
@@ -2114,13 +2872,13 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 "template_id": "72",
                 "template_slug": "vuon-hoa-3d-360",
                 "recipient_name": rec_name,
-                "sender_name": str(letter.get('sender') or user.get('full_name') or 'DearGift'),
+                "sender_name": db.sanitize_text(str(letter.get('sender') or user.get('full_name') or 'DearGift'), max_len=80),
                 "birthday_day": 19,
                 "birthday_month": 11,
                 "v3": cfg_saved,
-                "letter_title": str(letter.get('title') or f"Gửi {rec_name}!"),
-                "letter_content": str(letter.get('text') or ''),
-                "letter_signature": str(letter.get('sender') or user.get('full_name') or 'DearGift'),
+                "letter_title": db.sanitize_text(str(letter.get('title') or f"Gửi {rec_name}!"), max_len=120),
+                "letter_content": db.sanitize_text(str(letter.get('text') or ''), max_len=4000, allow_newlines=True),
+                "letter_signature": db.sanitize_text(str(letter.get('sender') or user.get('full_name') or 'DearGift'), max_len=80),
                 "passcode": "",
                 "music": cfg_saved['bgMusic'],
                 "photos": photos_list,
@@ -2153,26 +2911,50 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             })
 
         if sub == '/payments/create':
-            data = self.read_request_data()
+            user = self.get_current_user()
+            if not user:
+                return self.send_json_response({"success": False, "message": "Vui lòng đăng nhập!"}, status=401)
+            data = self.read_request_data(max_bytes=16384)
             ocode = str(data.get('orderCode') or '').strip()
             g = get_gift(ocode)
             if not g:
                 return self.send_json_response({"success": False, "message": "Không tìm thấy đơn"}, status=404)
+            if not self._user_owns_gift(user, g):
+                return self.send_json_response({"success": False, "message": "Không có quyền thao tác đơn hàng này!"}, status=403)
             scode = g.get('share_code') or g.get('id')
             return self.send_json_response({"success": True, "data": {"checkoutUrl": f"{origin}/payment.php?code={scode}"}})
 
         if sub == '/auth/login-email':
-            data = self.read_request_data()
-            email = str(data.get('email') or '').strip()
-            pwd = str(data.get('password') or '').strip()
+            data = self.read_request_data(max_bytes=65536)
+            raw_email = data.get('email', '')
+            raw_pwd = data.get('password', '')
+            if not isinstance(raw_email, str) or not isinstance(raw_pwd, str):
+                return self.send_json_response({"success": False, "message": "Dữ liệu đăng nhập không hợp lệ"}, status=400)
+            email = raw_email.strip()
+            pwd = raw_pwd
+            if not email or not pwd or not pwd.strip():
+                return self.send_json_response({"success": False, "message": "Vui lòng nhập email và mật khẩu"}, status=400)
+
+            acct_key = f"{client_ip}:{email.lower()}"
+            ip_lim, ip_wait = _LOGIN_IP_LIMITER.is_limited(client_ip)
+            acc_lim, acc_wait = _LOGIN_ACCOUNT_LIMITER.is_limited(acct_key)
+            if ip_lim or acc_lim:
+                wait_s = max(ip_wait, acc_wait)
+                return self.send_json_response({"success": False, "message": f"Nhập sai quá nhiều lần. Vui lòng thử lại sau {wait_s} giây!"}, status=429)
+
             user = find_user_by_login(email, pwd)
             if not user:
-                return self.send_json_response({"success": False, "message": "Email hoặc mật khẩu không đúng"}, status=401)
+                _LOGIN_IP_LIMITER.record(client_ip)
+                acc_now_lim, remaining, wait_s = _LOGIN_ACCOUNT_LIMITER.record(acct_key)
+                if acc_now_lim:
+                    return self.send_json_response({"success": False, "message": f"Nhập sai quá 5 lần. Tài khoản tạm khóa {wait_s} giây!"}, status=429)
+                return self.send_json_response({"success": False, "message": f"Email hoặc mật khẩu không đúng (còn {remaining} lần thử)"}, status=401)
+
+            _LOGIN_ACCOUNT_LIMITER.reset(acct_key)
             ident = user.get('username') or user.get('email')
-            cookie_val = f"currentUser={urllib.parse.quote(ident)}; Path=/; Max-Age=86400"
             safe_u = {k: v for k, v in user.items() if k != 'password'}
             safe_u['uid'] = safe_u.get('id', '')
-            return self.send_json_response({"success": True, "token": make_dlove_token(ident), "user": safe_u}, cookie=cookie_val)
+            return self.send_json_response({"success": True, "token": make_dlove_token(ident), "user": safe_u}, cookie=build_auth_cookies(self, user))
 
         if sub == '/vouchers/check':
             return self.send_json_response({"success": True, "data": {"valid": False, "reason": "not_found"}})
@@ -2184,21 +2966,38 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
     def serve_demo_template(self, tpl_id):
         demo_path = None
-        tpl_str = str(tpl_id).strip()
+        tpl_str = str(tpl_id or '').strip().lstrip('/')
+        safe_demos_dir = os.path.realpath(os.path.join(DIRECTORY, 'demos'))
+        safe_tpl_dir = os.path.realpath(os.path.join(DIRECTORY, 'templates'))
+
+        def _is_safe_demo_html(p):
+            rp = os.path.realpath(p)
+            return (
+                (rp.startswith(safe_demos_dir + os.sep) or rp.startswith(safe_tpl_dir + os.sep))
+                and rp.lower().endswith(('.html', '.htm'))
+                and os.path.isfile(rp)
+            )
+
         if tpl_str == '32':
-            if os.path.exists(os.path.join(DIRECTORY, 'demos', 'demo_32.html')):
-                demo_path = os.path.join(DIRECTORY, 'demos', 'demo_32.html')
-            elif os.path.exists(os.path.join(DIRECTORY, 'corazon-galactico', 'index.html')):
+            cand32 = os.path.join(DIRECTORY, 'demos', 'demo_32.html')
+            if _is_safe_demo_html(cand32):
+                demo_path = cand32
+            elif os.path.isfile(os.path.join(DIRECTORY, 'corazon-galactico', 'index.html')):
                 demo_path = os.path.join(DIRECTORY, 'corazon-galactico', 'index.html')
-        elif os.path.exists(os.path.join(DIRECTORY, tpl_str)):
-            demo_path = os.path.join(DIRECTORY, tpl_str)
-        elif os.path.exists(os.path.join(DIRECTORY, 'demos', f'demo_{tpl_str}.html')):
-            demo_path = os.path.join(DIRECTORY, 'demos', f'demo_{tpl_str}.html')
-        elif os.path.exists(os.path.join(DIRECTORY, 'demos', f'{tpl_str}.html')):
-            demo_path = os.path.join(DIRECTORY, 'demos', f'{tpl_str}.html')
-        else:
+        elif tpl_str and '\x00' not in tpl_str and '..' not in tpl_str:
+            cand_rel = os.path.join(DIRECTORY, tpl_str)
+            cand_demo_id = os.path.join(DIRECTORY, 'demos', f'demo_{tpl_str}.html')
+            cand_demo_raw = os.path.join(DIRECTORY, 'demos', f'{tpl_str}.html')
+            if _is_safe_demo_html(cand_rel):
+                demo_path = cand_rel
+            elif _is_safe_demo_html(cand_demo_id):
+                demo_path = cand_demo_id
+            elif _is_safe_demo_html(cand_demo_raw):
+                demo_path = cand_demo_raw
+
+        if not demo_path:
             demo_path = os.path.join(DIRECTORY, 'demos', 'demo_69.html')
-        
+
         if demo_path and os.path.exists(demo_path):
             with open(demo_path, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
@@ -2262,27 +3061,38 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 var prefAudio = "{pref_audio}";
                 var fullAudioUrl = new URL(prefAudio, window.location.origin).href;
 
-                // Strict single-audio enforcement: only 1 audio element can play at a time anywhere
+                // Strict single-audio enforcement: pause other audio without killing native template JS Audio
                 window.__dg_audios = window.__dg_audios || new Set();
-                var origPlay = HTMLMediaElement.prototype.play;
-                HTMLMediaElement.prototype.play = function() {{
-                    var self = this;
-                    // Only pause other audios if THIS element is an AUDIO element (never let background videos pause audio!)
-                    if (self && self.tagName === 'AUDIO') {{
-                        document.querySelectorAll('audio').forEach(function(a) {{
-                            if (a !== self && !a.paused) {{
-                                try {{ a.pause(); }} catch(e) {{}}
-                            }}
-                        }});
-                        window.__dg_audios.forEach(function(a) {{
-                            if (a !== self && !a.paused) {{
-                                try {{ a.pause(); }} catch(e) {{}}
-                            }}
-                        }});
-                        window.__dg_audios.add(self);
+                if (!window.__dg_audio_hooked) {{
+                    window.__dg_audio_hooked = true;
+                    var OrigAudio = window.Audio;
+                    if (OrigAudio) {{
+                        window.Audio = function(src) {{
+                            var inst = src !== undefined ? new OrigAudio(src) : new OrigAudio();
+                            try {{ window.__dg_audios.add(inst); }} catch(e) {{}}
+                            return inst;
+                        }};
+                        window.Audio.prototype = OrigAudio.prototype;
                     }}
-                    return origPlay.apply(this, arguments);
-                }};
+                    var origPlay = HTMLMediaElement.prototype.play;
+                    HTMLMediaElement.prototype.play = function() {{
+                        var self = this;
+                        if (self && self.tagName === 'AUDIO') {{
+                            document.querySelectorAll('audio').forEach(function(a) {{
+                                if (a !== self && !a.paused) {{
+                                    try {{ a.pause(); }} catch(e) {{}}
+                                }}
+                            }});
+                            window.__dg_audios.forEach(function(a) {{
+                                if (a !== self && !a.paused) {{
+                                    try {{ a.pause(); }} catch(e) {{}}
+                                }}
+                            }});
+                            window.__dg_audios.add(self);
+                        }}
+                        return origPlay.apply(this, arguments);
+                    }};
+                }}
 
                 function stopAllAudios() {{
                     document.querySelectorAll('audio').forEach(function(a) {{
@@ -2456,8 +3266,13 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 }});
 
                 function initAudio() {{
+                    // Wrapper pages hosting an inner iframe delegate audio to the iframe app — avoid dual playback
+                    if (document.querySelector('iframe')) return;
+
                     var audio = document.querySelector('audio');
                     if (!audio) {{
+                        // Do not hijack pages that already play music dynamically via JS Audio()
+                        if (window.__dg_audios && window.__dg_audios.size > 0) return;
                         audio = document.createElement('audio');
                         audio.id = 'dg-bg-music';
                         audio.loop = true;
@@ -2472,15 +3287,21 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     // Only autoplay if NOT in an iframe (standalone demo mode)
                     var isInIframe = false;
                     try {{ isInIframe = window.self !== window.top; }} catch(e) {{ isInIframe = true; }}
-                    
+
                     if (!isInIframe) {{
                         function tryPlay() {{
-                            if (audio.paused) {{
+                            var anyPlaying = false;
+                            try {{
+                                window.__dg_audios.forEach(function(a) {{
+                                    if (!a.paused) anyPlaying = true;
+                                }});
+                            }} catch(e) {{}}
+                            if (!anyPlaying && audio.paused) {{
                                 var p = audio.play();
                                 if (p && p.catch) p.catch(function(){{}});
                             }}
                         }}
-                        tryPlay();
+                        setTimeout(tryPlay, 150);
                         ['pointerdown', 'touchstart', 'click', 'keydown'].forEach(function(evt) {{
                             window.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
                             document.addEventListener(evt, tryPlay, {{ passive: true, once: true }});
@@ -2505,8 +3326,8 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 content,
                 content_type='text/html; charset=utf-8',
                 extra_headers={
-                    'Content-Security-Policy': 'frame-ancestors *',
-                    'X-Frame-Options': 'ALLOWALL',
+                    'Content-Security-Policy': "frame-ancestors 'self'",
+                    'X-Frame-Options': 'SAMEORIGIN',
                 },
             )
         else:
@@ -2711,12 +3532,17 @@ try {{
         # Check payment status
         if gift.get('status') == 'pending' or not gift.get('paid', False):
             settings = get_settings()
-            share_code = gift.get('share_code', '')
-            amount = gift.get('amount', 20000)
-            rec_name = gift.get('recipient_name', 'Người thương')
-            transfer_content = gift.get('transfer_content', f"DEAR {share_code}")
-            qr_url = f"https://img.vietqr.io/image/{settings['bank_code']}-{settings['account_number']}-compact2.png?amount={amount}&addInfo={urllib.parse.quote(transfer_content)}&accountName={urllib.parse.quote(settings['account_name'])}"
-            
+            share_code = str(gift.get('share_code', ''))
+            amount = max(0, int(gift.get('amount') or 20000))
+            rec_name = html.escape(str(gift.get('recipient_name', 'Người thương')), quote=True)
+            transfer_content = html.escape(str(gift.get('transfer_content', f"DEAR {share_code}")), quote=True)
+            bank_name_esc = html.escape(str(settings.get('bank_name', '')), quote=True)
+            acc_name_esc = html.escape(str(settings.get('account_name', '')), quote=True)
+            acc_num_esc = html.escape(str(settings.get('account_number', '')), quote=True)
+            share_code_esc = html.escape(share_code, quote=True)
+            share_code_qs = urllib.parse.quote(share_code)
+            qr_url = f"https://img.vietqr.io/image/{settings['bank_code']}-{settings['account_number']}-compact2.png?amount={amount}&addInfo={urllib.parse.quote(gift.get('transfer_content', f'DEAR {share_code}'))}&accountName={urllib.parse.quote(settings['account_name'])}"
+
             pending_html = f"""<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -2748,7 +3574,7 @@ p.sub {{ font-size: 13px; color: #a5a0be; line-height: 1.5; margin-bottom: 20px;
     <p class="sub">Vui lòng quét mã QR chuyển khoản để kích hoạt và mở món quà 3D lung linh này!</p>
     
     <div class="qr-box">
-        <img src="{qr_url}" alt="VietQR MBBank">
+        <img src="{html.escape(qr_url, quote=True)}" alt="VietQR MBBank">
     </div>
 
     <div class="status-pill" id="poll-status">
@@ -2756,9 +3582,9 @@ p.sub {{ font-size: 13px; color: #a5a0be; line-height: 1.5; margin-bottom: 20px;
     </div>
 
     <div class="info">
-        <div><span>Ngân hàng:</span><strong>{settings['bank_name']}</strong></div>
-        <div><span>Chủ tài khoản:</span><strong>{settings['account_name']}</strong></div>
-        <div><span>Số tài khoản:</span><strong>{settings['account_number']}</strong></div>
+        <div><span>Ngân hàng:</span><strong>{bank_name_esc}</strong></div>
+        <div><span>Chủ tài khoản:</span><strong>{acc_name_esc}</strong></div>
+        <div><span>Số tài khoản:</span><strong>{acc_num_esc}</strong></div>
         <div><span>Số tiền:</span><strong>{amount:,}đ</strong></div>
         <div><span>Nội dung CK:</span><strong>{transfer_content}</strong></div>
     </div>
@@ -2766,7 +3592,7 @@ p.sub {{ font-size: 13px; color: #a5a0be; line-height: 1.5; margin-bottom: 20px;
 
 <script>
 function pollStatus() {{
-    fetch('/ajax_check_payment_status.php?code={share_code}')
+    fetch('/ajax_check_payment_status.php?code={share_code_qs}')
     .then(r => r.json())
     .then(res => {{
         if (res && res.status === 'active') {{
@@ -2857,10 +3683,10 @@ setInterval(pollStatus, 2500);
         photos = gift.get('photos', [])
         first_photo_json = json.dumps(photos[0], ensure_ascii=False) if photos else '""'
 
-        # Replace watermark with custom banner
+        # Replace watermark with custom banner (escaped against XSS)
         content = content.replace(
             '<div class="gift-preview-flag">XEM THỬ</div>',
-            f'<div class="gift-preview-flag" style="background:linear-gradient(135deg,#e8589a,#9b5cf6); box-shadow:0 4px 14px rgba(232,88,154,0.4);">DÀNH TẶNG {rec_name.upper()} ❤️</div>'
+            f'<div class="gift-preview-flag" style="background:linear-gradient(135deg,#e8589a,#9b5cf6); box-shadow:0 4px 14px rgba(232,88,154,0.4);">DÀNH TẶNG {html.escape(str(rec_name).upper())} ❤️</div>'
         )
 
         # Inject override script
@@ -2934,17 +3760,48 @@ setInterval(pollStatus, 2500);
         accept = self.headers.get('Accept', '')
         return 'application/json' in content_type or 'application/json' in accept
 
-    def read_request_data(self):
+    def _save_safe_upload(self, sub_item):
+        orig_name = getattr(sub_item, 'filename', '') or ''
+        if not orig_name:
+            return ''
+        ext = os.path.splitext(os.path.basename(orig_name))[1].lower()
+        if ext not in ALLOWED_UPLOAD_EXTS:
+            return ''
+        raw = sub_item.file.read(25 * 1024 * 1024 + 1)
+        if not raw or len(raw) > 25 * 1024 * 1024 or not _validate_uploaded_bytes(ext, raw):
+            return ''
+        fname = f"{uuid.uuid4().hex[:12]}{ext}"
+        fpath = os.path.join(UPLOADS_DIR, fname)
+        with open(fpath, 'wb') as fout:
+            fout.write(raw)
+        return f"uploads/{fname}"
+
+    def read_request_data(self, max_bytes: int = 26 * 1024 * 1024, allow_list: bool = False):
         content_type = self.headers.get('Content-Type', '')
-        content_len = int(self.headers.get('Content-Length', 0))
-        
+        raw_clen = self.headers.get('Content-Length', '0')
+        try:
+            content_len = int(raw_clen)
+        except (ValueError, TypeError):
+            raise _BadRequestError(400, "Content-Length không hợp lệ!")
+        if content_len < 0:
+            raise _BadRequestError(400, "Content-Length không hợp lệ!")
+        if content_len > max_bytes:
+            raise _BadRequestError(413, "Kích thước dữ liệu vượt quá giới hạn cho phép!")
+
         if 'application/json' in content_type:
+            if content_len == 0:
+                return {}
             try:
                 body = self.rfile.read(content_len).decode('utf-8')
-                return json.loads(body)
+                parsed_json = json.loads(body)
             except Exception:
-                return {}
-        
+                raise _BadRequestError(400, "Dữ liệu JSON không hợp lệ!")
+            if isinstance(parsed_json, dict):
+                return parsed_json
+            if allow_list and isinstance(parsed_json, list):
+                return parsed_json
+            raise _BadRequestError(400, "Payload JSON phải là đối tượng hợp lệ!")
+
         if 'multipart/form-data' in content_type:
             try:
                 environ = {'REQUEST_METHOD': 'POST', 'CONTENT_TYPE': content_type}
@@ -2956,12 +3813,9 @@ setInterval(pollStatus, 2500);
                         file_vals = []
                         for sub in item:
                             if getattr(sub, 'filename', None) and sub.filename:
-                                ext = os.path.splitext(sub.filename)[1].lower() or '.jpg'
-                                fname = f"{uuid.uuid4().hex[:12]}{ext}"
-                                fpath = os.path.join(UPLOADS_DIR, fname)
-                                with open(fpath, 'wb') as fout:
-                                    fout.write(sub.file.read())
-                                file_vals.append(f"uploads/{fname}")
+                                saved = self._save_safe_upload(sub)
+                                if saved:
+                                    file_vals.append(saved)
                             elif hasattr(sub, 'value'):
                                 val = sub.value
                                 if isinstance(val, bytes):
@@ -2970,13 +3824,9 @@ setInterval(pollStatus, 2500);
                                 file_vals.append(val)
                         data[key] = file_vals
                     elif getattr(item, 'filename', None) and item.filename:
-                        # Save single file
-                        ext = os.path.splitext(item.filename)[1].lower() or '.jpg'
-                        fname = f"{uuid.uuid4().hex[:12]}{ext}"
-                        fpath = os.path.join(UPLOADS_DIR, fname)
-                        with open(fpath, 'wb') as fout:
-                            fout.write(item.file.read())
-                        data[key] = f"uploads/{fname}"
+                        saved = self._save_safe_upload(item)
+                        if saved:
+                            data[key] = saved
                     else:
                         val = item.value
                         if isinstance(val, bytes):
@@ -2984,22 +3834,35 @@ setInterval(pollStatus, 2500);
                             except Exception: val = ''
                         data[key] = val
                 return data
+            except _BadRequestError:
+                raise
             except Exception:
-                return {}
+                raise _BadRequestError(400, "Dữ liệu biểu mẫu không hợp lệ!")
 
         # Fallback to application/x-www-form-urlencoded
+        if content_len == 0:
+            return {}
         try:
             body = self.rfile.read(content_len).decode('utf-8')
             parsed = urllib.parse.parse_qs(body)
             return {k: v[0] if len(v) == 1 else v for k, v in parsed.items()}
         except Exception:
-            return {}
+            raise _BadRequestError(400, "Dữ liệu form không hợp lệ!")
+
+    def _emit_cookies(self, cookie):
+        if not cookie:
+            return
+        if isinstance(cookie, (list, tuple)):
+            for c in cookie:
+                if c:
+                    self.send_header('Set-Cookie', c)
+        else:
+            self.send_header('Set-Cookie', cookie)
 
     def send_redirect(self, location, cookie=None):
         self.send_response(302)
         self.send_header('Location', location)
-        if cookie:
-            self.send_header('Set-Cookie', cookie)
+        self._emit_cookies(cookie)
         self.end_headers()
 
     def send_bytes_response(self, raw_bytes, content_type='text/html; charset=utf-8', status=200, cookie=None, allow_etag=None, compressible=True, extra_headers=None):
@@ -3037,8 +3900,7 @@ setInterval(pollStatus, 2500);
         if etag:
             self.send_header('ETag', etag)
         self.send_header('Content-Length', str(len(payload)))
-        if cookie:
-            self.send_header('Set-Cookie', cookie)
+        self._emit_cookies(cookie)
         if extra_headers:
             for k, v in extra_headers.items():
                 self.send_header(k, v)
@@ -3059,7 +3921,7 @@ setInterval(pollStatus, 2500);
             allow_etag=allow_etag,
             extra_headers={
                 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-CSRF-Token, X-User',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, X-CSRF-Token, X-Webhook-Secret, Secure-Token',
             },
         )
 
@@ -3089,13 +3951,13 @@ setInterval(pollStatus, 2500);
                 self.send_header('ETag', etag)
             self.send_header('Last-Modified', self.date_time_string(mtime))
             self.send_header('Content-Length', str(len(payload)))
-            if cookie:
-                self.send_header('Set-Cookie', cookie)
+            self._emit_cookies(cookie)
             self.end_headers()
-            try:
-                self.wfile.write(payload)
-            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
-                pass
+            if self.command != 'HEAD':
+                try:
+                    self.wfile.write(payload)
+                except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                    pass
         except OSError:
             self.send_error(404, f"{filename} not found")
 
@@ -3127,15 +3989,16 @@ setInterval(pollStatus, 2500);
             if etag:
                 self.send_header('ETag', etag)
             self.end_headers()
-            try:
-                with open(file_path, 'rb') as f:
-                    while True:
-                        chunk = f.read(chunk_size)
-                        if not chunk:
-                            break
-                        self.wfile.write(chunk)
-            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
-                pass
+            if self.command != 'HEAD':
+                try:
+                    with open(file_path, 'rb') as f:
+                        while True:
+                            chunk = f.read(chunk_size)
+                            if not chunk:
+                                break
+                            self.wfile.write(chunk)
+                except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                    pass
             return
 
         try:

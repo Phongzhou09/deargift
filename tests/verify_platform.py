@@ -99,6 +99,8 @@ def run_tests():
     env = os.environ.copy()
     env["PORT"] = str(PORT)
     env["DB_PATH"] = tmp_db
+    env["WEBHOOK_SECRET"] = "dg_test_webhook_secret_2026"
+    env["DG_SESSION_SECRET"] = "dg_test_session_secret_2026"
     proc = subprocess.Popen(
         [sys.executable, "server.py"],
         cwd=ROOT,
@@ -133,7 +135,28 @@ def run_tests():
                 assert e.code == 404, f"Expected 404 for {blocked}, got {e.code}"
         print("[PASS] Security blocks on system/DB/code files OK")
 
-        # 1b. Railway healthcheck, robots, favicon, Gzip/ETag/304 & Cache-Control checks
+        # 1b. HTTP Security Headers, Anti-Path-Traversal, Railway healthcheck & Cache-Control
+        try:
+            with urllib.request.urlopen(BASE + "/demo.php?id=server.py", timeout=3) as r:
+                dbody = r.read().decode("utf-8", errors="ignore")
+                assert "CASSO_API_KEY" not in dbody and "def do_POST" not in dbody, "Path traversal via demo.php leaked server.py!"
+        except urllib.error.HTTPError:
+            pass
+        try:
+            with urllib.request.urlopen(BASE + "/demo.php?id=../app/db.py", timeout=3) as r:
+                dbody = r.read().decode("utf-8", errors="ignore")
+                assert "authenticate_user" not in dbody, "Path traversal via demo.php leaked app/db.py!"
+        except urllib.error.HTTPError:
+            pass
+
+        with urllib.request.urlopen(BASE + "/api/me", timeout=3) as r:
+            assert r.status == 200
+            assert r.headers.get("X-Content-Type-Options") == "nosniff"
+            assert r.headers.get("X-Frame-Options") == "SAMEORIGIN"
+            assert "strict-origin" in r.headers.get("Referrer-Policy", "").lower()
+            assert "no-store" in r.headers.get("Cache-Control", "").lower()
+            assert r.headers.get("Access-Control-Allow-Origin") != "*", "Sensitive /api/me must not send wildcard CORS!"
+
         with urllib.request.urlopen(BASE + "/health", timeout=3) as r:
             assert r.status == 200
             assert "no-store" in r.headers.get("Cache-Control", "").lower()
@@ -224,6 +247,14 @@ def run_tests():
         op2 = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar2))
         anon = urllib.request.build_opener()
 
+        # Register validation & security regression tests
+        st, _ = json_req(anon, "/api/register", "POST", {"username": "shortpw1", "email": "short1@example.com", "password": "123"})
+        assert st == 400, f"Expected 400 on <6 char password, got {st}"
+        st, _ = json_req(anon, "/api/register", "POST", {"username": "<script>x</script>", "email": "xss@example.com", "password": "secret123"})
+        assert st == 400, f"Expected 400 on XSS username, got {st}"
+        st, _ = json_req(anon, "/api/login", "POST", ["not", "a", "dict"])
+        assert st == 400, f"Expected 400 on non-dict JSON, got {st}"
+
         # Register new user
         st, res = json_req(
             op1,
@@ -232,15 +263,51 @@ def run_tests():
             {"username": "testdbuser", "email": "testdb@example.com", "password": "secret123", "full_name": "Test DB"},
         )
         assert st == 200 and res.get("status") == "success", f"Register failed: {st} {res}"
+        dg_cookies = {c.name: c for c in jar1}
+        assert "dg_session" in dg_cookies and dg_cookies["dg_session"].has_nonstandard_attr("HttpOnly"), "Missing HttpOnly dg_session cookie!"
 
-        # Duplicate register with wrong password must be rejected (409)
+        # Duplicate register with wrong password (>=6 chars) must be rejected (409)
         st, _ = json_req(
             anon,
             "/api/register",
             "POST",
-            {"username": "testdbuser", "email": "testdb@example.com", "password": "wrong"},
+            {"username": "testdbuser", "email": "testdb@example.com", "password": "wrong123"},
         )
         assert st == 409, f"Expected 409 on duplicate register, got {st}"
+
+        # Even matching password on duplicate register must NOT auto-login (409)
+        st, _ = json_req(
+            anon,
+            "/api/register",
+            "POST",
+            {"username": "testdbuser", "email": "testdb@example.com", "password": "secret123"},
+        )
+        assert st == 409, f"Expected 409 oracle block on duplicate register, got {st}"
+
+        # Unsigned currentUser cookie & X-User spoofing MUST fail authentication
+        _, spoof_me = json_req(anon, "/api/me", headers={"Cookie": "currentUser=testdbuser", "X-User": "testdbuser"})
+        assert not spoof_me.get("logged_in"), f"Spoofed cookie/X-User bypassed auth! {spoof_me}"
+
+        # Hardcoded admin backdoor passwords on customer login MUST fail
+        st, _ = json_req(anon, "/api/login", "POST", {"username": "phong", "password": "admin1911"})
+        assert st in (401, 429), f"Backdoor password admin1911 succeeded! status={st}"
+
+        # Google passwordless email takeover MUST be rejected
+        st, _ = json_req(anon, "/auth_google.php", "POST", {"email": "phong@deargift.love", "name": "Spoof"})
+        assert st == 400, f"Passwordless Google takeover allowed! status={st}"
+
+        # Unauthenticated /settings.php IDOR & wrong current_password MUST be rejected
+        st, _ = json_req(anon, "/settings.php", "POST", {"action": "change_password", "username": "testdbuser", "new_password": "hacked123"})
+        assert st == 401, f"Unauthenticated settings.php change_password succeeded! status={st}"
+        st, _ = json_req(op1, "/settings.php", "POST", {"action": "change_password", "current_password": "wrongcur", "new_password": "newpass123"})
+        assert st == 403, f"Expected 403 on wrong current_password, got {st}"
+
+        # Login rate-limit: 5 failed attempts lock out subsequent attempt (429)
+        for attempt_i in range(5):
+            st_rl, _ = json_req(anon, "/api/login", "POST", {"username": "ratelimit_probe", "password": f"badpw{attempt_i}"})
+        assert st_rl == 429, f"Expected 429 on 5th failed login attempt, got {st_rl}"
+        st_rl2, _ = json_req(anon, "/api/login", "POST", {"username": "ratelimit_probe", "password": "anotherbad"})
+        assert st_rl2 == 429, f"Expected 429 lockout to persist, got {st_rl2}"
 
         # Verify password was hashed in SQLite (not plaintext)
         tconn = sqlite3.connect(tmp_db)
@@ -260,7 +327,7 @@ def run_tests():
         assert legacy_hash.startswith("pbkdf2_sha256$"), "Legacy hash not upgraded!"
         tconn.close()
 
-        # Create gift as user 1
+        # Create gift as user 1 with forged client price=0 (MUST enforce server catalog price 50000!)
         st, gres = json_req(
             op1,
             "/api/gifts/create",
@@ -269,12 +336,18 @@ def run_tests():
                 "template_id": "69",
                 "recipient_name": "Minh Anh",
                 "letter_content": "Happy test day",
-                "total_price": 20000,
+                "total_price": 0,
+                "amount": -5000,
             },
         )
         assert st == 200 and gres.get("success"), f"Gift create failed: {gres}"
+        assert gres.get("amount") == 50000 and gres.get("is_free") is False, f"Price tampering bypassed! {gres}"
         gid = gres["gift_id"]
         scode = gres["share_code"]
+
+        # Verify /api/payment/details hides private letter content/passcode
+        st, pdet = json_req(anon, f"/api/payment/details?code={scode}")
+        assert st == 200 and "letter_content" not in pdet["gift"] and "passcode" not in pdet["gift"]
 
         # Isolation: op1 sees gift/order, op2 does not, guest does not
         _, my1 = json_req(op1, "/api/my-gifts")
@@ -289,9 +362,22 @@ def run_tests():
         assert any(o["id"] == gid and o.get("qr_url") for o in ord1.get("orders", [])), "Creator missing order with QR!"
         assert ordg.get("orders") == [] and ordg.get("require_login"), "Guest saw orders!"
 
-        # Bank webhook activation + transaction verification
+        # Unauthorized confirm_payment & unauthenticated webhook MUST fail (403)
+        st, _ = json_req(anon, "/api/gifts/confirm_payment", "POST", {"code": scode})
+        assert st == 403, f"Unauthenticated confirm_payment succeeded! status={st}"
+        st, _ = json_req(anon, "/api/webhook/bank", "POST", {"content": f"DEAR {scode}"})
+        assert st == 403, f"Unauthenticated POST webhook succeeded! status={st}"
+        st, _ = json_req(anon, f"/api/webhook/bank?code={scode}")
+        assert st == 403, f"Unauthenticated GET webhook succeeded! status={st}"
+
+        # Underpaid webhook with valid secret MUST NOT activate 50000 gift
+        wh_hdr = {"X-Webhook-Secret": "dg_test_webhook_secret_2026"}
+        st, w_under = json_req(anon, "/api/webhook/bank", "POST", {"content": f"CHUYEN KHOAN DEAR {scode}", "amount": 1000}, headers=wh_hdr)
+        assert st == 200 and scode not in w_under.get("matched", []), f"Underpaid webhook activated gift! {w_under}"
+
+        # Authorized Bank webhook activation with full amount + transaction verification
         st, wres = json_req(
-            anon, "/api/webhook/bank", "POST", {"content": f"CHUYEN KHOAN DEAR {scode}"}
+            anon, "/api/webhook/bank", "POST", {"content": f"CHUYEN KHOAN DEAR {scode}", "amount": 50000}, headers=wh_hdr
         )
         assert st == 200 and scode in wres.get("matched", []), f"Webhook failed: {wres}"
 

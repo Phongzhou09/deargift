@@ -378,8 +378,8 @@
             <h3 style="margin-top:0; font-size:18px; color:#3d3551; margin-bottom: 16px;">Đổi mật khẩu</h3>
             <form method="POST">
                 <input type="hidden" name="csrf_token" value="86de16f51478ea79b1b37a3846e93480f8a436abf7af47c48058f82595ec3843">                <input type="hidden" name="action" value="change_password">
-                                <input type="password" name="current_password" class="modal-input" placeholder="Mật khẩu hiện tại" required>
-                                <input type="password" name="new_password" class="modal-input" placeholder="Mật khẩu mới" required>
+                                <input type="password" name="current_password" class="modal-input" placeholder="Mật khẩu hiện tại" required autocomplete="current-password">
+                                <input type="password" name="new_password" class="modal-input" placeholder="Mật khẩu mới (tối thiểu 6 ký tự)" required minlength="6" maxlength="128" autocomplete="new-password">
                 <div style="display: flex; gap: 12px; margin-top: 16px;">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('pwModal').classList.remove('active')" style="flex:1; padding:10px;">Hủy</button>
                     <button type="submit" class="btn btn-primary" style="flex:1; padding:10px;">Lưu mật khẩu</button>
@@ -396,6 +396,7 @@
             <form method="POST">
                 <input type="hidden" name="csrf_token" value="86de16f51478ea79b1b37a3846e93480f8a436abf7af47c48058f82595ec3843">                <input type="hidden" name="action" value="delete_account">
                 <input type="text" name="confirm_username" class="modal-input" placeholder="Nhập đúng tên đăng nhập" required autocomplete="off">
+                <input type="password" name="current_password" class="modal-input" placeholder="Nhập mật khẩu hiện tại để xác nhận" required autocomplete="current-password">
                 <div style="display: flex; gap: 12px; margin-top: 24px;">
                     <button type="button" class="btn btn-secondary" onclick="document.getElementById('deleteModal').classList.remove('active')" style="flex:1; padding:10px;">Hủy</button>
                     <button type="submit" class="btn btn-primary" style="flex:1; padding:10px; background:#ef4444; border-color:#ef4444;">Xóa ngay</button>
@@ -458,15 +459,21 @@
                     })
                     .catch(function() { DG.toast('Lỗi kết nối khi lưu hồ sơ.', true); });
                 } else if (act === 'change_password') {
-                    var newPwd = (form.querySelector('input[name="new_password"]') || {}).value;
-                    if (!newPwd || newPwd.length < 6) {
-                        DG.toast('Mật khẩu mới phải có ít nhất 6 ký tự!', true);
+                    var curPwd = (form.querySelector('input[name="current_password"]') || {}).value || '';
+                    var newPwd = (form.querySelector('input[name="new_password"]') || {}).value || '';
+                    if (!curPwd) {
+                        DG.toast('Vui lòng nhập mật khẩu hiện tại!', true);
+                        return;
+                    }
+                    if (!newPwd || newPwd.length < 6 || newPwd.length > 128) {
+                        DG.toast('Mật khẩu mới phải từ 6 đến 128 ký tự!', true);
                         return;
                     }
                     fetch('/settings.php', {
                         method: 'POST',
+                        credentials: 'same-origin',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({action: 'change_password', new_password: newPwd})
+                        body: JSON.stringify({action: 'change_password', current_password: curPwd, new_password: newPwd})
                     })
                     .then(function(r) { return r.json(); })
                     .then(function(res) {
@@ -481,22 +488,23 @@
                     .catch(function() { DG.toast('Lỗi kết nối khi đổi mật khẩu.', true); });
                 } else if (act === 'delete_account') {
                     var confirmVal = ((form.querySelector('input[name="confirm_username"]') || {}).value || '').trim();
+                    var delPwd = (form.querySelector('input[name="current_password"]') || {}).value || '';
                     if (confirmVal !== username) {
                         DG.toast('Tên đăng nhập xác nhận không khớp!', true);
                         return;
                     }
                     fetch('/settings.php', {
                         method: 'POST',
+                        credentials: 'same-origin',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({action: 'delete_account'})
+                        body: JSON.stringify({action: 'delete_account', confirm_username: confirmVal, current_password: delPwd})
                     })
                     .then(function(r) { return r.json(); })
                     .then(function(res) {
                         if (res && res.success) {
                             localStorage.removeItem('deargift_user');
                             localStorage.removeItem('deargift_customer');
-                            document.cookie = 'currentUser=; path=/; max-age=0';
-                            window.location.href = 'index.html';
+                            window.location.href = '/logout.php';
                         } else {
                             DG.toast((res && res.message) || 'Không thể xóa tài khoản.', true);
                         }

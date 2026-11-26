@@ -157,11 +157,13 @@ try {
     <div class="auth-heading">Chào mừng trở lại 👋</div>
     <div class="auth-subheading">Đăng nhập để tạo thiệp và gửi quà cho người ấy</div>
 
+    <div id="authErrorBox" style="display:none; background:#fef2f2; border:1px solid #fecaca; color:#b91c1c; padding:10px 14px; border-radius:12px; font-size:13px; font-weight:600; margin-bottom:14px;"></div>
+
     <form id="loginForm" action="login.php" method="POST">
       <div class="form-field">
         <label for="username">Tên đăng nhập hoặc Email</label>
         <div class="input-wrap">
-          <input type="text" id="username" name="username" placeholder="VD: loveuser hoặc email@gmail.com" required autocomplete="username">
+          <input type="text" id="username" name="username" placeholder="VD: loveuser hoặc email@gmail.com" required maxlength="254" autocomplete="username">
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>
       </div>
@@ -169,7 +171,7 @@ try {
       <div class="form-field">
         <label for="password">Mật khẩu</label>
         <div class="input-wrap">
-          <input type="password" id="password" name="password" placeholder="Nhập mật khẩu của bạn" required autocomplete="current-password">
+          <input type="password" id="password" name="password" placeholder="Nhập mật khẩu của bạn" required minlength="1" maxlength="128" autocomplete="current-password">
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         </div>
       </div>
@@ -181,7 +183,7 @@ try {
 
     <div class="divider"><hr><span>hoặc tiếp tục với</span><hr></div>
 
-    <!-- Custom Fast Google Sign-in -->
+    <!-- Verified Google Sign-In Notice -->
     <button type="button" class="btn-google" id="btnCustomGoogle" onclick="openCustomerGoogleModal()" style="width:100%; padding:11px 16px; border:1.5px solid #dadce0; border-radius:50px; background:#fff; color:#3c4043; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; box-shadow:0 1px 3px rgba(60,64,67,0.08); transition:all 0.2s;">
       <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.4l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.7c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.2C.7 9.6 0 12.2 0 15s.7 5.4 1.9 7.8l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 16c1.8 3.8 5.6 7 10.1 7z"/></svg>
       <span id="googleBtnLabel">Đăng nhập bằng tài khoản Google</span>
@@ -193,34 +195,37 @@ try {
   </div>
 </div>
 
-<!-- Customer Google Modal -->
+<!-- Verified Google OAuth Modal -->
 <div id="customerGoogleModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,10,26,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
   <div style="background:white; border-radius:24px; width:100%; max-width:400px; padding:28px; box-shadow:0 24px 50px rgba(0,0,0,0.25); position:relative; animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
     <button onclick="closeCustomerGoogleModal()" style="position:absolute; top:18px; right:18px; border:none; background:none; font-size:24px; cursor:pointer; color:#7a7090;">&times;</button>
-    <div style="display:flex; align-items:center; gap:12px; margin-bottom:18px;">
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:16px;">
       <svg width="32" height="32" viewBox="0 0 24 24"><path fill="#EA4335" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.7 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.4l3.7 2.9C6.5 7.2 9 5 12 5z"/><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.6h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.9z"/><path fill="#FBBC05" d="M5.6 14.7c-.2-.7-.4-1.5-.4-2.3s.2-1.6.4-2.3L1.9 7.2C.7 9.6 0 12.2 0 15s.7 5.4 1.9 7.8l3.7-2.9z"/><path fill="#34A853" d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.2-6.4-5.2L1.9 16c1.8 3.8 5.6 7 10.1 7z"/></svg>
       <div>
-        <h3 style="margin:0; font-size:17px; font-weight:800; color:#3d3551;">Đăng nhập với Google</h3>
-        <p style="margin:2px 0 0; font-size:12px; color:#7a7090;">Liên kết với tài khoản Gmail cá nhân của bạn</p>
+        <h3 style="margin:0; font-size:17px; font-weight:800; color:#3d3551;">Bảo mật đăng nhập Google</h3>
+        <p style="margin:2px 0 0; font-size:12px; color:#7a7090;">Chỉ hỗ trợ qua Google ID Token đã xác thực</p>
       </div>
     </div>
-    <form id="quickGoogleForm" onsubmit="handleCustomerGoogleSubmit(event)">
-      <div style="margin-bottom:14px;">
-        <label style="display:block; font-size:12.5px; font-weight:700; color:#3d3551; margin-bottom:6px;">Tài khoản Gmail của bạn:</label>
-        <input type="email" id="customerGoogleEmail" required placeholder="vidu: khachhang@gmail.com" style="width:100%; padding:10px 14px; border:1.5px solid #eadff5; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; background:#fffaf3;">
-      </div>
-      <div style="margin-bottom:18px;">
-        <label style="display:block; font-size:12.5px; font-weight:700; color:#3d3551; margin-bottom:6px;">Họ tên hiển thị:</label>
-        <input type="text" id="customerGoogleName" placeholder="VD: Mai Linh" style="width:100%; padding:10px 14px; border:1.5px solid #eadff5; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; background:#fffaf3;">
-      </div>
-      <button type="submit" id="btnConfirmGoogle" style="width:100%; padding:12px; background:linear-gradient(135deg,#e8589a,#d30f72); color:white; border:none; border-radius:50px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 20px rgba(232,88,154,0.35);">
-        Xác nhận đăng nhập
-      </button>
-    </form>
+    <p style="font-size:13.5px; color:#554c68; line-height:1.55; margin:0 0 18px;">
+      Để bảo vệ tài khoản khỏi truy cập giả mạo, đăng nhập nhanh bằng email không mật khẩu đã được tắt. Vui lòng đăng nhập bằng tên đăng nhập và mật khẩu ở biểu mẫu chính.
+    </p>
+    <button type="button" onclick="closeCustomerGoogleModal()" style="width:100%; padding:12px; background:linear-gradient(135deg,#e8589a,#d30f72); color:white; border:none; border-radius:50px; font-size:14px; font-weight:800; cursor:pointer; box-shadow:0 8px 20px rgba(232,88,154,0.35);">
+      Quay lại đăng nhập bằng mật khẩu
+    </button>
   </div>
 </div>
 
 <script>
+function showLoginError(msg) {
+  var box = document.getElementById('authErrorBox');
+  if (box) {
+    box.textContent = msg;
+    box.style.display = 'block';
+  } else {
+    alert(msg);
+  }
+}
+
 function handleGoogleLoginResponse(response) {
   const data = new URLSearchParams();
   data.append('credential', response.credential);
@@ -236,18 +241,21 @@ function handleGoogleLoginResponse(response) {
       if (d.user) {
         localStorage.setItem('deargift_user', JSON.stringify(d.user));
         localStorage.setItem('deargift_customer', JSON.stringify(d.user));
-        // clean
-}
+      }
       var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || d.redirect || 'templates.php';
       window.location.href = redirectTarget;
     } else {
-      alert(d.message || "Đăng nhập Google thất bại");
+      showLoginError(d.message || "Đăng nhập Google thất bại");
     }
   })
-  .catch(() => alert("Lỗi kết nối máy chủ. Vui lòng thử lại."));
+  .catch(() => showLoginError("Lỗi kết nối máy chủ. Vui lòng thử lại."));
 }
 
 function openCustomerGoogleModal() {
+  if (window.google && window.google.accounts && window.google.accounts.id && typeof window.google.accounts.id.prompt === 'function') {
+    window.google.accounts.id.prompt();
+    return;
+  }
   var modal = document.getElementById('customerGoogleModal');
   if (modal) modal.style.display = 'flex';
 }
@@ -255,38 +263,6 @@ function openCustomerGoogleModal() {
 function closeCustomerGoogleModal() {
   var modal = document.getElementById('customerGoogleModal');
   if (modal) modal.style.display = 'none';
-}
-
-function handleCustomerGoogleSubmit(e) {
-  e.preventDefault();
-  var email = document.getElementById('customerGoogleEmail').value.trim();
-  var name = document.getElementById('customerGoogleName').value.trim() || email.split('@')[0];
-  var btn = document.getElementById('btnConfirmGoogle');
-  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Đang đăng nhập...'; }
-
-  fetch('auth_google.php', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: email, name: name })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.success) {
-      if (d.user) {
-        localStorage.setItem('deargift_user', JSON.stringify(d.user));
-        localStorage.setItem('deargift_customer', JSON.stringify(d.user));
-      }
-      var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || d.redirect || 'templates.php';
-      window.location.href = redirectTarget;
-    } else {
-      alert(d.message || 'Đăng nhập không thành công');
-      if (btn) { btn.disabled = false; btn.innerHTML = 'Xác nhận đăng nhập'; }
-    }
-  })
-  .catch(() => {
-    alert('Lỗi kết nối. Vui lòng thử lại.');
-    if (btn) { btn.disabled = false; btn.innerHTML = 'Xác nhận đăng nhập'; }
-  });
 }
 
 // Standard Login Form Handler
@@ -297,12 +273,22 @@ document.addEventListener('DOMContentLoaded', function() {
       a.href = 'register.html?redirect=' + encodeURIComponent(redirectParam);
     });
   }
+  var qErr = (new URLSearchParams(window.location.search)).get('error');
+  if (qErr === 'rate_limited') showLoginError('Bạn đã nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.');
+  else if (qErr === 'invalid_credentials') showLoginError('Tên đăng nhập hoặc mật khẩu không chính xác!');
+
   var form = document.getElementById('loginForm');
   if (form) {
     form.addEventListener('submit', function(e) {
       e.preventDefault();
+      var box = document.getElementById('authErrorBox');
+      if (box) box.style.display = 'none';
       var username = document.getElementById('username').value.trim();
       var password = document.getElementById('password').value;
+      if (!username || !password || !password.trim()) {
+        showLoginError('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu!');
+        return;
+      }
       var btn = document.getElementById('btnSubmitLogin');
       var origText = btn.innerHTML;
       btn.disabled = true;
@@ -323,13 +309,15 @@ document.addEventListener('DOMContentLoaded', function() {
           var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || res.redirect || 'templates.php';
           setTimeout(() => { window.location.href = redirectTarget; }, 400);
         } else {
-          alert(res.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!');
+          showLoginError(res.message || 'Tên đăng nhập hoặc mật khẩu không chính xác!');
           btn.disabled = false;
           btn.innerHTML = origText;
         }
       })
       .catch(() => {
-        form.submit();
+        showLoginError('Lỗi kết nối máy chủ. Vui lòng thử lại sau.');
+        btn.disabled = false;
+        btn.innerHTML = origText;
       });
     });
   }

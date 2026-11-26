@@ -34,7 +34,7 @@
 <link href="assets/images/logo-heart-16.png" rel="icon" sizes="16x16" type="image/png"/>
 <link href="assets/images/logo-heart-180.png" rel="apple-touch-icon" sizes="180x180"/>
 <link href="assets/images/logo-heart-48.png" rel="shortcut icon"/>
-<link href="index.htmlsite.webmanifest" rel="manifest"/>
+<link href="/site.webmanifest" rel="manifest"/>
 <meta content="assets/images/logo-heart-192.png" name="msapplication-TileImage"/>
 <meta content="#e8589a" name="msapplication-TileColor"/>
 <meta content="#e8589a" name="theme-color"/>
@@ -4002,7 +4002,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
 </script>
-<script crossorigin="anonymous" data-cf-beacon='{"version":"2024.11.0","token":"5205174b77c84bd18d965238a3c0192d","r":1,"spa":2}' integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" type="module"></script>
 <script id="dg-i18n-script">
 (function() {
   const dict = {
@@ -4092,11 +4091,14 @@ document.addEventListener('DOMContentLoaded', function () {
 // Header User Auth Bar Sync
 document.addEventListener('DOMContentLoaded', function() {
     try {
+        function escHtml(v) {
+            return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
         function renderUserAuth(user) {
             var authDiv = document.getElementById('header-auth-buttons');
             if (user && authDiv) {
-                var name = user.full_name || user.name || user.username || 'Khách';
-                var contact = user.email || user.phone || 'Thành viên DearGift';
+                var name = escHtml(user.full_name || user.name || user.username || 'Khách');
+                var contact = escHtml(user.email || user.phone || 'Thành viên DearGift');
                 authDiv.innerHTML = `
                     <div class="user-menu-wrapper" style="position:relative; display:inline-block;">
                         <button id="user-menu-trigger" onclick="window.toggleUserDropdown(event)" type="button" style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#3d3551; background:#f5eeff; border:1px solid #eadff5; padding:5px 12px; border-radius:50px; cursor:pointer; transition:all 0.2s; outline:none; box-shadow:0 2px 6px rgba(139,92,246,0.06);">
@@ -4148,7 +4150,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         localStorage.removeItem('deargift_user');
                         localStorage.removeItem('deargift_customer');
                         document.cookie = 'currentUser=; path=/; max-age=0';
-                        location.reload();
+                        fetch('/logout.php', { method: 'POST', credentials: 'same-origin' })
+                          .finally(function() { location.reload(); });
                     };
                     document.addEventListener('click', function(e) {
                         var m = document.getElementById('user-dropdown-menu');

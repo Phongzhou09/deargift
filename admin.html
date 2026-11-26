@@ -607,7 +607,16 @@
     let siteSettings = {};
 
     // Check Auth on Load
-        function getAdminToken() {
+    function escHtml(v) {
+      return String(v == null ? '' : v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function getAdminToken() {
       return sessionStorage.getItem('deargift_admin_token') || localStorage.getItem('deargift_admin_token') || '';
     }
 
@@ -744,22 +753,23 @@
 
       templatesData.forEach(tpl => {
         const tr = document.createElement('tr');
-        const img = tpl.img_url || 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=200';
+        const img = escHtml(tpl.img_url || 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=200');
+        const tidEsc = escHtml(tpl.id);
         tr.innerHTML = `
-          <td><img src="${img}" class="tpl-thumb" alt="${tpl.title}"></td>
+          <td><img src="${img}" class="tpl-thumb" alt="${escHtml(tpl.title)}"></td>
           <td>
-            <span class="tpl-name">${tpl.title}</span>
-            <span style="font-size:12px; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${tpl.desc || ''}</span>
+            <span class="tpl-name">${escHtml(tpl.title)}</span>
+            <span style="font-size:12px; color:var(--text-muted); display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">${escHtml(tpl.desc || '')}</span>
           </td>
-          <td><span class="tpl-category">${tpl.category || 'Mẫu quà'}</span></td>
-          <td><span class="tpl-price">${tpl.price || '20.000đ'}</span></td>
-          <td><span style="font-size:12px; color:var(--text-muted);">${tpl.usage || 'Mới tạo'}</span></td>
+          <td><span class="tpl-category">${escHtml(tpl.category || 'Mẫu quà')}</span></td>
+          <td><span class="tpl-price">${escHtml(tpl.price || '20.000đ')}</span></td>
+          <td><span style="font-size:12px; color:var(--text-muted);">${escHtml(tpl.usage || 'Mới tạo')}</span></td>
           <td style="text-align: right;">
             <div class="action-btns" style="justify-content: flex-end;">
-              <a href="${getSafeDemoUrl(tpl)}" target="_blank" class="btn-sm-action">
+              <a href="${escHtml(getSafeDemoUrl(tpl))}" target="_blank" class="btn-sm-action">
                 <i data-lucide="eye" style="width: 13px; height: 13px;"></i> Xem thử
               </a>
-              <button onclick="handleDeleteTemplate('${tpl.id}')" class="btn-sm-action btn-sm-del">
+              <button onclick="handleDeleteTemplate('${tidEsc}')" class="btn-sm-action btn-sm-del">
                 <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Xóa
               </button>
             </div>
@@ -1003,27 +1013,28 @@
             rev += (g.amount || 20000);
           }
           const code = g.share_code || g.id;
-          const giftUrl = `/gift.php?code=${code}`;
+          const codeEsc = escHtml(code);
+          const giftUrl = `/gift.php?code=${encodeURIComponent(code)}`;
           const badge = isPaid 
             ? '<span style="background: rgba(16,185,129,0.15); color: #10b981; padding: 4px 12px; border-radius: 50px; font-weight: 700; font-size: 12px;">Đã thanh toán</span>'
             : '<span style="background: rgba(245,158,11,0.15); color: #f59e0b; padding: 4px 12px; border-radius: 50px; font-weight: 700; font-size: 12px;">Chờ duyệt / thanh toán</span>';
 
           html += `
             <tr style="border-bottom: 1px solid var(--border);">
-              <td style="padding: 14px 18px; font-weight: 800; color: #e8589a;">${code}</td>
-              <td style="padding: 14px 18px; font-weight: 600;">${g.recipient_name || 'Người thương'}</td>
-              <td style="padding: 14px 18px; color: var(--text-muted);">${g.sender_name || 'Khách hàng'}</td>
-              <td style="padding: 14px 18px;">ID ${g.template_id || '69'} (${g.template_slug || 'mon-qua-nho'})</td>
-              <td style="padding: 14px 18px; font-weight: 700;">${(g.amount || 20000).toLocaleString('vi-VN')}đ</td>
+              <td style="padding: 14px 18px; font-weight: 800; color: #e8589a;">${codeEsc}</td>
+              <td style="padding: 14px 18px; font-weight: 600;">${escHtml(g.recipient_name || 'Người thương')}</td>
+              <td style="padding: 14px 18px; color: var(--text-muted);">${escHtml(g.sender_name || 'Khách hàng')}</td>
+              <td style="padding: 14px 18px;">ID ${escHtml(g.template_id || '69')} (${escHtml(g.template_slug || 'mon-qua-nho')})</td>
+              <td style="padding: 14px 18px; font-weight: 700;">${Number(g.amount || 0).toLocaleString('vi-VN')}đ</td>
               <td style="padding: 14px 18px;">${badge}</td>
-              <td style="padding: 14px 18px; font-size: 12.5px; color: var(--text-muted);">${g.created_at || 'Mới'}</td>
+              <td style="padding: 14px 18px; font-size: 12.5px; color: var(--text-muted);">${escHtml(g.created_at || 'Mới')}</td>
               <td style="padding: 14px 18px; text-align: center;">
                 <div style="display: flex; gap: 8px; justify-content: center;">
-                  <a href="${giftUrl}" target="_blank" class="btn-primary" style="padding: 6px 12px; border-radius: 8px; font-size: 12px; text-decoration: none;">
+                  <a href="${escHtml(giftUrl)}" target="_blank" class="btn-primary" style="padding: 6px 12px; border-radius: 8px; font-size: 12px; text-decoration: none;">
                     Mở Quà
                   </a>
                   ${!isPaid ? `
-                    <button onclick="handleApproveGift('${code}')" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 700;">
+                    <button onclick="handleApproveGift('${codeEsc}')" style="background: #10b981; color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 700;">
                       Duyệt Tiền
                     </button>
                   ` : ''}

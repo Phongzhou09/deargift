@@ -12,6 +12,8 @@ import hashlib
 import hmac
 import json
 import os
+import re
+import secrets
 import sqlite3
 import threading
 import time
@@ -516,6 +518,19 @@ def get_all_users() -> List[Dict[str, Any]]:
     return [_user_row_to_dict(r) for r in rows]
 
 
+def get_user_by_id(user_id: str) -> Optional[Dict[str, Any]]:
+    init_db()
+    uid = str(user_id or "").strip()
+    if not uid:
+        return None
+    with get_connection() as db_sess:
+        row = db_sess.execute(
+            "SELECT * FROM users WHERE id = ? LIMIT 1",
+            (uid,),
+        ).fetchone()
+    return _user_row_to_dict(row) if row else None
+
+
 def get_user_by_identifier(identifier: str) -> Optional[Dict[str, Any]]:
     init_db()
     ident = str(identifier or "").strip()
@@ -529,19 +544,98 @@ def get_user_by_identifier(identifier: str) -> Optional[Dict[str, Any]]:
     return _user_row_to_dict(row) if row else None
 
 
+USERNAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{1,30}[A-Za-z0-9]$")
+EMAIL_RE = re.compile(r"^[a-z0-9.!#$%&'*+/=?^_`{|}~-]{1,64}@[a-z0-9-]+(?:\.[a-z0-9-]+)+$")
+PHONE_RE = re.compile(r"^[0-9+\-\s().]{0,20}$")
+
+
+def sanitize_text(val: Any, max_len: int = 200, allow_newlines: bool = False) -> str:
+    """Strip NUL/control characters and bound string length."""
+    if not isinstance(val, str):
+        return ""
+    if allow_newlines:
+        cleaned = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", val)
+    else:
+        cleaned = re.sub(r"[\x00-\x1f\x7f]", " ", val)
+    return cleaned.strip()[:max_len]
+
+
+def validate_username(username: Any) -> Tuple[Optional[str], Optional[str]]:
+    if not isinstance(username, str):
+        return None, "Tên đăng nhập không hợp lệ!"
+    uname = username.strip()
+    if len(uname) < 3 or len(uname) > 32:
+        return None, "Tên đăng nhập phải từ 3 đến 32 ký tự!"
+    if ".." in uname or not USERNAME_RE.fullmatch(uname):
+        return None, "Tên đăng nhập chỉ được dùng chữ cái, số và dấu ._-"
+    return uname, None
+
+
+def validate_email(email: Any) -> Tuple[Optional[str], Optional[str]]:
+    if not isinstance(email, str):
+        return None, "Địa chỉ email không hợp lệ!"
+    mail = email.strip().lower()
+    if not mail or len(mail) > 254 or any(ord(c) < 32 or ord(c) == 127 for c in mail):
+        return None, "Địa chỉ email không hợp lệ!"
+    if not EMAIL_RE.fullmatch(mail):
+        return None, "Địa chỉ email không đúng định dạng!"
+    return mail, None
+
+
+def validate_password(password: Any, min_len: int = 6, max_len: int = 128) -> Tuple[Optional[str], Optional[str]]:
+    if not isinstance(password, str):
+        return None, "Mật khẩu không hợp lệ!"
+    if "\x00" in password or "\r" in password or "\n" in password:
+        return None, "Mật khẩu chứa ký tự không hợp lệ!"
+    if not password.strip() or len(password) < min_len:
+        return None, f"Mật khẩu phải có ít nhất {min_len} ký tự!"
+    if len(password) > max_len:
+        return None, f"Mật khẩu tối đa {max_len} ký tự!"
+    return password, None
+
+
+def get_user_auth_stamp(user_id: str) -> str:
+    """Return short digest bound to current password hash so password changes revoke old sessions."""
+    init_db()
+    if not user_id:
+        return ""
+    with get_connection() as db_sess:
+        row = db_sess.execute("SELECT password_hash, role FROM users WHERE id = ?", (str(user_id),)).fetchone()
+        if not row:
+            return ""
+        raw = f"{_val(row, 'password_hash') or ''}|{_val(row, 'role') or 'customer'}"
+        return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:12]
+
+
+def verify_user_password(user_id: str, plain_password: str) -> Tuple[bool, bool]:
+    """Return (matched, has_existing_password) for an account."""
+    init_db()
+    with get_connection() as db_sess:
+        row = db_sess.execute("SELECT password_hash FROM users WHERE id = ?", (str(user_id),)).fetchone()
+        if not row:
+            return False, False
+        stored = _val(row, "password_hash") or ""
+        if not stored:
+            return False, False
+        return verify_password(plain_password, stored), True
+
+
 def authenticate_user(identifier: str, password: Optional[str] = None) -> Optional[Dict[str, Any]]:
     init_db()
-    ident = str(identifier or "").strip()
-    if not ident:
+    if not isinstance(identifier, str) or not isinstance(password, str):
         return None
+    ident = identifier.strip()
+    if not ident or len(ident) > 254 or any(ord(c) < 32 or ord(c) == 127 for c in ident):
+        return None
+    if not password or len(password) > 128 or "\x00" in password or "\r" in password or "\n" in password:
+        return None
+
     with get_connection() as db_sess:
         row = db_sess.execute(
             "SELECT * FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1",
             (ident, ident),
         ).fetchone()
         if row:
-            if password is None:
-                return _user_row_to_dict(row)
             stored = _val(row, "password_hash") or ""
             if verify_password(password, stored):
                 if not stored.startswith("pbkdf2_sha256$"):
@@ -550,14 +644,6 @@ def authenticate_user(identifier: str, password: Optional[str] = None) -> Option
                         (hash_password(password), datetime.now().strftime("%Y-%m-%d %H:%M:%S"), _val(row, "id")),
                     )
                 return _user_row_to_dict(row)
-
-        if ident.lower() in ("admin", "phongnguyen", "phong"):
-            if password is None or str(password) in ("admin", "admin1911", "Phongzhouok"):
-                admin_row = db_sess.execute(
-                    "SELECT * FROM users WHERE id = 'u_phong' OR role = 'admin' LIMIT 1"
-                ).fetchone()
-                if admin_row:
-                    return _user_row_to_dict(admin_row)
     return None
 
 
@@ -565,25 +651,28 @@ def register_user(
     username: str, email: str, password: str, full_name: str = ""
 ) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
     init_db()
-    uname = str(username or "").strip()
-    mail = str(email or "").strip().lower()
-    fname = str(full_name or uname).strip() or uname
-    if not uname or not mail:
-        return None, "Vui lòng nhập tên đăng nhập và email!"
+    uname, u_err = validate_username(username)
+    if u_err or not uname:
+        return None, u_err or "Tên đăng nhập không hợp lệ!"
+    mail, e_err = validate_email(email)
+    if e_err or not mail:
+        return None, e_err or "Địa chỉ email không hợp lệ!"
+    pwd, p_err = validate_password(password, min_len=6, max_len=128)
+    if p_err or not pwd:
+        return None, p_err or "Mật khẩu không hợp lệ!"
+    fname = sanitize_text(full_name, max_len=80) or uname
 
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with get_connection() as db_sess:
         existing = db_sess.execute(
-            "SELECT * FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1",
+            "SELECT 1 FROM users WHERE LOWER(username) = LOWER(?) OR LOWER(email) = LOWER(?) LIMIT 1",
             (uname, mail),
         ).fetchone()
         if existing:
-            if password and verify_password(password, _val(existing, "password_hash") or ""):
-                return _user_row_to_dict(existing), None
             return None, "Tên đăng nhập hoặc email đã được sử dụng!"
 
         uid = f"u_{uuid.uuid4().hex[:8]}"
-        pwd_hash = hash_password(password) if password else ""
+        pwd_hash = hash_password(pwd)
         db_sess.execute(
             """
             INSERT INTO users
@@ -597,31 +686,44 @@ def register_user(
 
 
 def upsert_google_user(
-    email: str, full_name: str = "", avatar: str = "", google_id: str = ""
-) -> Dict[str, Any]:
+    email: str, full_name: str = "", avatar: str = "", google_id: str = "", verified: bool = False
+) -> Optional[Dict[str, Any]]:
     init_db()
-    mail = str(email).strip().lower()
-    username = mail.split("@")[0]
-    fname = str(full_name or username).strip()
+    if not verified:
+        return None
+    mail, e_err = validate_email(email)
+    if e_err or not mail:
+        return None
+
+    raw_prefix = re.sub(r"[^A-Za-z0-9._-]", "", mail.split("@")[0]).strip(".")
+    if len(raw_prefix) < 3 or ".." in raw_prefix:
+        raw_prefix = f"user_{secrets.token_hex(3)}"
+    username = raw_prefix[:24]
+    fname = sanitize_text(full_name, max_len=80) or username
+    safe_avatar = sanitize_text(avatar, max_len=500)
+    if safe_avatar and not safe_avatar.startswith(("https://", "http://", "/")):
+        safe_avatar = ""
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     with get_connection() as db_sess:
+        # Match strictly by verified email ONLY (never by username collision across email domains)
         existing = db_sess.execute(
-            "SELECT * FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?) LIMIT 1",
-            (mail, username),
+            "SELECT * FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1",
+            (mail,),
         ).fetchone()
         if existing:
+            if str(_val(existing, "role") or "").lower() == "admin":
+                return None
             eid = _val(existing, "id")
             db_sess.execute(
                 """
                 UPDATE users
                 SET full_name = COALESCE(NULLIF(?, ''), full_name),
                     avatar = COALESCE(NULLIF(?, ''), avatar),
-                    provider = 'google',
                     updated_at = ?
                 WHERE id = ?
                 """,
-                (fname, str(avatar or ""), now_str, eid),
+                (fname, safe_avatar, now_str, eid),
             )
             row = db_sess.execute("SELECT * FROM users WHERE id = ?", (eid,)).fetchone()
             return _user_row_to_dict(row)
@@ -630,7 +732,7 @@ def upsert_google_user(
             "SELECT 1 FROM users WHERE LOWER(username) = LOWER(?) LIMIT 1", (username,)
         ).fetchone()
         if taken:
-            username = f"{username}_{uuid.uuid4().hex[:4]}"
+            username = f"{username[:20]}_{secrets.token_hex(2)}"
 
         uid = f"u_gg_{(google_id or uuid.uuid4().hex)[:8]}"
         db_sess.execute(
@@ -639,7 +741,7 @@ def upsert_google_user(
             (id, username, email, full_name, password_hash, phone, avatar, provider, role, balance, created_at, updated_at)
             VALUES (?, ?, ?, ?, '', '', ?, 'google', 'customer', 50000, ?, ?)
             """,
-            (uid, username, mail, fname, str(avatar or ""), now_str, now_str),
+            (uid, username, mail, fname, safe_avatar, now_str, now_str),
         )
         row = db_sess.execute("SELECT * FROM users WHERE id = ?", (uid,)).fetchone()
         return _user_row_to_dict(row)
@@ -654,8 +756,15 @@ def update_user_profile(
         row = db_sess.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
         if not row:
             return None
-        new_full = str(full_name).strip() if full_name else _val(row, "full_name")
-        new_phone = str(phone).strip() if phone is not None else _val(row, "phone")
+        cleaned_full = sanitize_text(full_name, max_len=80) if isinstance(full_name, str) else ""
+        new_full = cleaned_full if cleaned_full else _val(row, "full_name")
+        if phone is not None and isinstance(phone, str):
+            p_clean = sanitize_text(phone, max_len=20)
+            if p_clean and not PHONE_RE.fullmatch(p_clean):
+                p_clean = _val(row, "phone") or ""
+            new_phone = p_clean
+        else:
+            new_phone = _val(row, "phone")
         db_sess.execute(
             "UPDATE users SET full_name = ?, phone = ?, updated_at = ? WHERE id = ?",
             (new_full, new_phone, now_str, user_id),
@@ -666,11 +775,14 @@ def update_user_profile(
 
 def update_user_password(user_id: str, new_password: str) -> bool:
     init_db()
+    pwd, err = validate_password(new_password, min_len=6, max_len=128)
+    if err or not pwd:
+        return False
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     with get_connection() as db_sess:
         cur = db_sess.execute(
             "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?",
-            (hash_password(new_password), now_str, user_id),
+            (hash_password(pwd), now_str, user_id),
         )
         return cur.rowcount > 0
 
@@ -895,9 +1007,10 @@ def activate_gift(
 
 
 def match_and_activate_from_text(
-    text: str, explicit_code: str = "", gateway: str = "webhook", raw_payload: Any = None
+    text: str, explicit_code: str = "", gateway: str = "webhook", raw_payload: Any = None,
+    paid_amount: Optional[int] = None,
 ) -> List[str]:
-    """Match pending/unpaid gifts against bank transfer description or explicit code."""
+    """Match pending/unpaid gifts against bank transfer description and verify amount."""
     init_db()
     upper_text = str(text or "").upper()
     explicit = str(explicit_code or "").strip().upper()
@@ -913,10 +1026,13 @@ def match_and_activate_from_text(
             is_match = False
             if explicit and explicit == code:
                 is_match = True
-            elif code in upper_text or f"DEAR {code}" in upper_text or f"DEAR{code}" in upper_text:
+            elif re.search(rf"(?<![A-Z0-9]){re.escape(code)}(?![A-Z0-9])", upper_text):
                 is_match = True
 
             if is_match:
+                required_amt = max(0, int(_val(r, "amount") or 0))
+                if paid_amount is not None and int(paid_amount) < required_amt:
+                    continue
                 if _val(r, "status") != "active" or not _val(r, "paid"):
                     rid = _val(r, "id")
                     db_sess.execute(
@@ -931,7 +1047,7 @@ def match_and_activate_from_text(
                         (
                             rid,
                             _val(r, "share_code"),
-                            int(_val(r, "amount") or 0),
+                            int(paid_amount) if paid_amount is not None else required_amt,
                             gateway,
                             code,
                             json.dumps(raw_payload or {}, ensure_ascii=False),

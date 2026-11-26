@@ -2410,11 +2410,14 @@ document.addEventListener('keydown', function (event) {
 // Header User Auth Bar Sync
 document.addEventListener('DOMContentLoaded', function() {
     try {
+        function escHtml(v) {
+            return String(v == null ? '' : v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+        }
         function renderUserAuth(user) {
             var authDiv = document.getElementById('header-auth-buttons');
             if (user && authDiv) {
-                var name = user.full_name || user.name || user.username || 'Khách';
-                var contact = user.email || user.phone || 'Thành viên DearGift';
+                var name = escHtml(user.full_name || user.name || user.username || 'Khách');
+                var contact = escHtml(user.email || user.phone || 'Thành viên DearGift');
                 authDiv.innerHTML = `
                     <div class="user-menu-wrapper" style="position:relative; display:inline-block;">
                         <button id="user-menu-trigger" onclick="window.toggleUserDropdown(event)" type="button" style="display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:#3d3551; background:#f5eeff; border:1px solid #eadff5; padding:5px 12px; border-radius:50px; cursor:pointer; transition:all 0.2s; outline:none; box-shadow:0 2px 6px rgba(139,92,246,0.06);">
@@ -2466,7 +2469,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         localStorage.removeItem('deargift_user');
                         localStorage.removeItem('deargift_customer');
                         document.cookie = 'currentUser=; path=/; max-age=0';
-                        location.reload();
+                        fetch('/logout.php', { method: 'POST', credentials: 'same-origin' })
+                          .finally(function() { location.reload(); });
                     };
                     document.addEventListener('click', function(e) {
                         var m = document.getElementById('user-dropdown-menu');

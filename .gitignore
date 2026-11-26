@@ -8,6 +8,8 @@ venv/
 # Environment & Secrets
 .env
 .env.*
+data/.*
+!.gitignore
 
 # SQLite Database & Runtime Data (persisted via Volume or DB_PATH)
 data/*.db

@@ -159,16 +159,21 @@
         DG.toast('Không có giao dịch để xuất.', true);
         return;
       }
+      var csvCell = function (v) {
+        var s = String(v == null ? '' : v).replace(/"/g, '""');
+        if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+        return '"' + s + '"';
+      };
       var header = ['ID', 'MaQua', 'NguoiNhan', 'SoTien', 'Kenh', 'NoiDungCK', 'ThoiGian'];
       var csvLines = [header.join(',')].concat(rows.map(function (t) {
         return [
           t.id,
-          '"' + String(t.share_code || '').replace(/"/g, '""') + '"',
-          '"' + String(t.recipient_name || '').replace(/"/g, '""') + '"',
+          csvCell(t.share_code),
+          csvCell(t.recipient_name),
           Number(t.amount || 0),
-          '"' + String(t.gateway || '').replace(/"/g, '""') + '"',
-          '"' + String(t.transfer_content || '').replace(/"/g, '""') + '"',
-          '"' + String(t.created_at || '').replace(/"/g, '""') + '"',
+          csvCell(t.gateway),
+          csvCell(t.transfer_content),
+          csvCell(t.created_at),
         ].join(',');
       }));
       var blob = new Blob(['\uFEFF' + csvLines.join('\n')], { type: 'text/csv;charset=utf-8;' });

@@ -20,7 +20,7 @@
     // Không có cài đặt → success:false → app dùng nội dung mặc định của nó.
     if (window.fetch) {
         var origFetch = window.fetch;
-        var defaultSettings = {"arrayText": ["Anh yêu em nhiều lắm! 💖💝", "Mãi mãi bên em! 💗💕", "Em là cả thế giới của anh! 💞💓"], "message": "Chạm để khám phá hiệu ứng của mẫu quà này.\n\n— DearGift", "title": "My Love", "image": ["../templates/trai-tim-3d/app/image1.jpeg", "../templates/trai-tim-3d/app/image2.jpeg", "../templates/trai-tim-3d/app/image3.jpeg"], "heartColor": "#fd9595"};
+        var defaultSettings = {"arrayText": ["Anh yêu em nhiều lắm! 💖💝", "Mãi mãi bên em! 💗💕", "Em là cả thế giới của anh! 💞💓"], "message": "Chạm để khám phá hiệu ứng của mẫu quà này.\n\n— DearGift", "title": "My Love", "image": ["/templates/trai-tim-3d/app/image1.jpeg", "/templates/trai-tim-3d/app/image2.jpeg", "/templates/trai-tim-3d/app/image3.jpeg"], "heartColor": "#fd9595"};
         var currentSettings = (cfg && cfg.settings) ? Object.assign({}, defaultSettings, cfg.settings) : defaultSettings;
         var body = JSON.stringify({ success: true, data: { settings: currentSettings } });
         // Trả dữ liệu khi trang đã đọc xong HTML: vài trang fetch ngay trong <head> rồi ghi
