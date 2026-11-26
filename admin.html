@@ -792,6 +792,7 @@
       try {
         const res = await fetch(API_BASE + '/api/admin/upload', {
           method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + getAdminToken() },
           body: formData
         });
         const data = await res.json();
@@ -845,7 +846,10 @@
       try {
         const res = await fetch(API_BASE + '/api/admin/templates/add', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getAdminToken()
+          },
           body: JSON.stringify(newTemplate)
         });
         const data = await res.json();
@@ -867,7 +871,10 @@
       try {
         const res = await fetch(API_BASE + '/api/admin/templates/delete', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getAdminToken()
+          },
           body: JSON.stringify({ id: id })
         });
         const data = await res.json();
@@ -899,7 +906,10 @@
       try {
         const res = await fetch(API_BASE + '/api/admin/settings', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getAdminToken()
+          },
           body: JSON.stringify(updated)
         });
         const data = await res.json();
@@ -943,7 +953,10 @@
       try {
         const res = await fetch(API_BASE + '/api/admin/change-password', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getAdminToken()
+          },
           body: JSON.stringify({ current_password: cur, new_password: n1 })
         });
         const data = await res.json();
@@ -963,7 +976,9 @@
     // Load Orders / Customer Gifts
     async function loadAdminOrders() {
       try {
-        const res = await fetch(API_BASE + '/api/gifts');
+        const res = await fetch(API_BASE + '/api/gifts', {
+          headers: { 'Authorization': 'Bearer ' + getAdminToken() }
+        });
         const data = await res.json();
         const gifts = (data && data.gifts) ? data.gifts : [];
         
@@ -1034,7 +1049,10 @@
       try {
         const res = await fetch(API_BASE + '/api/gifts/confirm_payment', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + getAdminToken()
+          },
           body: JSON.stringify({ code: code })
         });
         const data = await res.json();

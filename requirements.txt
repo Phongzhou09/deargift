@@ -1,1 +1,2 @@
 legacy-cgi
+psycopg[binary]>=3.1

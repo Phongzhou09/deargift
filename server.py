@@ -1,16 +1,19 @@
-import gzip
-import io
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DearGift Full-Stack Local Server
+DearGift Full-Stack Server
 Simulates PHP endpoints, VietQR Payment Flow, Templates API, Customer Auth, Google Auth & Admin CMS.
+Backed by SQLite database (`app/db.py`).
 Author / Owner: Nguyễn Văn Phong
 """
 
+import gzip
+import io
 import http.server
 import socketserver
+import time
 import urllib.parse
+import urllib.request
 import json
 import os
 import uuid
@@ -24,6 +27,8 @@ except ImportError:
 import re
 import base64
 from datetime import datetime
+
+from app import db
 
 PORT = int(os.environ.get('PORT', 8000))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
@@ -47,19 +52,12 @@ def sync_casso_transactions():
         with urllib.request.urlopen(req, timeout=5) as resp:
             data = json.loads(resp.read().decode('utf-8'))
         records = (data.get('data') or {}).get('records') or []
-        gifts = get_gifts()
         matched = False
         for rec in records:
             desc = str(rec.get('description', '')).upper()
-            for g in gifts:
-                if g.get('status') != 'active':
-                    code = str(g.get('share_code', '')).upper()
-                    if code and (code in desc or f"DEAR {code}" in desc or f"DEAR{code}" in desc):
-                        g['status'] = 'active'
-                        g['paid'] = True
-                        matched = True
-        if matched:
-            save_gifts(gifts)
+            codes = db.match_and_activate_from_text(desc, gateway='casso', raw_payload=rec)
+            if codes:
+                matched = True
         return matched
     except Exception:
         return False
@@ -73,28 +71,34 @@ try:
 except Exception as e:
     pass
 TEMPLATES_DATA_FILE = os.path.join(DIRECTORY, 'templates_data.json')
-SETTINGS_FILE = os.path.join(DIRECTORY, 'settings.json')
-GIFTS_FILE = os.path.join(DIRECTORY, 'gifts.json')
-USERS_FILE = os.path.join(DIRECTORY, 'users.json')
-IDEAS_FILE = os.path.join(DIRECTORY, 'ideas.json')
-REVIEWS_FILE = os.path.join(DIRECTORY, 'reviews.json')
-UPLOADS_DIR = os.path.join(DIRECTORY, 'uploads')
+UPLOADS_DIR = os.environ.get('UPLOADS_DIR', '').strip() or os.path.join(DIRECTORY, 'uploads')
 os.makedirs(UPLOADS_DIR, exist_ok=True)
+db.init_db()
 
 ADMIN_SESSIONS = set()
 ADMIN_FAILED_LOGINS = {}  # ip -> {'count': int, 'lockout_until': float}
 
-PROTECTED_SYSTEM_EXTENSIONS = ('.py', '.pyc', '.sh', '.yaml', '.yml', '.env', '.json', '.bak', '.log')
+PROTECTED_SYSTEM_EXTENSIONS = (
+    '.py', '.pyc', '.sh', '.yaml', '.yml', '.env', '.json', '.bak', '.log',
+    '.db', '.db-wal', '.db-shm', '.sqlite', '.sqlite3', '.sql', '.toml'
+)
 PROTECTED_SYSTEM_FILES = {
-    'server.py', 'cloudflared.exe', 'settings.json', 'users.json',
-    'gifts.json', 'ideas.json', 'reviews.json', 'templates_data.json',
-    'start.sh', 'render.yaml', 'requirements.txt', '.gitignore', '.python-version'
+    'server.py', 'db.py', 'schema.sql', 'deargift.db', 'cloudflared.exe',
+    'settings.json', 'users.json', 'gifts.json', 'ideas.json', 'reviews.json',
+    'templates_data.json', 'start.sh', 'render.yaml', 'requirements.txt',
+    'procfile', 'nixpacks.toml', '.gitignore', '.python-version'
 }
 
 def is_protected_system_file(path_str):
     clean = path_str.strip('/').split('?')[0].lower()
-    # Block Git internals, environment, database and config files unconditionally
-    if clean.startswith('.git') or '/.git' in clean or clean.startswith('js_src_backup') or clean.endswith('.map') or clean in ['.env', 'render.yaml', 'requirements.txt', 'server.py', 'users.json', 'gifts.json', 'settings.json']:
+    # Block Git internals, backend code, database files, tests and config files unconditionally
+    if (
+        clean.startswith(('.git', 'app/', 'data/', 'tests/', 'scratch/', 'js_src_backup', '_scripts_archive'))
+        or clean in ('app', 'data', 'tests', 'scratch')
+        or '/.git' in clean
+        or clean.endswith('.map')
+        or clean in ['.env', 'render.yaml', 'requirements.txt', 'procfile', 'nixpacks.toml', 'server.py', 'users.json', 'gifts.json', 'settings.json']
+    ):
         return True
     # Allow public asset data (e.g. assets/data/*.json, templates/*.json)
     if clean.startswith('assets/'):
@@ -103,8 +107,6 @@ def is_protected_system_file(path_str):
     if fname in PROTECTED_SYSTEM_FILES:
         return True
     if fname.startswith('.'):
-        return True
-    if clean.startswith('.git'):
         return True
     if fname.endswith(PROTECTED_SYSTEM_EXTENSIONS):
         return True
@@ -148,7 +150,8 @@ def verify_admin_request(handler):
     auth = handler.headers.get('Authorization', '')
     if auth.startswith('Bearer '):
         token = auth[7:].strip()
-        if token and token in ADMIN_SESSIONS:
+        if token and (token in ADMIN_SESSIONS or db.verify_admin_session(token)):
+            ADMIN_SESSIONS.add(token)
             return True
     return False
 
@@ -224,10 +227,9 @@ def decode_jwt_payload(token):
         pass
     return None
 
-def process_google_auth(data, users):
+def process_google_auth(data):
     credential = str(data.get('credential', '')).strip()
-    access_token = str(data.get('access_token', '')).strip()
-    
+
     email = None
     full_name = None
     google_id = None
@@ -254,115 +256,30 @@ def process_google_auth(data, users):
     if not email or '@' not in email:
         return None, "Vui lòng nhập địa chỉ email hợp lệ!"
 
-    username = email.split('@')[0]
-    # Check if user already exists
-    user = next((u for u in users if u.get('email', '').lower() == email or u.get('username', '').lower() == username.lower()), None)
-    if not user:
-        user = {
-            "id": f"u_gg_{google_id[:8]}",
-            "username": username,
-            "email": email,
-            "full_name": full_name or username,
-            "avatar": avatar,
-            "provider": "google",
-            "balance": 50000,
-            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        }
-        users.append(user)
-    else:
-        if full_name:
-            user['full_name'] = full_name
-        user['provider'] = 'google'
-        if avatar:
-            user['avatar'] = avatar
-
+    user = db.upsert_google_user(email=email, full_name=full_name or "", avatar=avatar, google_id=google_id or "")
     return user, None
 
 
-# ----------------- SETTINGS HELPER -----------------
+# ----------------- SETTINGS HELPER (SQLite backed) -----------------
 def get_settings():
-    default_settings = {
-        "bank_code": "MB",
-        "bank_name": "MBBank",
-        "account_number": "2006999988836",
-        "account_name": "NGUYEN VAN PHONG",
-        "price_amount": 20000,
-        "site_name": "DearGift.love",
-        "author_name": "Nguyễn Văn Phong",
-        "facebook_url": "https://www.facebook.com/Phongzhouok99",
-        "admin_password": "admin"
-    }
-    if os.path.exists(SETTINGS_FILE):
-        try:
-            with open(SETTINGS_FILE, 'r', encoding='utf-8') as f:
-                saved = json.load(f)
-                default_settings.update(saved)
-        except Exception:
-            pass
-    return default_settings
+    return db.get_settings()
 
 def save_settings(data):
-    with open(SETTINGS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+    return db.save_settings(data)
 
-# ----------------- USERS HELPER -----------------
+# ----------------- USERS HELPER (SQLite backed) -----------------
 def get_users():
-    if os.path.exists(USERS_FILE):
-        try:
-            with open(USERS_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return [
-        {
-            "id": "u_phong",
-            "username": "phongnguyen",
-            "email": "phongnguyenvanphong28@gmail.com",
-            "full_name": "Nguyễn Văn Phong",
-            "password": "admin",
-            "balance": 100000,
-            "created_at": "2026-11-20 20:00:00"
-        }
-    ]
-
-def save_users(users):
-    with open(USERS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(users, f, ensure_ascii=False, indent=2)
+    return db.get_all_users()
 
 def find_user_by_login(identifier, password=None):
-    users = get_users()
-    id_lower = identifier.lower().strip()
-    for u in users:
-        if u.get('username', '').lower() == id_lower or u.get('email', '').lower() == id_lower:
-            if password is None or str(u.get('password', '')) == str(password):
-                return u
-    # Allow master admin login
-    if id_lower in ['admin', 'phongnguyen', 'phong']:
-        if password is None or str(password) in ['admin', 'admin1911', 'Phongzhouok']:
-            return users[0]
-    return None
+    return db.authenticate_user(identifier, password)
 
-# ----------------- GIFTS HELPER -----------------
+# ----------------- GIFTS HELPER (SQLite backed) -----------------
 def get_gifts():
-    if os.path.exists(GIFTS_FILE):
-        try:
-            with open(GIFTS_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return []
-
-def save_gifts(gifts):
-    with open(GIFTS_FILE, 'w', encoding='utf-8') as f:
-        json.dump(gifts, f, ensure_ascii=False, indent=2)
+    return db.get_all_gifts()
 
 def get_gift(uid):
-    gifts = get_gifts()
-    uid_str = str(uid).strip()
-    for g in gifts:
-        if str(g.get('id', '')) == uid_str or str(g.get('share_code', '')).lower() == uid_str.lower():
-            return g
-    return None
+    return db.get_gift(uid)
 
 # ----------------- TEMPLATES HELPER -----------------
 def get_templates():
@@ -473,21 +390,30 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 if piece.startswith('currentUser='):
                     username_or_email = urllib.parse.unquote(piece[len('currentUser='):]).strip()
                     break
-        
+
         if not username_or_email:
             username_or_email = self.headers.get('X-User', '').strip()
 
         if not username_or_email:
             return None
 
-        users = get_users()
-        u_lower = username_or_email.lower()
-        for u in users:
-            if u.get('username', '').lower() == u_lower or u.get('email', '').lower() == u_lower:
-                return u
-        return {"username": username_or_email, "full_name": username_or_email, "role": "customer"}
+        return db.get_user_by_identifier(username_or_email)
 
     get_current_user = get_request_user
+
+    def translate_path(self, path):
+        resolved = super().translate_path(path)
+        if not os.path.exists(resolved):
+            clean = urllib.parse.urlparse(path).path.lstrip('/')
+            if clean.startswith('uploads/'):
+                up_cand = os.path.join(UPLOADS_DIR, clean[len('uploads/'):])
+                if os.path.exists(up_cand):
+                    return up_cand
+            if clean and '/' not in clean:
+                legacy_cand = os.path.join(DIRECTORY, 'assets', 'legacy', clean)
+                if os.path.exists(legacy_cand):
+                    return legacy_cand
+        return resolved
 
     def do_OPTIONS(self):
         self.send_response(200, "OK")
@@ -498,12 +424,11 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        if self.path.startswith('/api/gift-settings') or self.path.startswith('/api/settings'):
+        if self.path.startswith('/api/gift-settings'):
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
-            import json
             resp_data = {
                 "success": True,
                 "data": {
@@ -538,6 +463,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 return self.serve_media_with_range(direct, ctype)
 
             cand_paths = [
+                os.path.join(DIRECTORY, 'assets', 'legacy', fname),
                 os.path.join(DIRECTORY, 'assets', 'images', fname),
                 os.path.join(DIRECTORY, 'christmas-gift', 'assets', 'images', fname),
                 os.path.join(DIRECTORY, 'giang-sinh', 'assets', 'images', fname),
@@ -668,18 +594,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         # Bank Webhook via GET (e.g. for testing or simple GET webhook triggers)
         if path in ['/api/webhook/bank', '/webhook_bank.php']:
             content = str(query.get('content', [''])[0] or query.get('code', [''])[0] or '').upper()
-            gifts = get_gifts()
-            matched = False
-            matched_codes = []
-            for g in gifts:
-                share_code = str(g.get('share_code', '')).upper()
-                if share_code and (share_code in content or f"DEAR {share_code}" in content or f"DEAR{share_code}" in content or query.get('code', [''])[0].strip().upper() == share_code):
-                    g['status'] = 'active'
-                    g['paid'] = True
-                    matched = True
-                    matched_codes.append(share_code)
-            if matched:
-                save_gifts(gifts)
+            explicit = query.get('code', [''])[0].strip().upper()
+            matched_codes = db.match_and_activate_from_text(content, explicit_code=explicit, gateway='bank_get', raw_payload=query)
+            if matched_codes:
                 self.send_json_response({"error": 0, "success": True, "message": f"Đã tự động kích hoạt quà! Mã: {', '.join(matched_codes)}", "matched": matched_codes})
             else:
                 self.send_json_response({"error": 0, "success": True, "message": "Không tìm thấy mã quà khớp", "query": query})
@@ -690,20 +607,11 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_response(get_templates())
             return
 
-        # API: /api/settings
-                # API: /api/stats (Real-time live system stats)
+        # API: /api/stats (Real-time live system stats)
         if path == '/api/stats':
-            users = get_users()
-            gifts = get_gifts()
-            paid_count = len([g for g in gifts if g.get('paid') or g.get('status') == 'active'])
             self.send_json_response({
                 "success": True,
-                "data": {
-                    "users_count": len(users),
-                    "gifts_created": len(gifts),
-                    "gifts_paid": paid_count,
-                    "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
+                "data": db.get_stats()
             })
             return
 
@@ -723,11 +631,18 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response({"status": "guest", "logged_in": False, "user": None})
             return
 
-        # API: /api/my-gifts & /api/gifts (Strictly isolated by logged-in user / Google account)
+        # API: /api/my-gifts & /api/gifts (Admin sees all; customers strictly isolated)
         if path in ['/api/my-gifts', '/api/gifts']:
+            if path == '/api/gifts' and verify_admin_request(self):
+                self.send_json_response({
+                    "status": "success",
+                    "role": "admin",
+                    "gifts": db.get_all_gifts()
+                })
+                return
+
             user = self.get_current_user()
             if not user:
-                # Nếu chưa đăng nhập, trả về mảng rỗng để không xem trộm quà của người khác
                 self.send_json_response({
                     "status": "guest",
                     "require_login": True,
@@ -735,34 +650,12 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 })
                 return
 
-            u_id = str(user.get('id', '')).strip().lower()
-            u_name = str(user.get('username', '')).strip().lower()
-            u_email = str(user.get('email', '')).strip().lower()
-
-            all_gifts = get_gifts()
-            user_gifts = []
-            for g in all_gifts:
-                g_user = str(g.get('username', '')).strip().lower()
-                g_email = str(g.get('user_email', '')).strip().lower()
-                g_uid = str(g.get('user_id', '')).strip().lower()
-
-                # So khớp chính xác theo ID, email hoặc username của tài khoản đang đăng nhập
-                is_owner = False
-                if u_id and g_uid and u_id == g_uid:
-                    is_owner = True
-                elif u_email and g_email and u_email == g_email:
-                    is_owner = True
-                elif u_name and g_user and u_name == g_user:
-                    is_owner = True
-                elif u_email and g_user and u_email == g_user:
-                    is_owner = True
-                elif u_name and g_email and u_name == g_email:
-                    is_owner = True
-
-                if is_owner:
-                    user_gifts.append(g)
-
-            self.send_json_response({"status": "success", "user": u_name or u_email, "gifts": user_gifts})
+            user_gifts = db.get_gifts_for_user(user)
+            self.send_json_response({
+                "status": "success",
+                "user": user.get('username') or user.get('email'),
+                "gifts": user_gifts
+            })
             return
 
         # Route /demo.php, /<template_slug>/demo.php
@@ -836,25 +729,8 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             raw_text = json.dumps(data, ensure_ascii=False).upper() if isinstance(data, (dict, list)) else str(data).upper()
             explicit_code = str(data.get('code') or data.get('share_code') or '').strip().upper() if isinstance(data, dict) else ''
 
-            gifts = get_gifts()
-            matched = False
-            matched_codes = []
-            for g in gifts:
-                share_code = str(g.get('share_code', '')).upper()
-                if not share_code:
-                    continue
-                if explicit_code and explicit_code == share_code:
-                    g['status'] = 'active'
-                    g['paid'] = True
-                    matched = True
-                    matched_codes.append(share_code)
-                elif share_code in raw_text or f"DEAR {share_code}" in raw_text or f"DEAR{share_code}" in raw_text:
-                    g['status'] = 'active'
-                    g['paid'] = True
-                    matched = True
-                    matched_codes.append(share_code)
-            if matched:
-                save_gifts(gifts)
+            matched_codes = db.match_and_activate_from_text(raw_text, explicit_code=explicit_code, gateway='webhook', raw_payload=data)
+            if matched_codes:
                 self.send_json_response({
                     "error": 0,
                     "success": True,
@@ -879,10 +755,8 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         # 2. Google OAuth Authentication (Customer Google Sign-In)
         if path in ['/auth_google.php', '/api/auth/google']:
             data = self.read_request_data()
-            users = get_users()
-            user, err = process_google_auth(data, users)
+            user, err = process_google_auth(data)
             if user:
-                save_users(users)
                 safe_user = {k: v for k, v in user.items() if k != 'password'}
                 cookie_val = f"currentUser={urllib.parse.quote(user.get('username'))}; Path=/; Max-Age=86400"
                 self.send_json_response({
@@ -911,27 +785,16 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     self.send_redirect('/register.html?error=missing_fields')
                 return
 
-            users = get_users()
-            existing = next((u for u in users if u.get('username','').lower() == username.lower() or u.get('email','').lower() == email.lower()), None)
-            if existing:
-                user_obj = existing
-                if password:
-                    user_obj['password'] = password
-            else:
-                user_obj = {
-                    "id": f"u_{uuid.uuid4().hex[:8]}",
-                    "username": username,
-                    "email": email,
-                    "full_name": full_name,
-                    "password": password,
-                    "balance": 50000,
-                    "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                }
-                users.append(user_obj)
-            save_users(users)
+            user_obj, err = db.register_user(username=username, email=email, password=password, full_name=full_name)
+            if not user_obj:
+                if self.is_json_request():
+                    self.send_json_response({"status": "error", "message": err or "Đăng ký thất bại!"}, status=409)
+                else:
+                    self.send_redirect('/register.html?error=account_exists')
+                return
 
             safe_user = {k: v for k, v in user_obj.items() if k != 'password'}
-            cookie_val = f"currentUser={urllib.parse.quote(username)}; Path=/; Max-Age=86400"
+            cookie_val = f"currentUser={urllib.parse.quote(user_obj.get('username'))}; Path=/; Max-Age=86400"
             if self.is_json_request():
                 self.send_json_response({
                     "status": "success",
@@ -978,21 +841,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             name = str(data.get('name', 'Khách hàng')).strip()
             contact = str(data.get('contact', '')).strip()
             content = str(data.get('content', '')).strip()
-            ideas = []
-            if os.path.exists(IDEAS_FILE):
-                try:
-                    with open(IDEAS_FILE, 'r', encoding='utf-8') as f:
-                        ideas = json.load(f)
-                except Exception:
-                    pass
-            ideas.append({
-                "name": name,
-                "contact": contact,
-                "content": content,
-                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            })
-            with open(IDEAS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(ideas, f, ensure_ascii=False, indent=2)
+            db.add_idea(name=name, contact=contact, content=content)
             self.send_json_response({
                 "success": True,
                 "message": "Cảm ơn bạn đã đóng góp ý tưởng! Chúng tôi sẽ xem xét sớm nhất."
@@ -1006,21 +855,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             rating = int(data.get('rating', 5) or 5)
             content = str(data.get('content', '')).strip()
             author_name = user.get('full_name') if user else (str(data.get('author', 'Khách hàng')).strip() or 'Khách hàng')
-            reviews = []
-            if os.path.exists(REVIEWS_FILE):
-                try:
-                    with open(REVIEWS_FILE, 'r', encoding='utf-8') as f:
-                        reviews = json.load(f)
-                except Exception:
-                    pass
-            reviews.append({
-                "author": author_name,
-                "rating": rating,
-                "content": content,
-                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            })
-            with open(REVIEWS_FILE, 'w', encoding='utf-8') as f:
-                json.dump(reviews, f, ensure_ascii=False, indent=2)
+            db.add_review(author=author_name, rating=rating, content=content)
             self.send_json_response({
                 "success": True,
                 "message": "Cảm ơn bạn đã gửi đánh giá!"
@@ -1035,37 +870,29 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             if not user:
                 uname = data.get('username') or data.get('confirm_username')
                 if uname:
-                    users = get_users()
-                    user = next((u for u in users if u.get('username','').lower() == str(uname).lower()), None)
-            
+                    user = db.get_user_by_identifier(str(uname))
+
             if user:
-                users = get_users()
-                target = next((u for u in users if u.get('id') == user.get('id')), user)
                 if act == 'update_profile':
                     new_name = data.get('full_name') or data.get('username')
-                    if new_name:
-                        target['full_name'] = new_name
-                    if 'phone' in data:
-                        target['phone'] = data.get('phone', '')
-                    save_users(users)
-                    safe_user = {k: v for k, v in target.items() if k != 'password'}
+                    phone = data.get('phone') if 'phone' in data else None
+                    updated = db.update_user_profile(user['id'], full_name=new_name, phone=phone) or user
+                    safe_user = {k: v for k, v in updated.items() if k != 'password'}
                     self.send_json_response({"status": "success", "success": True, "message": "Cập nhật hồ sơ thành công!", "user": safe_user})
                     return
                 elif act == 'change_password':
                     new_pwd = str(data.get('new_password', '')).strip()
                     if new_pwd and len(new_pwd) >= 6:
-                        target['password'] = new_pwd
-                        save_users(users)
+                        db.update_user_password(user['id'], new_pwd)
                         self.send_json_response({"status": "success", "success": True, "message": "Đổi mật khẩu thành công!"})
                     else:
                         self.send_json_response({"status": "error", "success": False, "message": "Mật khẩu mới phải có ít nhất 6 ký tự!"}, status=400)
                     return
                 elif act == 'delete_account':
-                    users = [u for u in users if u.get('id') != target.get('id')]
-                    save_users(users)
+                    db.delete_user(user['id'])
                     self.send_json_response({"status": "success", "success": True, "message": "Tài khoản đã được xóa!"}, cookie="currentUser=; path=/; max-age=0")
                     return
-            
+
             self.send_json_response({"status": "success", "success": True, "message": "Đã lưu cài đặt!"})
             return
 
@@ -1165,12 +992,16 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
             qr_url = f"https://img.vietqr.io/image/{settings['bank_code']}-{settings['account_number']}-compact2.png?amount={amount}&addInfo=DEAR+{share_code}&accountName={urllib.parse.quote(settings['account_name'])}"
 
+            sender_name = data.get('sender_name') or (user.get('full_name') if user else '') or letter_signature
+            if isinstance(sender_name, list): sender_name = sender_name[0]
+
             new_gift = {
                 "id": uid,
                 "share_code": share_code,
                 "template_id": template_id,
                 "template_slug": template_slug,
                 "recipient_name": recipient_name,
+                "sender_name": sender_name,
                 "birthday_day": birthday_day,
                 "birthday_month": birthday_month,
                 "v3": data.get("v3", {}) if isinstance(data.get("v3"), dict) else {},
@@ -1194,9 +1025,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
 
-            gifts = get_gifts()
-            gifts.insert(0, new_gift)
-            save_gifts(gifts)
+            db.create_gift(new_gift)
 
             response_payload = {
                 "success": True,
@@ -1221,17 +1050,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         # 9. API: Confirm Payment
         if path in ['/api/gifts/confirm_payment', '/api/gifts/pay']:
             data = self.read_request_data()
-            code = str(data.get('share_code') or data.get('gift_id') or query.get('code', [''])[0]).strip()
-            gifts = get_gifts()
-            target_gift = None
-            for g in gifts:
-                if str(g.get('id', '')) == code or str(g.get('share_code', '')).lower() == code.lower():
-                    g['status'] = 'active'
-                    g['paid'] = True
-                    target_gift = g
-                    break
+            code = str(data.get('code') or data.get('share_code') or data.get('gift_id') or query.get('code', [''])[0]).strip()
+            target_gift = db.activate_gift(code, gateway='manual', raw_payload=data)
             if target_gift:
-                save_gifts(gifts)
                 self.send_json_response({
                     "status": "success",
                     "success": True,
@@ -1240,16 +1061,27 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     "view_url": f"/gift.php?uid={target_gift['id']}"
                 })
             else:
-                self.send_json_response({"status": "success", "success": True, "message": "Đã ghi nhận thanh toán thành công!"})
+                self.send_json_response({"status": "error", "success": False, "message": "Không tìm thấy mã quà tặng!"}, status=404)
             return
 
         # 10. API: Delete Gift
         if path == '/api/gifts/delete':
             data = self.read_request_data()
             gift_id = data.get('id')
-            gifts = get_gifts()
-            gifts = [g for g in gifts if str(g.get('id')) != str(gift_id)]
-            save_gifts(gifts)
+            is_admin = verify_admin_request(self)
+            user = self.get_current_user()
+            if not is_admin:
+                if not user:
+                    self.send_json_response({"status": "error", "message": "Vui lòng đăng nhập!"}, status=401)
+                    return
+                gift = get_gift(gift_id)
+                if gift:
+                    user_keys = {str(user.get('id', '')).lower(), str(user.get('username', '')).lower(), str(user.get('email', '')).lower()} - {''}
+                    gift_keys = {str(gift.get('user_id', '')).lower(), str(gift.get('username', '')).lower(), str(gift.get('user_email', '')).lower()} - {''}
+                    if not (user_keys & gift_keys):
+                        self.send_json_response({"status": "error", "message": "Không có quyền xóa món quà này!"}, status=403)
+                        return
+            db.delete_gift(gift_id)
             self.send_json_response({"status": "success", "message": "Đã xóa món quà!"})
             return
 
@@ -1275,6 +1107,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 ADMIN_FAILED_LOGINS.pop(client_ip, None)
                 token = uuid.uuid4().hex
                 ADMIN_SESSIONS.add(token)
+                db.create_admin_session(token)
                 self.send_json_response({"status": "success", "token": token, "message": "Đăng nhập CMS quản trị thành công!"})
             else:
                 rec['count'] = rec.get('count', 0) + 1
@@ -2339,6 +2172,7 @@ setInterval(pollStatus, 2500);
 
 
 def run():
+    db_path = db.init_db()
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.ThreadingTCPServer(("", PORT), DearGiftHandler) as httpd:
         print(f"=======================================================")
@@ -2346,6 +2180,7 @@ def run():
         print(f"👉 Client Home:    http://localhost:{PORT}/")
         print(f"👉 Template Store: http://localhost:{PORT}/templates.php")
         print(f"👉 Admin CMS:      http://localhost:{PORT}/admin")
+        print(f"👉 Database:       {db.get_db_summary()}")
         print(f"=======================================================")
         try:
             httpd.serve_forever()

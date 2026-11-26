@@ -1,55 +1,64 @@
-# DearGift Website Clone
+# DearGift — Nền tảng tạo quà tặng 3D trực tuyến
 
-Bản dựng lại 100% website [DearGift](https://deargift.love/templates.php) với đầy đủ giao diện, hình ảnh, tính năng và trải nghiệm tương tác.
-
----
-
-## 🌟 Tính Năng Hoàn Chỉnh
-
-1. **Kho Mẫu Quà Tặng (52 Templates Hoàn Chỉnh)**:
-   - Đầy đủ 52 mẫu quà tặng từ sinh nhật, Valentine, 8/3, 20/10, 19/11, Noel, Tết, đến thiên hà 3D và hoa nở.
-   - Toàn bộ hình ảnh, thumbnail, huy hiệu giá ("Miễn phí" / "50.000đ"), số lượt dùng, thời gian tạo ("3 phút tạo"), thẻ tag (#Bó hoa 3D, #19/11...).
-
-2. **Bộ Lọc Đề Mục (Category Filter)**:
-   - Lọc nhanh theo 10 dịp: **Tất cả**, **Valentine**, **Sinh nhật**, **Ngày Phụ Nữ**, **Ngày Nhà Giáo**, **Lễ hội**, **Tết**, **Trải nghiệm 3D**, **Tình yêu**, **Mãi xanh**.
-   - Cập nhật số lượng tức thì trên thanh kết quả và header thống kê.
-
-3. **Tìm Kiếm Thời Gian Thực (Instant Search)**:
-   - Gõ từ khóa tìm kiếm theo tên, mô tả hoặc hashtag mà không cần tải lại trang.
-
-4. **Cửa Sổ Xem Thử (Interactive iPhone Mockup Modal)**:
-   - Nhấn **"Xem thử"** trên bất kỳ mẫu nào để mở khung điện thoại iPhone tương tác.
-   - Có thể ẩn/hiện Dynamic Island, xoay mở tab mới, đóng nhanh bằng ESC hoặc click ra ngoài.
-
-5. **Trình Thiết Kế Quà Tặng (Gift Studio Builder)**:
-   - Truy cập qua nút **"Tạo quà ngay"** (`gift-builder.php` / `gift-builder.html`).
-   - Tùy chỉnh tên người nhận, người gửi, chọn ảnh, tải nhạc nền, viết lá thư, bật bó hoa 3D, cài đặt mật mã passcode, ngày đếm yêu thương, tạo mã QR trái tim.
-   - Khung xem trước trực tiếp (Live Preview) với chế độ chuyển đổi máy tính (PC), iPad, điện thoại.
-
-6. **Popup Nhận Voucher (Free Voucher Modal)**:
-   - Nhấn vào hộp quà bay ở hero banner để mở popup nhận voucher 100%.
-   - Trình tạo caption/hook ngẫu nhiên cho video TikTok theo ngày lễ/dịp hiện tại.
-   - Nút copy nội dung và copy hashtag với thông báo nổi Toast.
-
-7. **Hiệu Ứng Trái Tim Bay (Hearts Animation)**:
-   - Nền canvas trái tim rơi nhẹ nhàng chuẩn nguyên mẫu.
+Website tạo và chia sẻ thiệp / quà tặng tương tác 3D trực tuyến (sinh nhật, Valentine, 8/3, 20/10, 19/11, Giáng Sinh, Trung Thu, Tết, Kỷ niệm), tích hợp trình thiết kế trực quan, thanh toán VietQR / Casso tự động và Admin CMS.
 
 ---
 
-## 🚀 Hướng Dẫn Khởi Chạy
+## 📁 Cấu Trúc Dự Án
 
-### Cách 1: Chạy Server Python (Khuyên dùng)
-Chạy lệnh sau tại thư mục dự án:
-```powershell
+```text
+deargift/
+├── app/
+│   ├── __init__.py
+│   ├── db.py               # Lớp truy cập SQLite (WAL mode, PBKDF2-SHA256, migration)
+│   └── schema.sql          # Lược đồ bảng users, gifts, settings, ideas, reviews, payment_transactions
+├── data/
+│   └── deargift.db         # Database SQLite (tự khởi tạo khi chạy server, ignored trên Git)
+├── tests/
+│   ├── verify_platform.py  # Kiểm thử toàn diện DB, API và toàn bộ 56 mẫu demo
+│   └── demo-preview.test.js
+├── assets/
+│   ├── legacy/             # Tài nguyên ảnh/GIF/CSS/JS gốc của một số mẫu cũ (server tự map)
+│   └── ...                 # Hình ảnh, font, nhạc, hiệu ứng dùng chung
+├── css/ & js/              # Giao diện & script chính của website
+├── demos/                  # 56 trang demo xem trước mẫu quà
+├── templates/              # Mã nguồn từng mẫu quà tương tác 3D
+├── templates_v3_meta/      # Form cấu hình riêng cho từng mẫu trong Gift Builder
+├── uploads/                # Ảnh & nhạc mẫu / tải lên
+├── server.py               # HTTP Server Python (routing, API, auth, VietQR, compression)
+├── templates_data.json     # Danh sách 56 mẫu quà tặng
+├── index.html              # Trang chủ
+├── templates.php           # Kho mẫu quà tặng
+├── gift-builder.php        # Trình thiết kế quà tặng
+├── my-gifts.html           # Quản lý đơn quà khách hàng
+├── payment.php             # Trang thanh toán VietQR
+├── login.html / register.html / settings.php / about.php / contact.php
+├── admin.html              # Trang quản trị Admin CMS (/admin)
+├── Procfile / nixpacks.toml / render.yaml / requirements.txt / start.sh
+```
+
+---
+
+## 🗄️ Cơ Sở Dữ Liệu (SQLite)
+
+Hệ thống tự động khởi tạo database SQLite tại `data/deargift.db` (hoặc theo biến môi trường `DB_PATH`) qua `app/db.py` & `app/schema.sql`:
+- `users`: tài khoản khách hàng & quản trị viên (mật khẩu mã hóa PBKDF2-SHA256).
+- `gifts`: đơn quà tặng, nội dung thư, ảnh, nhạc, trạng thái thanh toán, liên kết chủ sở hữu.
+- `payment_transactions`: lịch sử xác nhận thanh toán (VietQR / Casso / webhook / admin).
+- `settings`, `ideas`, `reviews`, `admin_sessions`.
+
+> **Lưu ý khi deploy trên Railway / Render:** Nên gắn **Persistent Volume** vào `/app/data` (hoặc đặt biến môi trường `DB_PATH=/data/deargift.db`) để dữ liệu khách hàng và file `uploads/` không bị reset khi deploy lại.
+
+---
+
+## 🚀 Chạy Local
+
+```bash
 python server.py
 ```
-Sau đó mở trình duyệt và truy cập:
-- **Trang chủ kho mẫu**: [http://localhost:8000/templates.php](http://localhost:8000/templates.php) hoặc [http://localhost:8000/](http://localhost:8000/)
-- **Trình tạo quà tặng**: [http://localhost:8000/gift-builder.php?id=69](http://localhost:8000/gift-builder.php?id=69)
-- **Xem thử trực tiếp**: [http://localhost:8000/demo.php?id=69](http://localhost:8000/demo.php?id=69)
 
-### Cách 2: Mở Trực Tiếp Bằng Trình Duyệt (Không Cần Server)
-Bạn có thể nhấp đúp trực tiếp vào file:
-- `index.html` (Trang kho mẫu quà tặng hoàn chỉnh)
-- `gift-builder.html` (Trình thiết kế quà tặng)
-Mọi tính năng lọc, tìm kiếm, xem trước iframe đều hoạt động ngoại tuyến.
+Truy cập:
+- Trang chủ: `http://localhost:8000/`
+- Kho mẫu: `http://localhost:8000/templates.php`
+- Trình tạo quà: `http://localhost:8000/gift-builder.php?id=69`
+- Admin CMS: `http://localhost:8000/admin`

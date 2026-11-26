@@ -1,23 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+
+# Environment & Secrets
+.env
+.env.*
+
+# SQLite Database & Runtime Data (persisted via Volume or DB_PATH)
+data/*.db
+data/*.db-*
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Local Dev Tools & Backups
 cloudflared.exe
 *.zip
 *.log
-__pycache__/
-*.pyc
 .gemini/
 scratch/
-test_*.py
-check_*.py
-find_*.py
-inspect_*.py
-search_*.py
-
+js_src_backup/
 crawled_templates_raw.html
-audit_*.py
-download_*.py
- 
-js_src_backup/
-*.test.js
-\; Add-Content -Path 'c:\Thý muòc mõìi (25)\.gitignore' -Value \
-js_src_backup/
-*.test.js
-
