@@ -368,6 +368,27 @@ def run_tests():
 
         assert not failures, f"Broken template assets: {failures[:10]}"
         print(f"[PASS] All {len(pages_to_scan)} demo/template pages & {len(asset_cache)} unique assets verified 200/206!")
+
+        # 5. Dynamic BoysDay / letter-v2 sprites & merge-game assets
+        boysday_assets = [
+            f"/assets/boys-day/characters/{cid}/{pose}.webp"
+            for cid in ("cream-bear", "pink-bunny", "pink-ribbon", "ivory-boy")
+            for pose in ("front", "back", "push", "sample-head")
+        ] + [
+            "/assets/boys-day/characters/lavender-gift/sample-head.webp",
+            "/assets/boys-day/chibi-body.png",
+            "/assets/boys-day/chibi-back-integrated.webp",
+            "/assets/boys-day/chibi-push-integrated.webp",
+            "/assets/letter-v2/decorations/misa-a.png",
+            "/assets/letter-v2/decorations/misa-b.png",
+        ] + [f"/assets/boys-day/merge-game/face-{i}.png" for i in range(1, 7)] + [
+            f"/assets/boys-day/merge-game/merge-to-{i:02d}.mp3" for i in range(2, 7)
+        ]
+        for ba in boysday_assets:
+            req = urllib.request.Request(BASE + ba, headers={"Range": "bytes=0-15"})
+            with urllib.request.urlopen(req, timeout=3) as ar:
+                assert ar.status in (200, 206), f"Missing dynamic BoysDay asset: {ba} -> {ar.status}"
+        print(f"[PASS] All {len(boysday_assets)} dynamic BoysDay/letter-v2 sprites & audio assets verified 200/206!")
     finally:
         proc.terminate()
         proc.wait(timeout=5)
