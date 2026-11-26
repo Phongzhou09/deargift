@@ -190,6 +190,7 @@ _LOGIN_ACCOUNT_LIMITER = _AuthRateLimiter(max_attempts=5, window_seconds=900)
 _REGISTER_LIMITER = _AuthRateLimiter(max_attempts=5, window_seconds=900)
 _GOOGLE_AUTH_LIMITER = _AuthRateLimiter(max_attempts=10, window_seconds=900)
 _SETTINGS_LIMITER = _AuthRateLimiter(max_attempts=10, window_seconds=900)
+_FORGOT_PWD_LIMITER = _AuthRateLimiter(max_attempts=5, window_seconds=900)
 _FEEDBACK_LIMITER = _AuthRateLimiter(max_attempts=15, window_seconds=900)
 _CREATE_LIMITER = _AuthRateLimiter(max_attempts=40, window_seconds=900)
 
@@ -1793,6 +1794,64 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                     }, status=401)
                 else:
                     self.send_redirect('/login.html?error=invalid_credentials')
+            return
+
+        # 4b. API: Forgot Password & Reset Password (Rate-Limited, Hashed One-Time Token)
+        if path in ['/api/forgot-password', '/forgot-password.php']:
+            limited, _, wait_sec = _FORGOT_PWD_LIMITER.check_and_consume(client_ip)
+            if limited:
+                self.send_json_response({"status": "error", "success": False, "message": f"Quá nhiều yêu cầu khôi phục. Thử lại sau {wait_sec} giây!"}, status=429)
+                return
+            data = self.read_request_data(max_bytes=16384)
+            ident = data.get('identifier') or data.get('username') or data.get('email') or ''
+            if not isinstance(ident, str) or not ident.strip():
+                self.send_json_response({"status": "error", "success": False, "message": "Vui lòng nhập tên đăng nhập hoặc email!"}, status=400)
+                return
+            user, raw_tok = db.create_password_reset_token(ident.strip())
+            if user and raw_tok:
+                smtp_host = (os.environ.get('SMTP_HOST') or '').strip()
+                smtp_user = (os.environ.get('SMTP_USER') or '').strip()
+                smtp_pass = (os.environ.get('SMTP_PASS') or '').strip()
+                smtp_from = (os.environ.get('SMTP_FROM') or smtp_user or 'no-reply@deargift.love').strip()
+                if smtp_host and user.get('email'):
+                    try:
+                        import smtplib
+                        from email.message import EmailMessage
+                        msg = EmailMessage()
+                        msg['Subject'] = 'DearGift - Mã đặt lại mật khẩu'
+                        msg['From'] = smtp_from
+                        msg['To'] = user['email']
+                        msg.set_content(f"Mã xác nhận đặt lại mật khẩu của bạn (hết hạn sau 15 phút): {raw_tok}")
+                        port = int(os.environ.get('SMTP_PORT') or 587)
+                        with smtplib.SMTP(smtp_host, port, timeout=8) as srv:
+                            srv.starttls()
+                            if smtp_user and smtp_pass:
+                                srv.login(smtp_user, smtp_pass)
+                            srv.send_message(msg)
+                    except Exception:
+                        traceback.print_exc()
+                else:
+                    print(f"[PASSWORD RESET] user={user.get('username')} token={raw_tok} (valid 15m)", flush=True)
+            self.send_json_response({
+                "status": "success",
+                "success": True,
+                "message": "Nếu tài khoản tồn tại, mã đặt lại mật khẩu (hiệu lực 15 phút) đã được gửi qua email hoặc ghi nhận trên hệ thống."
+            })
+            return
+
+        if path in ['/api/reset-password', '/reset-password.php']:
+            limited, _, wait_sec = _FORGOT_PWD_LIMITER.check_and_consume(client_ip)
+            if limited:
+                self.send_json_response({"status": "error", "success": False, "message": f"Quá nhiều lần thử. Vui lòng thử lại sau {wait_sec} giây!"}, status=429)
+                return
+            data = self.read_request_data(max_bytes=16384)
+            tok = data.get('token', '')
+            new_pwd = data.get('new_password', '')
+            if not isinstance(tok, str) or not isinstance(new_pwd, str):
+                self.send_json_response({"status": "error", "success": False, "message": "Dữ liệu không hợp lệ!"}, status=400)
+                return
+            ok, msg = db.consume_password_reset_token(tok, new_pwd)
+            self.send_json_response({"status": "success" if ok else "error", "success": ok, "message": msg}, status=200 if ok else 400)
             return
 
         # 5. API: Submit Idea (Homepage Idea Modal)

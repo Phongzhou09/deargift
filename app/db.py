@@ -1160,6 +1160,78 @@ def verify_admin_session(token: str) -> bool:
         return True
 
 
+def _ensure_password_resets_table(db_sess: Any) -> None:
+    db_sess.execute(
+        """
+        CREATE TABLE IF NOT EXISTS password_resets (
+            token_hash TEXT PRIMARY KEY,
+            user_id TEXT NOT NULL,
+            expires_at REAL NOT NULL,
+            used INTEGER NOT NULL DEFAULT 0,
+            created_at REAL NOT NULL
+        )
+        """
+    )
+
+
+def create_password_reset_token(
+    identifier: str, ttl_seconds: int = 900
+) -> Tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Create a one-time 15-minute reset token (stored hashed) for an existing non-admin user."""
+    init_db()
+    ident = sanitize_text(identifier, max_len=254)
+    if not ident:
+        return None, None
+    user = get_user_by_identifier(ident)
+    if not user or str(user.get("role") or "").lower() == "admin":
+        return None, None
+
+    raw_token = secrets.token_urlsafe(18)
+    tok_hash = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+    now = time.time()
+    with get_connection() as db_sess:
+        _ensure_password_resets_table(db_sess)
+        db_sess.execute("DELETE FROM password_resets WHERE expires_at < ? OR user_id = ?", (now, user["id"]))
+        db_sess.execute(
+            "INSERT INTO password_resets (token_hash, user_id, expires_at, used, created_at) VALUES (?, ?, ?, 0, ?)",
+            (tok_hash, user["id"], now + ttl_seconds, now),
+        )
+    return user, raw_token
+
+
+def consume_password_reset_token(raw_token: str, new_password: str) -> Tuple[bool, str]:
+    """Verify one-time reset token, update user password, and invalidate token."""
+    init_db()
+    tok = str(raw_token or "").strip()
+    if not tok or len(tok) > 128:
+        return False, "Mã xác nhận không hợp lệ hoặc đã hết hạn!"
+    pwd, p_err = validate_password(new_password, min_len=6, max_len=128)
+    if p_err or not pwd:
+        return False, p_err or "Mật khẩu mới không hợp lệ!"
+
+    tok_hash = hashlib.sha256(tok.encode("utf-8")).hexdigest()
+    now = time.time()
+    with get_connection() as db_sess:
+        _ensure_password_resets_table(db_sess)
+        row = db_sess.execute(
+            "SELECT user_id, expires_at, used FROM password_resets WHERE token_hash = ?",
+            (tok_hash,),
+        ).fetchone()
+        if not row:
+            return False, "Mã xác nhận không hợp lệ hoặc đã hết hạn!"
+        if int(_val(row, "used", 0)) != 0 or float(_val(row, "expires_at", 0)) < now:
+            db_sess.execute("DELETE FROM password_resets WHERE token_hash = ?", (tok_hash,))
+            return False, "Mã xác nhận đã hết hạn hoặc đã được sử dụng!"
+
+        uid = str(_val(row, "user_id"))
+        db_sess.execute("UPDATE password_resets SET used = 1 WHERE token_hash = ?", (tok_hash,))
+        db_sess.execute(
+            "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?",
+            (hash_password(pwd), datetime.now().strftime("%Y-%m-%d %H:%M:%S"), uid),
+        )
+    return True, "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới."
+
+
 if __name__ == "__main__":
     path = init_db(force=True)
     stats = get_stats()

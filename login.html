@@ -169,7 +169,10 @@ try {
       </div>
 
       <div class="form-field">
-        <label for="password">Mật khẩu</label>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label for="password" style="margin-bottom:0;">Mật khẩu</label>
+          <a href="#" onclick="openForgotModal(event)" style="font-size:12px; font-weight:700; color:#e8589a; text-decoration:none;">Quên mật khẩu?</a>
+        </div>
         <div class="input-wrap">
           <input type="password" id="password" name="password" placeholder="Nhập mật khẩu của bạn" required minlength="1" maxlength="128" autocomplete="current-password">
           <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -192,6 +195,34 @@ try {
     <div class="auth-footer">
       Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a>
     </div>
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgotPasswordModal" style="display:none; position:fixed; inset:0; z-index:99999; background:rgba(15,10,26,0.6); backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+  <div style="background:white; border-radius:24px; width:100%; max-width:410px; padding:28px; box-shadow:0 24px 50px rgba(0,0,0,0.25); position:relative; animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);">
+    <button onclick="closeForgotModal()" style="position:absolute; top:18px; right:18px; border:none; background:none; font-size:24px; cursor:pointer; color:#7a7090;">&times;</button>
+    <h3 style="margin:0 0 6px; font-size:18px; font-weight:800; color:#3d3551;">Khôi phục mật khẩu</h3>
+    <p style="margin:0 0 16px; font-size:12.5px; color:#7a7090;">Nhập tên đăng nhập hoặc email để nhận mã đặt lại mật khẩu (hiệu lực 15 phút).</p>
+    <div id="forgotMsgBox" style="display:none; padding:10px 12px; border-radius:10px; font-size:12.5px; font-weight:600; margin-bottom:12px;"></div>
+    <form id="forgotStep1Form" onsubmit="submitForgotStep1(event)">
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12.5px; font-weight:700; color:#3d3551; margin-bottom:6px;">Tên đăng nhập hoặc Email:</label>
+        <input type="text" id="forgotIdent" required maxlength="254" placeholder="VD: loveuser hoặc email@gmail.com" style="width:100%; padding:10px 14px; border:1.5px solid #eadff5; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; background:#fffaf3;">
+      </div>
+      <button type="submit" id="btnForgotStep1" style="width:100%; padding:12px; background:linear-gradient(135deg,#e8589a,#d30f72); color:white; border:none; border-radius:50px; font-size:14px; font-weight:800; cursor:pointer;">Gửi yêu cầu khôi phục</button>
+    </form>
+    <form id="forgotStep2Form" onsubmit="submitForgotStep2(event)" style="display:none;">
+      <div style="margin-bottom:12px;">
+        <label style="display:block; font-size:12.5px; font-weight:700; color:#3d3551; margin-bottom:6px;">Mã xác nhận:</label>
+        <input type="text" id="resetTokenInput" required maxlength="128" placeholder="Dán mã xác nhận" style="width:100%; padding:10px 14px; border:1.5px solid #eadff5; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; background:#fffaf3;">
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="display:block; font-size:12.5px; font-weight:700; color:#3d3551; margin-bottom:6px;">Mật khẩu mới (tối thiểu 6 ký tự):</label>
+        <input type="password" id="resetNewPwd" required minlength="6" maxlength="128" placeholder="Nhập mật khẩu mới" style="width:100%; padding:10px 14px; border:1.5px solid #eadff5; border-radius:12px; font-size:14px; box-sizing:border-box; outline:none; background:#fffaf3;">
+      </div>
+      <button type="submit" id="btnForgotStep2" style="width:100%; padding:12px; background:linear-gradient(135deg,#e8589a,#d30f72); color:white; border:none; border-radius:50px; font-size:14px; font-weight:800; cursor:pointer;">Đặt lại mật khẩu</button>
+    </form>
   </div>
 </div>
 
@@ -263,6 +294,79 @@ function openCustomerGoogleModal() {
 function closeCustomerGoogleModal() {
   var modal = document.getElementById('customerGoogleModal');
   if (modal) modal.style.display = 'none';
+}
+
+function openForgotModal(e) {
+  if (e) e.preventDefault();
+  var m = document.getElementById('forgotPasswordModal');
+  var box = document.getElementById('forgotMsgBox');
+  if (box) box.style.display = 'none';
+  document.getElementById('forgotStep1Form').style.display = 'block';
+  document.getElementById('forgotStep2Form').style.display = 'none';
+  if (m) m.style.display = 'flex';
+}
+
+function closeForgotModal() {
+  var m = document.getElementById('forgotPasswordModal');
+  if (m) m.style.display = 'none';
+}
+
+function showForgotMsg(msg, isErr) {
+  var box = document.getElementById('forgotMsgBox');
+  if (!box) return;
+  box.textContent = msg;
+  box.style.display = 'block';
+  box.style.background = isErr ? '#fef2f2' : '#f0fdf4';
+  box.style.border = isErr ? '1px solid #fecaca' : '1px solid #bbf7d0';
+  box.style.color = isErr ? '#b91c1c' : '#166534';
+}
+
+function submitForgotStep1(e) {
+  e.preventDefault();
+  var ident = document.getElementById('forgotIdent').value.trim();
+  var btn = document.getElementById('btnForgotStep1');
+  btn.disabled = true;
+  fetch('/api/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ identifier: ident })
+  })
+  .then(r => r.json())
+  .then(res => {
+    btn.disabled = false;
+    if (res.success) {
+      showForgotMsg(res.message || 'Đã gửi mã đặt lại mật khẩu.', false);
+      document.getElementById('forgotStep1Form').style.display = 'none';
+      document.getElementById('forgotStep2Form').style.display = 'block';
+    } else {
+      showForgotMsg(res.message || 'Không thể xử lý yêu cầu.', true);
+    }
+  })
+  .catch(() => { btn.disabled = false; showForgotMsg('Lỗi kết nối máy chủ.', true); });
+}
+
+function submitForgotStep2(e) {
+  e.preventDefault();
+  var tok = document.getElementById('resetTokenInput').value.trim();
+  var pwd = document.getElementById('resetNewPwd').value;
+  var btn = document.getElementById('btnForgotStep2');
+  btn.disabled = true;
+  fetch('/api/reset-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: tok, new_password: pwd })
+  })
+  .then(r => r.json())
+  .then(res => {
+    btn.disabled = false;
+    if (res.success) {
+      showForgotMsg(res.message || 'Đặt lại mật khẩu thành công!', false);
+      setTimeout(() => { closeForgotModal(); }, 1400);
+    } else {
+      showForgotMsg(res.message || 'Mã xác nhận không hợp lệ.', true);
+    }
+  })
+  .catch(() => { btn.disabled = false; showForgotMsg('Lỗi kết nối máy chủ.', true); });
 }
 
 // Standard Login Form Handler
