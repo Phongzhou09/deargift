@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <base href="/">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#fff7fa">
+  <title>Tạo Vườn Hoa 3D 360° · DearGift</title>
+  <link rel="icon" href="/assets/images/logo-heart-32.png" type="image/png">
+  <script id="dg-garden-bridge">
+    window.__DG_CURRENT_USER__ = window.__DG_CURRENT_USER__ || null;
+    (function() {
+      // Sync localStorage auth state from DearGift server session
+      try {
+        var u = window.__DG_CURRENT_USER__;
+        if (u && u.id) {
+          var mapped = {
+            id: u.id,
+            uid: u.id,
+            username: u.username || '',
+            email: u.email || '',
+            displayName: u.full_name || u.username || u.email || 'Khách hàng',
+            fullName: u.full_name || u.username || ''
+          };
+          var tok = u.dlove_token || ('dg_sess_' + u.id);
+          localStorage.setItem('token', tok);
+          localStorage.setItem('user', JSON.stringify(mapped));
+          localStorage.setItem('user_uid', String(u.id));
+        } else {
+          var prevTok = localStorage.getItem('token') || '';
+          if (!prevTok || prevTok.indexOf('dg_sess_') === 0 || prevTok.indexOf('dg_') === 0) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('user_uid');
+          }
+        }
+      } catch(e) {}
+
+      // Wrap fetch so /api/dlove calls & apiv2 rewrites always carry same-origin cookies
+      var origFetch = window.fetch;
+      window.fetch = function(url, opts) {
+        var u = typeof url === 'string' ? url : (url && url.url ? url.url : String(url || ''));
+        if (u.indexOf('https://apiv2.deargift.online/api/v2') === 0) {
+          u = window.location.origin + '/api/dlove' + u.slice('https://apiv2.deargift.online/api/v2'.length);
+        }
+        var nextOpts = opts ? Object.assign({}, opts) : {};
+        if (u.indexOf(window.location.origin + '/api/dlove') === 0 || u.indexOf('/api/dlove') === 0) {
+          nextOpts.credentials = 'same-origin';
+        }
+        return origFetch.call(this, u, nextOpts);
+      };
+
+      // Clear server cookie when user logs out inside React studio
+      var origRemove = Storage.prototype.removeItem;
+      Storage.prototype.removeItem = function(k) {
+        origRemove.apply(this, arguments);
+        if (this === window.localStorage && k === 'token' && window.__DG_CURRENT_USER__) {
+          window.__DG_CURRENT_USER__ = null;
+          try { origFetch('/logout.php', { credentials: 'same-origin' }).catch(function(){}); } catch(e) {}
+        }
+      };
+
+      // Safety interceptor for any dynamically created dlove.vn/createqr links
+      document.addEventListener('click', function(ev) {
+        var a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
+        if (!a) return;
+        var href = a.getAttribute('href') || '';
+        if (href.indexOf('https://dlove.vn/createqr') === 0) {
+          ev.preventDefault();
+          var targetUrl = href.replace('https://dlove.vn/createqr', '/gift-qr.html');
+          if (a.target === '_blank') {
+            window.open(targetUrl, '_blank', 'noopener,noreferrer');
+          } else {
+            window.location.href = targetUrl;
+          }
+        } else if (href === 'https://dlove.vn' || href === 'https://www.dlove.vn') {
+          ev.preventDefault();
+          window.location.href = '/';
+        }
+      }, true);
+    })();
+  </script>
+  <script type="module" crossorigin src="/assets/gardenCreate-Dobo1hUE.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/codeProtection-z-qAuAV-.js">
+  <link rel="modulepreload" crossorigin href="/assets/three-78T6yNuR.js">
+  <link rel="modulepreload" crossorigin href="/assets/fiber-Df1163d-.js">
+  <link rel="modulepreload" crossorigin href="/assets/templateConst-C7oU-DdW.js">
+  <link rel="modulepreload" crossorigin href="/assets/marketing-CU2oWXky.js">
+  <link rel="modulepreload" crossorigin href="/assets/data-B7vB9Mqk.js">
+  <link rel="modulepreload" crossorigin href="/assets/matteEdit-BkwtqOlf.js">
+  <link rel="modulepreload" crossorigin href="/assets/Checkout-DpaSoeW_.js">
+  <link rel="modulepreload" crossorigin href="/assets/envelopeText-DhveMt5J.js">
+  <link rel="modulepreload" crossorigin href="/assets/studioState-C3zC_ROJ.js">
+  <link rel="modulepreload" crossorigin href="/assets/studio-nsPmX0dW.js">
+  <link rel="modulepreload" crossorigin href="/assets/DLoveLogo-zUmC3zN6.js">
+  <link rel="modulepreload" crossorigin href="/assets/GardenCreator-CoETpBk0.js">
+  <link rel="stylesheet" crossorigin href="/assets/GardenCreator-Bcew_z0B.css">
+  <link rel="stylesheet" crossorigin href="/assets/gardenCheckout-BewblDb7.css">
+  <link rel="stylesheet" crossorigin href="/assets/create-Bt3MCEgQ.css">
+  <link rel="stylesheet" crossorigin href="/assets/studio-CPICuYh4.css">
+  <link rel="stylesheet" crossorigin href="/assets/Checkout-C8e6qO37.css">
+  <link rel="stylesheet" crossorigin href="/assets/dloveLogo-D8kZ4Lma.css">
+</head>
+<body><div id="root"></div></body>
+</html>

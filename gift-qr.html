@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Món quà Vườn hoa 3D đã sẵn sàng · DearGift</title>
+  <link rel="icon" href="/assets/images/logo-heart-32.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="/js/qrcode.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Be Vietnam Pro', system-ui, sans-serif;
+      background: linear-gradient(155deg, #fff5f9 0%, #f8f2ff 55%, #fff9fb 100%);
+      color: #2f2438;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .qr-card {
+      background: rgba(255,255,255,0.96);
+      border: 1px solid #f5d8e6;
+      border-radius: 28px;
+      max-width: 460px;
+      width: 100%;
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: 0 22px 60px rgba(213, 30, 104, 0.12);
+    }
+    .qr-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff0f6;
+      color: #d6337b;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+    h1 {
+      font-size: 23px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #2c1e34;
+    }
+    .sub {
+      font-size: 14px;
+      color: #6b5b76;
+      line-height: 1.55;
+      margin-bottom: 22px;
+    }
+    .qr-box {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      background: #fff;
+      padding: 18px;
+      border-radius: 22px;
+      border: 2px solid #f7d6e6;
+      box-shadow: 0 10px 28px rgba(232, 88, 154, 0.08);
+      margin-bottom: 18px;
+    }
+    #qr-canvas-wrap {
+      width: 220px;
+      height: 220px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #qr-canvas-wrap img, #qr-canvas-wrap canvas {
+      border-radius: 10px;
+      max-width: 100%;
+      height: auto;
+    }
+    .link-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #faf5f8;
+      border: 1px solid #eedbe5;
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 18px;
+      text-align: left;
+    }
+    .link-text {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4f3d5c;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: 999px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 20px;
+      cursor: pointer;
+      text-decoration: none;
+      border: 1px solid transparent;
+      transition: transform .15s, box-shadow .15s, background .15s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary {
+      width: 100%;
+      background: linear-gradient(135deg, #f34f87, #c2185b);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(213, 30, 104, 0.25);
+      margin-bottom: 10px;
+    }
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .btn-sec {
+      background: #fff;
+      border-color: #ecd6e2;
+      color: #3d2e49;
+    }
+    .btn-sec:hover { border-color: #e8589a; color: #c2185b; background: #fff7fb; }
+    .btn-copy-inline {
+      flex: none;
+      padding: 7px 12px;
+      font-size: 12px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid #ebd7e4;
+      color: #c2185b;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .foot-links {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .foot-links a {
+      color: #7a6686;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .foot-links a:hover { color: #d6337b; }
+  </style>
+</head>
+<body>
+  <main class="qr-card">
+    <div class="qr-badge">🌸 Đã tạo thiệp thành công</div>
+    <h1>Khu vườn của bạn đã sẵn sàng!</h1>
+    <p class="sub">Quét mã QR hoặc gửi đường dẫn bên dưới cho người thương để mở món quà 3D ngay nhé.</p>
+
+    <div class="qr-box">
+      <div id="qr-canvas-wrap"></div>
+    </div>
+
+    <div class="link-box">
+      <span class="link-text" id="gift-link-text"></span>
+      <button type="button" class="btn-copy-inline" id="btn-copy">Sao chép</button>
+    </div>
+
+    <a class="btn btn-primary" id="btn-open-gift" href="/">🌸 Mở Vườn hoa 3D ngay ↗</a>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-sec" id="btn-download-qr">⬇ Tải mã QR</button>
+      <a class="btn btn-sec" href="/my-gifts.php">🎁 Quà của tôi</a>
+    </div>
+
+    <div class="foot-links">
+      <a href="/tao-vuon.html">＋ Tạo vườn mới</a>
+      <a href="/templates.php">Kho mẫu quà</a>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var rawLink = params.get('link') || '';
+      if (!rawLink) {
+        var uid = params.get('uid') || params.get('id') || '';
+        rawLink = uid ? (window.location.origin + '/gift.php?uid=' + encodeURIComponent(uid)) : (window.location.origin + '/vuon.html');
+      } else if (rawLink.charAt(0) === '/') {
+        rawLink = window.location.origin + rawLink;
+      }
+
+      document.getElementById('gift-link-text').textContent = rawLink;
+      document.getElementById('gift-link-text').title = rawLink;
+      document.getElementById('btn-open-gift').href = rawLink;
+
+      var wrap = document.getElementById('qr-canvas-wrap');
+      if (window.QRCode) {
+        new window.QRCode(wrap, {
+          text: rawLink,
+          width: 220,
+          height: 220,
+          colorDark: '#2c1e34',
+          colorLight: '#ffffff',
+          correctLevel: window.QRCode.CorrectLevel ? window.QRCode.CorrectLevel.M : 0
+        });
+      }
+
+      document.getElementById('btn-copy').addEventListener('click', function() {
+        var btn = this;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(rawLink).then(function() {
+            btn.textContent = '✓ Đã chép';
+            setTimeout(function() { btn.textContent = 'Sao chép'; }, 1800);
+          });
+        }
+      });
+
+      document.getElementById('btn-download-qr').addEventListener('click', function() {
+        var img = wrap.querySelector('img');
+        var canvas = wrap.querySelector('canvas');
+        var dataUrl = canvas ? canvas.toDataURL('image/png') : (img ? img.src : '');
+        if (!dataUrl) return;
+        var a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = 'DearGift-VuonHoa-QR.png';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
+    })();
+  </script>
+</body>
+</html>

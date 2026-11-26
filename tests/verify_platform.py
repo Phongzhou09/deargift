@@ -389,6 +389,129 @@ def run_tests():
             with urllib.request.urlopen(req, timeout=3) as ar:
                 assert ar.status in (200, 206), f"Missing dynamic BoysDay asset: {ba} -> {ar.status}"
         print(f"[PASS] All {len(boysday_assets)} dynamic BoysDay/letter-v2 sprites & audio assets verified 200/206!")
+
+        # 6. Validate b.html & vuon.html inline demoData JSON has no JS control-char syntax errors
+        for html_page in ("/b.html", "/vuon.html"):
+            with urllib.request.urlopen(BASE + html_page, timeout=5) as r:
+                htxt = r.read().decode("utf-8", errors="ignore")
+            m_dd = re.search(r"var demoData\s*=\s*(\{.*?\});", htxt, re.S)
+            assert m_dd, f"Missing demoData in {html_page}"
+            json.loads(m_dd.group(1))
+        print("[PASS] b.html & vuon.html inline demoData JSON valid (zero SyntaxError)")
+
+        # 7. tao-vuon.html & Garden 3D (Template 72) bundles, assets, workers & full Silkgarden flow
+        tao_assets = [
+            "/tao-vuon.html",
+            "/tao-vuon",
+            "/gift-qr.html",
+            "/assets/gardenCreate-Dobo1hUE.js",
+            "/assets/marketing-CU2oWXky.js",
+            "/assets/Checkout-DpaSoeW_.js",
+            "/assets/studio-nsPmX0dW.js",
+            "/assets/DLoveLogo-zUmC3zN6.js",
+            "/assets/GardenCreator-CoETpBk0.js",
+            "/assets/GardenCreator-Bcew_z0B.css",
+            "/assets/gardenCheckout-BewblDb7.css",
+            "/assets/create-Bt3MCEgQ.css",
+            "/assets/studio-CPICuYh4.css",
+            "/assets/Checkout-C8e6qO37.css",
+            "/assets/bouquet-intro/CormorantGaramond.woff",
+            "/assets/bouquet-intro/CormorantGaramond-Italic.woff",
+            "/assets/ui/dlove-gift-logo.png",
+            "/assets/vuon-hoa/bouquet/letter-bouquet-sticker.lossless.webp",
+            "/bg-remove.worker.js",
+            "/bg-remove-compat.worker.js",
+            "/bg-matte.js",
+            "/head-cutout.worker.js",
+            "/head-mask.js",
+            "/models/BritishWerewolf/U-2-Netp/onnx/model.onnx",
+            "/models/chibi-head/face_landmarker.task",
+            "/vendor/mediapipe-0.10.21/vision_bundle.js",
+            "/vendor/mediapipe-0.10.21/wasm/vision_wasm_internal.wasm",
+        ]
+        for ta in tao_assets:
+            req = urllib.request.Request(BASE + ta, headers={"Range": "bytes=0-15"})
+            with urllib.request.urlopen(req, timeout=5) as ar:
+                assert ar.status in (200, 206), f"Missing tao-vuon asset: {ta} -> {ar.status}"
+
+        # /gift-builder.php?id=72 requires login when guest, serves tao-vuon studio when logged in
+        no_redir = urllib.request.build_opener(urllib.request.HTTPRedirectHandler())
+        try:
+            with op1.open(BASE + "/gift-builder.php?id=72", timeout=5) as r:
+                b72 = r.read().decode("utf-8", errors="ignore")
+                assert "gardenCreate-Dobo1hUE.js" in b72 and "__DG_CURRENT_USER__" in b72
+                assert "detect-devtools.js" not in b72
+        except Exception as e:
+            raise AssertionError(f"/gift-builder.php?id=72 failed for logged-in user: {e}")
+
+        st, pr_res = json_req(op1, "/api/dlove/pricing/silkgarden")
+        assert st == 200 and pr_res.get("success") and len(pr_res["data"]["packages"]) >= 2
+        st, mu_res = json_req(op1, "/api/dlove/music/shared")
+        assert st == 200 and mu_res.get("success") and len(mu_res["data"]["items"]) >= 1
+        test_slug = f"vuon-test-{int(time.time()) % 100000}"
+        st, sl_res = json_req(op1, f"/api/dlove/slugs/check/silkgarden/{test_slug}")
+        assert st == 200 and sl_res["data"]["available"] is True
+
+        # Presign + PUT tiny PNG image upload
+        st, ps_res = json_req(
+            op1,
+            "/api/dlove/uploads/presign",
+            "POST",
+            {"templateType": "silkgarden", "fileType": "image", "contentType": "image/png", "fileSizeBytes": 67},
+        )
+        assert st == 200 and ps_res["data"]["uploadUrl"] and ps_res["data"]["publicUrl"], f"Presign failed: {ps_res}"
+        tiny_png = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15c4\x00\x00\x00\x0bIDATx\x9cc`\x00\x02\x00\x00\x05\x00\x01\xe9\xfd\xb8d\x00\x00\x00\x00IEND\xaeB`\x82"
+        put_req = urllib.request.Request(ps_res["data"]["uploadUrl"], data=tiny_png, method="PUT", headers={"Content-Type": "image/png"})
+        with op1.open(put_req, timeout=5) as pr:
+            assert pr.status == 200
+        uploaded_img_url = ps_res["data"]["publicUrl"]
+        uploaded_rel = urllib.parse.urlparse(uploaded_img_url).path.lstrip("/")
+        uploaded_local = os.path.join(ROOT, uploaded_rel.replace("/", os.sep))
+
+        # Create free-garden silkgarden website
+        st, sg_res = json_req(
+            op1,
+            "/api/dlove/websites/silkgarden",
+            "POST",
+            {
+                "features": {"packageId": "free-garden", "expiration": "15d", "customSlug": True},
+                "slug": test_slug,
+                "config": {
+                    "title": "Vườn Test E2E",
+                    "intro": {"headline": "Gửi Tiểu Mây!", "subtitle": "Khu vườn riêng của tụi mình.", "buttonLabel": "Vào vườn", "occasion": ""},
+                    "people": [{"id": "p1", "name": "Tiểu Mây", "image": uploaded_img_url, "original": uploaded_img_url, "wish": "Mãi vui nhé!"}],
+                    "enableBouquet": True,
+                    "enableMemories": True,
+                    "memories": {"title": "Kỷ niệm đẹp", "buttonLabel": "Miền ký ức", "photos": [{"id": "m1", "image": uploaded_img_url, "width": 1, "height": 1, "alt": "Test"}]},
+                    "enableLetter": True,
+                    "letter": {"title": "Thư gửi Tiểu Mây", "opening": "Chào cậu,", "text": "Lời chúc test Vườn Hoa 3D", "sender": "DearGift", "envelopeLine": "Gửi cậu", "buttonLabel": "Lá thư"},
+                    "bgMusic": "/assets/vuon-hoa/audio/garden_bgm.mp3",
+                },
+            },
+        )
+        assert st == 200 and sg_res.get("success") and sg_res["data"]["giftId"], f"Silkgarden create failed: {sg_res}"
+        sg_gid = sg_res["data"]["giftId"]
+        assert sg_res["data"]["needsPayment"] is False
+
+        # Verify custom gift view via /gift.php?uid=... & custom slug /vuon/<slug> & /api/dlove/orders/my
+        with urllib.request.urlopen(BASE + f"/gift.php?uid={sg_gid}", timeout=5) as r:
+            vbody = r.read().decode("utf-8", errors="ignore")
+            assert r.status == 200 and "Tiểu Mây" in vbody and "__DG_GIFT_DATA__" in vbody
+        with urllib.request.urlopen(BASE + f"/vuon/{test_slug}", timeout=5) as r:
+            sbody = r.read().decode("utf-8", errors="ignore")
+            assert r.status == 200 and "Tiểu Mây" in sbody
+        st, ord_my = json_req(op1, "/api/dlove/orders/my")
+        assert st == 200 and any(o["configId"] == sg_gid and o["status"] == "FREE" for o in ord_my["data"]["orders"])
+
+        # Cleanup silkgarden test gift & temp upload file
+        st, _ = json_req(op1, "/api/gifts/delete", "POST", {"id": sg_gid})
+        assert st == 200
+        if os.path.exists(uploaded_local):
+            try:
+                os.remove(uploaded_local)
+            except OSError:
+                pass
+        print(f"[PASS] Full tao-vuon / Template 72 Silkgarden assets ({len(tao_assets)}) & E2E creation/viewer/slug flow verified!")
     finally:
         proc.terminate()
         proc.wait(timeout=5)

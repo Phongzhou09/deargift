@@ -217,8 +217,46 @@ SLUG_TO_ID = {
     'thiep-cuoi-sang-trong': '70',
     'wedding-save-the-date': '70',
     'tet-sum-vay-3d': '71',
-    'tet-sum-vay': '71'
+    'tet-sum-vay': '71',
+    'vuon-hoa-3d-360': '72',
+    'vuon-hoa': '72',
+    'silkgarden': '72',
+    'boys-day-19-11-gau-kem': '73',
+    'boysday': '73'
 }
+
+def _dlove_token_secret():
+    return (os.environ.get('DLOVE_TOKEN_SECRET') or 'deargift_dlove_secret_key_2026').encode('utf-8')
+
+def make_dlove_token(identifier):
+    import hmac as _hmac
+    ident = str(identifier or '').strip()
+    if not ident:
+        return ''
+    payload = base64.urlsafe_b64encode(ident.encode('utf-8')).decode('ascii').rstrip('=')
+    sig = _hmac.new(_dlove_token_secret(), payload.encode('utf-8'), hashlib.sha256).hexdigest()[:24]
+    return f"dgtk.{payload}.{sig}"
+
+def verify_dlove_token(token):
+    import hmac as _hmac
+    tok = str(token or '').strip()
+    if not tok.startswith('dgtk.'):
+        return ''
+    parts = tok.split('.')
+    if len(parts) != 3:
+        return ''
+    _, payload, sig = parts
+    expected = _hmac.new(_dlove_token_secret(), payload.encode('utf-8'), hashlib.sha256).hexdigest()[:24]
+    if not _hmac.compare_digest(sig, expected):
+        return ''
+    try:
+        padded = payload + '=' * (-len(payload) % 4)
+        return base64.urlsafe_b64decode(padded).decode('utf-8')
+    except Exception:
+        return ''
+
+_DLOVE_PRESIGN_TOKENS = {}
+
 
 # ----------------- JWT & GOOGLE HELPER -----------------
 def decode_jwt_payload(token):
@@ -305,10 +343,10 @@ def save_templates(data):
 _NO_STORE_PREFIXES = (
     '/health', '/healthz', '/ping', '/ajax_', '/admin',
     '/my-gifts', '/orders', '/transactions', '/settings', '/payment',
-    '/gift-builder', '/login', '/register', '/logout', '/auth_',
-    '/gift.php', '/gift/', '/v3/', '/templates/_v3/live',
+    '/gift-builder', '/tao-vuon', '/sua-vuon', '/gift-qr', '/login', '/register', '/logout', '/auth_',
+    '/gift.php', '/gift/', '/v3/', '/templates/_v3/live', '/vuon/',
     '/api/stats', '/api/gifts', '/api/my-', '/api/auth/', '/api/admin/',
-    '/api/settings', '/api/gift/', '/api/webhook/', '/api_submit', '/api_csrf'
+    '/api/settings', '/api/gift/', '/api/webhook/', '/api/payment/', '/api/dlove/', '/api_submit', '/api_csrf'
 )
 
 def _is_no_store_path(path_str):
@@ -438,7 +476,7 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             elif p_clean.endswith('.txt'):
                 self.send_header('Cache-Control', 'public, max-age=86400')
             elif any(p_clean.endswith(ext) for ext in ('.html', '.php', '.json')) or p_clean in ('', '/'):
-                self.send_header('Cache-Control', 'public, max-age=300, must-revalidate')
+                self.send_header('Cache-Control', 'public, max-age=0, must-revalidate')
         super().end_headers()
 
     def send_head(self):
@@ -527,6 +565,11 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             username_or_email = self.headers.get('X-User', '').strip()
 
         if not username_or_email:
+            auth_h = self.headers.get('Authorization', '').strip()
+            if auth_h.lower().startswith('bearer '):
+                username_or_email = verify_dlove_token(auth_h[7:].strip())
+
+        if not username_or_email:
             return None
 
         return db.get_user_by_identifier(username_or_email)
@@ -550,10 +593,28 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200, "OK")
         self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-CSRF-Token, X-User')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Idempotency-Key, X-Requested-With, X-CSRF-Token, X-User')
         self.send_header('Content-Length', '0')
         self.end_headers()
+
+    def do_PUT(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path.startswith('/api/dlove/'):
+            return self.handle_dlove_put(parsed.path, urllib.parse.parse_qs(parsed.query))
+        self.send_error(404, "Endpoint not found")
+
+    def do_PATCH(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path.startswith('/api/dlove/'):
+            return self.handle_dlove_post(parsed.path, urllib.parse.parse_qs(parsed.query))
+        self.send_error(404, "Endpoint not found")
+
+    def do_DELETE(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path.startswith('/api/dlove/'):
+            return self.send_json_response({"success": True, "data": {}})
+        self.send_error(404, "Endpoint not found")
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
@@ -671,6 +732,16 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         if path in ['/templates.php', '/templates.html', '/templates']:
             return self.serve_file('templates.php')
 
+        if path in ['/tao-vuon.html', '/tao-vuon', '/tao-vuon.php', '/sua-vuon.html', '/sua-vuon']:
+            return self.serve_tao_vuon(query)
+
+        if path in ['/gift-qr.html', '/gift-qr']:
+            return self.serve_file('gift-qr.html')
+
+        if path.startswith('/vuon/'):
+            slug_part = path[len('/vuon/'):].strip('/')
+            return self.serve_vuon_slug(slug_part)
+
         if path in ['/gift-builder.php', '/gift-builder.html', '/gift-builder']:
             return self.serve_gift_builder(query)
 
@@ -724,6 +795,35 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
 
         if path in ['/payment.php', '/payment.html', '/payment']:
             return self.serve_file('payment.php')
+
+        if path == '/api/payment/details':
+            code = query.get('code', query.get('uid', ['']))[0].strip()
+            gift = get_gift(code)
+            if gift and not gift.get('paid', False):
+                sync_casso_transactions()
+                gift = get_gift(code)
+            if not gift:
+                return self.send_json_response({"success": False, "message": "Không tìm thấy đơn hàng"}, status=404)
+            settings = get_settings()
+            amt = int(gift.get('amount') or 0)
+            scode = gift.get('share_code') or gift.get('id')
+            t_content = gift.get('transfer_content') or f"DEAR {scode}"
+            qr_url = f"https://img.vietqr.io/image/{settings['bank_code']}-{settings['account_number']}-compact2.png?amount={amt}&addInfo={urllib.parse.quote(t_content)}&accountName={urllib.parse.quote(settings['account_name'])}"
+            g_out = dict(gift)
+            g_out['qr_url'] = qr_url
+            return self.send_json_response({
+                "success": True,
+                "gift": g_out,
+                "bank": {
+                    "code": settings['bank_code'],
+                    "name": settings['bank_name'],
+                    "account": settings['account_number'],
+                    "account_name": settings['account_name']
+                }
+            })
+
+        if path.startswith('/api/dlove/'):
+            return self.handle_dlove_get(path, query)
 
         if path in ['/settings.php', '/settings.html', '/settings']:
             return self.serve_file('settings.php')
@@ -1428,6 +1528,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         # 16. API: Upload File
+        if path.startswith('/api/dlove/'):
+            return self.handle_dlove_post(path, query)
+
         if path == '/api/admin/upload':
             if not verify_admin_request(self):
                 self.send_json_response({"status": "error", "message": "Yêu cầu quyền quản trị viên cao cấp!"}, status=403)
@@ -1459,6 +1562,625 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         self.send_error(404, "Endpoint not found")
+
+    def _get_request_origin(self):
+        proto = (self.headers.get('X-Forwarded-Proto') or 'http').split(',')[0].strip()
+        host = (self.headers.get('Host') or f"127.0.0.1:{PORT}").strip()
+        return f"{proto}://{host}"
+
+    def _dlove_pricing_payload(self, tpl_type='silkgarden'):
+        settings = get_settings()
+        try:
+            vip_price = max(0, int(float(settings.get('price_amount') or 19000)))
+        except (ValueError, TypeError):
+            vip_price = 19000
+        return {
+            "templateType": tpl_type,
+            "requirePackage": True,
+            "slugOrigin": self._get_request_origin() + "/vuon",
+            "photoQuotaFields": {"people": "maxPhotos", "memories": "maxMemoryPhotos"},
+            "expiration": {
+                "15d": {"days": 15, "label": "15 ngày", "price": 0, "priceUsd": 0},
+                "forever": {"days": None, "label": "Vĩnh viễn", "price": vip_price, "priceUsd": 2},
+            },
+            "features": {
+                "people": {"label": "Ảnh khu vườn", "price": 0, "priceUsd": 0},
+                "bouquet": {"label": "Bó hoa riêng", "price": 0, "priceUsd": 0},
+                "memories": {"label": "Cuộn phim ký ức", "price": 0, "priceUsd": 0},
+                "letter": {"label": "Lá thư", "price": 0, "priceUsd": 0},
+                "customMusic": {"label": "Nhạc riêng", "price": 0, "priceUsd": 0},
+                "customSlug": {"label": "Liên kết tùy chỉnh", "price": 0, "priceUsd": 0},
+            },
+            "packages": [
+                {
+                    "id": "free-garden",
+                    "label": "Miễn phí",
+                    "price": 0,
+                    "priceUsd": 0,
+                    "expiration": "15d",
+                    "maxPhotos": 30,
+                    "maxMemoryPhotos": 10,
+                    "includes": ["people", "bouquet", "memories", "letter", "customMusic", "customSlug"],
+                    "watermark": False,
+                },
+                {
+                    "id": "vip-forever",
+                    "label": "Lưu trữ vĩnh viễn",
+                    "price": vip_price,
+                    "priceUsd": 2,
+                    "expiration": "forever",
+                    "maxPhotos": 30,
+                    "maxMemoryPhotos": 10,
+                    "includes": ["people", "bouquet", "memories", "letter", "customMusic", "customSlug"],
+                    "watermark": False,
+                },
+            ],
+        }
+
+    def _dlove_music_items(self):
+        origin = self._get_request_origin()
+        label_map = {
+            "garden_bgm.mp3": ("Vườn hoa dịu dàng", ["dịu dàng", "có sẵn"]),
+            "bongtrang.mp3": ("Bóng trăng", ["nhẹ nhàng"]),
+            "somotthegioi.mp3": ("Sợ một thế giới", ["tình cảm"]),
+            "givemeyourforever.mp3": ("Give Me Your Forever", ["lãng mạn"]),
+            "phepmau.mp3": ("Phép màu", ["ấm áp"]),
+            "danhchoem.mp3": ("Dành cho em", ["ngọt ngào"]),
+            "messenger.mp3": ("Giai điệu kỷ niệm", ["acoustic"]),
+            "nguoigieomamxanh.mp3": ("Người gieo mầm xanh", ["tri ân"]),
+            "music.mp3": ("Giai điệu mùa yêu", ["lofi"]),
+        }
+        items = []
+        seen = set()
+        candidates = []
+        vg_track = os.path.join(DIRECTORY, 'assets', 'vuon-hoa', 'audio', 'garden_bgm.mp3')
+        if os.path.exists(vg_track):
+            candidates.append(('/assets/vuon-hoa/audio/garden_bgm.mp3', 'garden_bgm.mp3'))
+        music_dir = os.path.join(DIRECTORY, 'assets', 'music')
+        if os.path.isdir(music_dir):
+            for fname in sorted(os.listdir(music_dir)):
+                if fname.lower().endswith('.mp3'):
+                    candidates.append((f'/assets/music/{urllib.parse.quote(fname)}', fname))
+        for rel_url, fname in candidates:
+            full_url = f"{origin}{rel_url}"
+            if full_url in seen:
+                continue
+            seen.add(full_url)
+            name, tags = label_map.get(fname, (os.path.splitext(fname)[0].replace('-', ' ').replace('_', ' '), ["nhạc nền"]))
+            items.append({
+                "url": full_url,
+                "name": name,
+                "tags": tags,
+                "occasion": "other",
+                "durationSec": None,
+            })
+        return items
+
+    def _normalize_dlove_url(self, val):
+        if not isinstance(val, str):
+            return val
+        s = val.strip()
+        m = re.match(r'^https?://[^/]+(/(?:uploads|assets)/.+)$', s, re.I)
+        if m:
+            return m.group(1)
+        return s
+
+    def _gift_hex16(self, gift_id):
+        gid = str(gift_id or '').strip()
+        if re.fullmatch(r'[a-f0-9]{16}', gid, re.I):
+            return gid.lower()
+        return hashlib.md5(gid.encode('utf-8')).hexdigest()[:16]
+
+    def _find_dlove_gift(self, key_or_slug, by_slug=False):
+        key = str(key_or_slug or '').strip()
+        if not key:
+            return None
+        if not by_slug:
+            direct = get_gift(key)
+            if direct:
+                return direct
+        key_low = key.lower()
+        for g in get_gifts():
+            if by_slug:
+                v3 = g.get('v3') if isinstance(g.get('v3'), dict) else {}
+                cslug = str(v3.get('customSlug') or '').strip().lower()
+                if (cslug and cslug == key_low) or str(g.get('share_code') or '').lower() == key_low or str(g.get('id') or '').lower() == key_low:
+                    return g
+            else:
+                if self._gift_hex16(g.get('id')) == key_low:
+                    return g
+        return None
+
+    def _dlove_gift_to_silkgarden(self, gift):
+        v3 = gift.get('v3') if isinstance(gift.get('v3'), dict) else {}
+        hex16 = str(v3.get('websiteId') or '').strip()
+        if not re.fullmatch(r'[a-f0-9]{16}', hex16, re.I):
+            hex16 = self._gift_hex16(gift.get('id'))
+
+        if isinstance(v3.get('people'), list) and len(v3['people']) > 0:
+            cfg = json.loads(json.dumps(v3, ensure_ascii=False))
+            cfg['websiteId'] = hex16
+            cfg['productType'] = 'silkgarden'
+            cfg['configVersion'] = 1
+            for p in cfg.get('people', []):
+                if isinstance(p, dict):
+                    p['image'] = self._normalize_dlove_url(p.get('image', ''))
+                    p['original'] = self._normalize_dlove_url(p.get('original') or p.get('image', ''))
+            if isinstance(cfg.get('memories'), dict) and isinstance(cfg['memories'].get('photos'), list):
+                for mp in cfg['memories']['photos']:
+                    if isinstance(mp, dict):
+                        mp['image'] = self._normalize_dlove_url(mp.get('image', ''))
+            if cfg.get('bgMusic'):
+                cfg['bgMusic'] = self._normalize_dlove_url(cfg['bgMusic'])
+            return cfg
+
+        photos = [self._normalize_dlove_url(p) for p in (gift.get('photos') or []) if p]
+        if not photos:
+            photos = [f"/assets/vuon-hoa/portraits/portrait-0{i}.webp" for i in range(1, 6)]
+        rec = str(gift.get('recipient_name') or 'Người thương')
+        people = []
+        for idx, p_url in enumerate(photos[:30]):
+            people.append({
+                "id": f"flower-{idx+1}",
+                "name": rec if idx == 0 else f"Kỷ niệm {idx+1:02d}",
+                "image": p_url,
+                "original": p_url,
+                "wish": str(gift.get('letter_content') or f"Chúc {rec} luôn hạnh phúc và rạng rỡ!")[:280],
+            })
+        fly = [self._normalize_dlove_url(p) for p in (gift.get('fly_photos') or []) if p] or photos[:5]
+        return {
+            "websiteId": hex16,
+            "productType": "silkgarden",
+            "configVersion": 1,
+            "title": f"Vườn hoa · {rec}",
+            "intro": {
+                "headline": f"Gửi {rec}!",
+                "subtitle": "Có một khu vườn nhỏ,\nđang đợi bạn ghé thăm.",
+                "buttonLabel": "Cùng nhau khám phá nhé",
+                "occasion": "",
+            },
+            "people": people,
+            "enableBouquet": True,
+            "enableMemories": bool(fly),
+            "memories": {
+                "title": "Những ngày mình bên nhau",
+                "buttonLabel": "Miền ký ức",
+                "photos": [{"id": f"mem-{i+1}", "image": u, "width": 800, "height": 800, "alt": f"Kỷ niệm {i+1}"} for i, u in enumerate(fly[:10])],
+            },
+            "enableLetter": True,
+            "letter": {
+                "title": str(gift.get('letter_title') or f"Gửi {rec},"),
+                "opening": "",
+                "text": str(gift.get('letter_content') or "Chúc bạn luôn bình an và hạnh phúc."),
+                "signoff": "Thương gửi,",
+                "sender": str(gift.get('sender_name') or gift.get('letter_signature') or ""),
+                "date": "",
+                "envelopeLine": "Một lá thư dành riêng cho bạn",
+                "buttonLabel": "Lá thư",
+            },
+            "bgMusic": self._normalize_dlove_url(gift.get('music') or '/assets/vuon-hoa/audio/garden_bgm.mp3'),
+            "showWatermark": False,
+        }
+
+    def _dlove_gift_to_order(self, g):
+        origin = self._get_request_origin()
+        tid = str(g.get('template_id') or '')
+        slug = str(g.get('template_slug') or '')
+        if tid == '72' or slug == 'vuon-hoa-3d-360':
+            t_type = 'silkgarden'
+        elif tid == '73' or slug == 'boys-day-19-11-gau-kem':
+            t_type = 'boysday'
+        else:
+            t_type = 'photobouquet'
+        amt = int(g.get('amount') or 0)
+        is_paid = bool(g.get('paid')) or g.get('status') == 'active'
+        status_str = ('FREE' if amt == 0 else 'PAID') if is_paid else 'PENDING_PAYMENT'
+        gid = g.get('id')
+        scode = g.get('share_code') or gid
+        return {
+            "_id": gid,
+            "orderCode": scode,
+            "type": t_type,
+            "name": f"Vườn hoa · {g.get('recipient_name') or 'Người thương'}" if t_type == 'silkgarden' else f"Món quà · {g.get('recipient_name') or 'Người thương'}",
+            "status": status_str,
+            "price": amt,
+            "currency": "VND",
+            "linkproduct": f"{origin}/gift.php?uid={gid}",
+            "configId": gid if t_type == 'silkgarden' else None,
+            "trackToken": hashlib.md5(f"{gid}:{scode}".encode()).hexdigest(),
+            "createdAt": g.get('created_at') or "",
+        }
+
+    def serve_tao_vuon(self, query):
+        filepath = os.path.join(DIRECTORY, 'tao-vuon.html')
+        if not os.path.exists(filepath):
+            return self.send_error(404, "tao-vuon.html not found")
+        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+            html = f.read()
+        user = self.get_current_user()
+        user_js = "null"
+        if user:
+            ident = user.get('username') or user.get('email') or user.get('id')
+            payload = {
+                "id": user.get('id', ''),
+                "username": user.get('username', ''),
+                "email": user.get('email', ''),
+                "full_name": user.get('full_name', ''),
+                "dlove_token": make_dlove_token(ident),
+            }
+            user_js = json.dumps(payload, ensure_ascii=False)
+        html = html.replace(
+            'window.__DG_CURRENT_USER__ = window.__DG_CURRENT_USER__ || null;',
+            f'window.__DG_CURRENT_USER__ = {user_js};',
+            1,
+        )
+        return self.send_bytes_response(html, allow_etag=False)
+
+    def serve_vuon_slug(self, slug):
+        gift = self._find_dlove_gift(slug, by_slug=True)
+        if not gift:
+            return self.serve_file('vuon.html')
+        return self._serve_vuon_with_gift(gift)
+
+    def _serve_vuon_with_gift(self, gift):
+        vuon_path = os.path.join(DIRECTORY, 'vuon.html')
+        if not os.path.exists(vuon_path):
+            return self.send_error(404, "vuon.html not found")
+        with open(vuon_path, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+        sg_cfg = self._dlove_gift_to_silkgarden(gift)
+        payload_json = json.dumps({"success": True, "data": sg_cfg}, ensure_ascii=False)
+        gid_json = json.dumps(gift.get('id', ''), ensure_ascii=False)
+        hex16_json = json.dumps(sg_cfg['websiteId'], ensure_ascii=False)
+        inject_head = f"""<script>
+    window.__DG_GIFT_DATA__ = {payload_json};
+    (function() {{
+      try {{
+        var p = new URLSearchParams(window.location.search);
+        var id = p.get('id') || '';
+        if (!/^[a-f0-9]{{16}}$/i.test(id) && window.location.pathname.indexOf('/vuon/') !== 0) {{
+          p.set('uid', {gid_json});
+          p.set('id', {hex16_json});
+          window.history.replaceState(null, '', window.location.pathname + '?' + p.toString());
+        }}
+      }} catch(e) {{}}
+    }})();
+  </script>"""
+        content = content.replace('  <script>\n    // Ensure default demo gift ID', inject_head + '\n  <script>\n    // Ensure default demo gift ID', 1)
+        return self.send_bytes_response(content, allow_etag=False)
+
+    def handle_dlove_get(self, path, query):
+        sub = path[len('/api/dlove'):]
+        if sub.startswith('/pricing/'):
+            tpl = sub[len('/pricing/'):].strip('/') or 'silkgarden'
+            return self.send_json_response({"success": True, "data": self._dlove_pricing_payload(tpl)})
+
+        if sub == '/music/shared' or sub.startswith('/music/'):
+            items = self._dlove_music_items()
+            return self.send_json_response({
+                "success": True,
+                "data": {
+                    "items": items,
+                    "systemMusicUrls": [x["url"] for x in items],
+                },
+            })
+
+        if sub.startswith('/slugs/check/'):
+            parts = sub.strip('/').split('/')
+            cand = parts[-1].lower() if len(parts) >= 4 else ''
+            if not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{1,28})[a-z0-9]', cand):
+                return self.send_json_response({"success": True, "data": {"available": False, "reason": "invalid_format", "message": "Chỉ dùng 3–30 ký tự thường, số và dấu gạch ngang."}})
+            taken = cand in SLUG_TO_ID or cand in {'tao-vuon', 'sua-vuon', 'templates', 'admin', 'login', 'register'} or (self._find_dlove_gift(cand, by_slug=True) is not None)
+            if taken:
+                return self.send_json_response({"success": True, "data": {"available": False, "reason": "taken", "message": "Tên này đã có người dùng.", "suggestions": [f"{cand}-1", f"{cand}-love"]}})
+            return self.send_json_response({"success": True, "data": {"available": True, "reason": None}})
+
+        if sub.startswith('/access/by-slug/silkgarden/'):
+            slug = urllib.parse.unquote(sub[len('/access/by-slug/silkgarden/'):].strip('/'))
+            g = self._find_dlove_gift(slug, by_slug=True)
+            if not g:
+                return self.send_json_response({"success": False, "message": "Không tìm thấy khu vườn."}, status=404)
+            if not (g.get('paid') or g.get('status') == 'active'):
+                return self.send_json_response({"success": False, "paymentRequired": True, "message": "Khu vườn chưa được thanh toán."}, status=403)
+            return self.send_json_response({"success": True, "data": self._dlove_gift_to_silkgarden(g)})
+
+        if sub.startswith('/access/silkgarden/'):
+            gid = urllib.parse.unquote(sub[len('/access/silkgarden/'):].strip('/'))
+            if gid == 'ac8fb44238066def':
+                dp = os.path.join(DIRECTORY, 'assets', 'data', 'silkgarden_demo.json')
+                if os.path.exists(dp):
+                    with open(dp, 'r', encoding='utf-8') as f:
+                        return self.send_json_response(json.load(f))
+            g = self._find_dlove_gift(gid, by_slug=False)
+            if not g:
+                return self.send_json_response({"success": False, "message": "Không tìm thấy khu vườn."}, status=404)
+            if not (g.get('paid') or g.get('status') == 'active'):
+                return self.send_json_response({"success": False, "paymentRequired": True, "message": "Khu vườn chưa được thanh toán."}, status=403)
+            return self.send_json_response({"success": True, "data": self._dlove_gift_to_silkgarden(g)})
+
+        if sub.startswith('/access/boysday/'):
+            gid = urllib.parse.unquote(sub[len('/access/boysday/'):].strip('/'))
+            if gid == '61f15939408dab54':
+                dp = os.path.join(DIRECTORY, 'assets', 'data', 'boysday_demo.json')
+                if os.path.exists(dp):
+                    with open(dp, 'r', encoding='utf-8') as f:
+                        return self.send_json_response(json.load(f))
+            g = self._find_dlove_gift(gid, by_slug=False)
+            if g and isinstance(g.get('v3'), dict) and g['v3'].get('character'):
+                return self.send_json_response({"success": True, "data": g['v3']})
+            return self.send_json_response({"success": False, "message": "Không tìm thấy món quà."}, status=404)
+
+        if sub == '/orders/my':
+            user = self.get_current_user()
+            if not user:
+                return self.send_json_response({"success": False, "message": "Vui lòng đăng nhập"}, status=401)
+            gifts = db.get_gifts_for_user(user)
+            orders = [self._dlove_gift_to_order(g) for g in gifts]
+            return self.send_json_response({
+                "success": True,
+                "data": {"orders": orders, "items": orders, "pagination": {"page": 1, "totalPages": 1}},
+            })
+
+        if sub.startswith('/orders/'):
+            user = self.get_current_user()
+            if not user:
+                return self.send_json_response({"success": False, "message": "Vui lòng đăng nhập"}, status=401)
+            ocode = urllib.parse.unquote(sub[len('/orders/'):].strip('/'))
+            g = get_gift(ocode)
+            if not g:
+                return self.send_json_response({"success": False, "message": "Không tìm thấy đơn"}, status=404)
+            return self.send_json_response({"success": True, "data": {"order": self._dlove_gift_to_order(g)}})
+
+        if sub.startswith('/payments/status/') or sub.startswith('/payments/track/'):
+            part = sub.split('/')[-1]
+            ocode = urllib.parse.unquote(part)
+            g = get_gift(ocode)
+            if g and not (g.get('paid') or g.get('status') == 'active'):
+                sync_casso_transactions()
+                g = get_gift(ocode)
+            if not g:
+                return self.send_json_response({"success": False, "message": "Không tìm thấy đơn"}, status=404)
+            ord_obj = self._dlove_gift_to_order(g)
+            return self.send_json_response({
+                "success": True,
+                "data": {
+                    "status": ord_obj["status"],
+                    "linkproduct": ord_obj["linkproduct"],
+                    "orderCode": ord_obj["orderCode"],
+                },
+            })
+
+        if sub.startswith('/configs/silkgarden/'):
+            cid = urllib.parse.unquote(sub[len('/configs/silkgarden/'):].strip('/'))
+            g = self._find_dlove_gift(cid, by_slug=False)
+            if not g:
+                return self.send_json_response({"success": False, "message": "Không tìm thấy thiệp"}, status=404)
+            sg = self._dlove_gift_to_silkgarden(g)
+            origin = self._get_request_origin()
+            for p in sg.get('people', []):
+                if isinstance(p, dict):
+                    for fld in ('image', 'original'):
+                        if isinstance(p.get(fld), str) and p[fld].startswith('/uploads/'):
+                            p[fld] = origin + p[fld]
+            return self.send_json_response({"success": True, "data": {"config": sg, "updatedAt": g.get('updated_at') or g.get('created_at') or ""}})
+
+        if sub.startswith('/vouchers/saved'):
+            return self.send_json_response({"success": True, "data": {"items": [], "pagination": {"page": 1, "totalPages": 1}}})
+
+        if sub.startswith('/lucky-draw/') or sub.startswith('/video-campaign/'):
+            return self.send_json_response({"success": True, "data": {"enabled": False, "canSpin": False, "reason": "closed", "campaign": {"enabled": False, "remaining": 0, "capacity": 0}}})
+
+        return self.send_json_response({"success": False, "message": "Not found"}, status=404)
+
+    def handle_dlove_put(self, path, query):
+        sub = path[len('/api/dlove'):]
+        if sub == '/uploads/put':
+            key = (query.get('key') or [''])[0].strip()
+            ext = _DLOVE_PRESIGN_TOKENS.pop(key, '')
+            if not ext:
+                return self.send_json_response({"success": False, "message": "Invalid upload key"}, status=400)
+            try:
+                clen = int(self.headers.get('Content-Length') or 0)
+            except (ValueError, TypeError):
+                clen = 0
+            if clen <= 0 or clen > 25 * 1024 * 1024:
+                return self.send_json_response({"success": False, "message": "Kích thước file không hợp lệ (tối đa 25MB)"}, status=400)
+            body = self.rfile.read(clen)
+            fname = f"garden_{key}{ext}"
+            fpath = os.path.join(UPLOADS_DIR, fname)
+            with open(fpath, 'wb') as f:
+                f.write(body)
+            return self.send_json_response({"success": True, "url": f"/uploads/{fname}"})
+        return self.send_json_response({"success": False, "message": "Method not allowed"}, status=404)
+
+    def handle_dlove_post(self, path, query):
+        sub = path[len('/api/dlove'):]
+        origin = self._get_request_origin()
+
+        if sub == '/pricing/calculate':
+            data = self.read_request_data()
+            feats = data.get('features') if isinstance(data.get('features'), dict) else {}
+            pkg_id = feats.get('packageId')
+            pricing = self._dlove_pricing_payload(data.get('templateType') or 'silkgarden')
+            pkg = next((p for p in pricing['packages'] if p['id'] == pkg_id), pricing['packages'][0])
+            base_total = int(pkg['price'])
+            return self.send_json_response({"success": True, "data": {"baseTotal": base_total, "total": base_total, "currency": "VND"}})
+
+        if sub == '/uploads/presign':
+            user = self.get_current_user()
+            if not user:
+                return self.send_json_response({"success": False, "error": {"code": "UNAUTHORIZED", "message": "Vui lòng đăng nhập để tải tệp!"}}, status=401)
+            data = self.read_request_data()
+            ftype = str(data.get('fileType') or 'image').lower()
+            ctype = str(data.get('contentType') or '').lower()
+            ext_map = {
+                'image/webp': '.webp', 'image/png': '.png', 'image/jpeg': '.jpg', 'image/jpg': '.jpg', 'image/gif': '.gif',
+                'audio/mpeg': '.mp3', 'audio/mp3': '.mp3', 'audio/mp4': '.m4a', 'audio/wav': '.wav', 'audio/ogg': '.ogg',
+            }
+            ext = ext_map.get(ctype.split(';')[0].strip(), '.mp3' if ftype == 'audio' else '.webp')
+            key = uuid.uuid4().hex[:16]
+            if len(_DLOVE_PRESIGN_TOKENS) > 512:
+                _DLOVE_PRESIGN_TOKENS.clear()
+            _DLOVE_PRESIGN_TOKENS[key] = ext
+            return self.send_json_response({
+                "success": True,
+                "data": {
+                    "uploadUrl": f"{origin}/api/dlove/uploads/put?key={key}",
+                    "publicUrl": f"{origin}/uploads/garden_{key}{ext}",
+                },
+            })
+
+        if sub in ('/uploads/image', '/uploads/audio'):
+            user = self.get_current_user()
+            if not user:
+                return self.send_json_response({"success": False, "error": {"code": "UNAUTHORIZED", "message": "Vui lòng đăng nhập để tải tệp!"}}, status=401)
+            is_audio = (sub == '/uploads/audio')
+            allowed = {'.mp3', '.m4a', '.wav', '.ogg'} if is_audio else {'.jpg', '.jpeg', '.png', '.webp', '.gif'}
+            try:
+                environ = {'REQUEST_METHOD': 'POST', 'CONTENT_TYPE': self.headers.get('Content-Type', '')}
+                form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ=environ)
+                if 'file' not in form:
+                    return self.send_json_response({"success": False, "message": "Thiếu tệp tải lên"}, status=400)
+                fitem = form['file']
+                orig_name = getattr(fitem, 'filename', '') or ('music.mp3' if is_audio else 'upload.jpg')
+                ext = os.path.splitext(orig_name)[1].lower() or ('.mp3' if is_audio else '.jpg')
+                if ext not in allowed:
+                    return self.send_json_response({"success": False, "message": "Định dạng tệp không được hỗ trợ"}, status=400)
+                raw = fitem.file.read(25 * 1024 * 1024 + 1)
+                if len(raw) > 25 * 1024 * 1024:
+                    return self.send_json_response({"success": False, "message": "Tệp tối đa 25 MB"}, status=400)
+                fname = f"garden_{uuid.uuid4().hex[:14]}{ext}"
+                with open(os.path.join(UPLOADS_DIR, fname), 'wb') as fout:
+                    fout.write(raw)
+                return self.send_json_response({"success": True, "data": {"url": f"{origin}/uploads/{fname}", "key": fname}})
+            except Exception as e:
+                return self.send_json_response({"success": False, "message": str(e)}, status=500)
+
+        if sub == '/websites/silkgarden':
+            user = self.get_current_user()
+            if not user:
+                return self.send_json_response({"success": False, "error": {"code": "UNAUTHORIZED", "message": "Vui lòng đăng nhập để tạo thiệp!"}}, status=401)
+            data = self.read_request_data()
+            cfg = data.get('config') if isinstance(data.get('config'), dict) else {}
+            feats = data.get('features') if isinstance(data.get('features'), dict) else {}
+            pkg_id = feats.get('packageId') or 'free-garden'
+            pricing = self._dlove_pricing_payload('silkgarden')
+            pkg = next((p for p in pricing['packages'] if p['id'] == pkg_id), pricing['packages'][0])
+            amount = int(pkg['price'])
+
+            cslug = str(data.get('slug') or '').strip().lower()
+            if cslug:
+                if cslug in SLUG_TO_ID or self._find_dlove_gift(cslug, by_slug=True):
+                    return self.send_json_response({"success": False, "error": {"code": "SLUG_TAKEN", "message": "Tên liên kết này đã được sử dụng"}, "data": {"suggestions": [f"{cslug}-1", f"{cslug}-love"]}}, status=409)
+
+            uid = f"g_{uuid.uuid4().hex[:8]}"
+            hex16 = self._gift_hex16(uid)
+            share_code = f"DG{int(datetime.now().timestamp()) % 1000000:06d}"
+            while get_gift(share_code) is not None:
+                share_code = f"DG{int(datetime.now().timestamp() + uuid.uuid4().int % 999) % 1000000:06d}"
+
+            people = cfg.get('people') if isinstance(cfg.get('people'), list) else []
+            for p in people:
+                if isinstance(p, dict):
+                    p['image'] = self._normalize_dlove_url(p.get('image', ''))
+                    p['original'] = self._normalize_dlove_url(p.get('original') or p.get('image', ''))
+            mems = cfg.get('memories') if isinstance(cfg.get('memories'), dict) else {}
+            for mp in (mems.get('photos') if isinstance(mems.get('photos'), list) else []):
+                if isinstance(mp, dict):
+                    mp['image'] = self._normalize_dlove_url(mp.get('image', ''))
+
+            cfg_saved = dict(cfg)
+            cfg_saved['websiteId'] = hex16
+            cfg_saved['giftId'] = uid
+            cfg_saved['productType'] = 'silkgarden'
+            cfg_saved['configVersion'] = 1
+            if cslug:
+                cfg_saved['customSlug'] = cslug
+            cfg_saved['bgMusic'] = self._normalize_dlove_url(cfg_saved.get('bgMusic') or '/assets/vuon-hoa/audio/garden_bgm.mp3')
+            cfg_saved['showWatermark'] = False
+
+            first_person_name = (people[0].get('name') or '').strip() if (people and isinstance(people[0], dict)) else ''
+            intro = cfg_saved.get('intro') if isinstance(cfg_saved.get('intro'), dict) else {}
+            rec_name = first_person_name or str(intro.get('headline') or '').strip() or 'Người thương'
+            letter = cfg_saved.get('letter') if isinstance(cfg_saved.get('letter'), dict) else {}
+            is_free = (amount <= 0)
+            settings = get_settings()
+            transfer_content = f"DEAR {share_code}"
+            photos_list = [p.get('image') for p in people if isinstance(p, dict) and p.get('image')]
+
+            new_gift = {
+                "id": uid,
+                "share_code": share_code,
+                "template_id": "72",
+                "template_slug": "vuon-hoa-3d-360",
+                "recipient_name": rec_name,
+                "sender_name": str(letter.get('sender') or user.get('full_name') or 'DearGift'),
+                "birthday_day": 19,
+                "birthday_month": 11,
+                "v3": cfg_saved,
+                "letter_title": str(letter.get('title') or f"Gửi {rec_name}!"),
+                "letter_content": str(letter.get('text') or ''),
+                "letter_signature": str(letter.get('sender') or user.get('full_name') or 'DearGift'),
+                "passcode": "",
+                "music": cfg_saved['bgMusic'],
+                "photos": photos_list,
+                "fly_photos": [mp.get('image') for mp in (mems.get('photos') or []) if isinstance(mp, dict) and mp.get('image')],
+                "amount": amount,
+                "transfer_content": transfer_content,
+                "status": "active" if is_free else "pending",
+                "paid": True if is_free else False,
+                "user_id": user.get('id', ''),
+                "user_email": user.get('email', ''),
+                "username": user.get('username', ''),
+                "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+            db.create_gift(new_gift)
+            linkproduct = f"{origin}/vuon/{cslug}" if cslug else f"{origin}/gift.php?uid={uid}"
+            return self.send_json_response({
+                "success": True,
+                "data": {
+                    "websiteId": hex16,
+                    "giftId": uid,
+                    "orderCode": share_code,
+                    "linkproduct": linkproduct,
+                    "needsPayment": not is_free,
+                    "checkoutUrl": f"{origin}/payment.php?code={share_code}" if not is_free else "",
+                    "trackToken": hashlib.md5(f"{uid}:{share_code}".encode()).hexdigest(),
+                    "price": amount,
+                    "currency": "VND",
+                    "paymentMethod": "PAYOS",
+                },
+            })
+
+        if sub == '/payments/create':
+            data = self.read_request_data()
+            ocode = str(data.get('orderCode') or '').strip()
+            g = get_gift(ocode)
+            if not g:
+                return self.send_json_response({"success": False, "message": "Không tìm thấy đơn"}, status=404)
+            scode = g.get('share_code') or g.get('id')
+            return self.send_json_response({"success": True, "data": {"checkoutUrl": f"{origin}/payment.php?code={scode}"}})
+
+        if sub == '/auth/login-email':
+            data = self.read_request_data()
+            email = str(data.get('email') or '').strip()
+            pwd = str(data.get('password') or '').strip()
+            user = find_user_by_login(email, pwd)
+            if not user:
+                return self.send_json_response({"success": False, "message": "Email hoặc mật khẩu không đúng"}, status=401)
+            ident = user.get('username') or user.get('email')
+            cookie_val = f"currentUser={urllib.parse.quote(ident)}; Path=/; Max-Age=86400"
+            safe_u = {k: v for k, v in user.items() if k != 'password'}
+            safe_u['uid'] = safe_u.get('id', '')
+            return self.send_json_response({"success": True, "token": make_dlove_token(ident), "user": safe_u}, cookie=cookie_val)
+
+        if sub == '/vouchers/check':
+            return self.send_json_response({"success": True, "data": {"valid": False, "reason": "not_found"}})
+
+        if sub.startswith('/configs/silkgarden/') and sub.endswith('/preview-edit'):
+            return self.send_json_response({"success": True, "data": {"baseTotal": 0, "total": 0, "delta": 0}})
+
+        return self.send_json_response({"success": False, "message": "Not found"}, status=404)
 
     def serve_demo_template(self, tpl_id):
         demo_path = None
@@ -2062,7 +2784,57 @@ setInterval(pollStatus, 2500);
             return
 
         # Active gift: serve full template
-        template_id = gift.get('template_id', '69')
+        template_id = str(gift.get('template_id', '69')).strip()
+        template_slug = str(gift.get('template_slug', '')).strip()
+
+        # Template 72: 3D Floral Garden (vuon.html hydrated with saved silkgarden config)
+        if template_id == '72' or template_slug == 'vuon-hoa-3d-360':
+            return self._serve_vuon_with_gift(gift)
+
+        # Template 73: Boys Day 19/11 Interactive Chibi 3D (b.html hydrated cleanly)
+        if template_id == '73' or template_slug == 'boys-day-19-11-gau-kem':
+            b_path = os.path.join(DIRECTORY, 'b.html')
+            if os.path.exists(b_path):
+                with open(b_path, 'r', encoding='utf-8', errors='ignore') as f:
+                    b_content = f.read()
+                v3 = gift.get('v3') if isinstance(gift.get('v3'), dict) else {}
+                if v3.get('character') and isinstance(v3.get('memories'), list):
+                    bd_data = json.loads(json.dumps(v3, ensure_ascii=False))
+                else:
+                    dp = os.path.join(DIRECTORY, 'assets', 'data', 'boysday_demo.json')
+                    bd_data = {}
+                    if os.path.exists(dp):
+                        with open(dp, 'r', encoding='utf-8') as fd:
+                            bd_data = json.load(fd).get('data', {})
+                    if gift.get('letter_content'):
+                        bd_data.setdefault('letter', {})['text'] = gift['letter_content']
+                    if gift.get('recipient_name'):
+                        bd_data['greeting'] = f"{gift['recipient_name']} ơi, theo em nhé ♡"
+                    if gift.get('photos'):
+                        bd_data['memories'] = [{"id": f"mem-{i+1}", "image": self._normalize_dlove_url(u), "title": "", "wish": "", "frame": False} for i, u in enumerate(gift['photos'][:20])]
+                    if gift.get('music'):
+                        bd_data['bgMusic'] = self._normalize_dlove_url(gift['music'])
+                hex16 = self._gift_hex16(gift.get('id'))
+                bd_data['websiteId'] = hex16
+                bd_json = json.dumps({"success": True, "data": bd_data}, ensure_ascii=False)
+                gid_js = json.dumps(gift.get('id', ''), ensure_ascii=False)
+                hex16_js = json.dumps(hex16, ensure_ascii=False)
+                inj = f"""<script>
+    window.__DG_GIFT_DATA__ = {bd_json};
+    (function() {{
+      try {{
+        var p = new URLSearchParams(window.location.search);
+        if (!/^[a-f0-9]{{16}}$/i.test(p.get('id') || '')) {{
+          p.set('uid', {gid_js});
+          p.set('id', {hex16_js});
+          window.history.replaceState(null, '', window.location.pathname + '?' + p.toString());
+        }}
+      }} catch(e) {{}}
+    }})();
+  </script>"""
+                b_content = b_content.replace('  <script>\n    // Ensure default demo gift ID', inj + '\n  <script>\n    // Ensure default demo gift ID', 1)
+                return self.send_bytes_response(b_content, allow_etag=False)
+
         demo_path = os.path.join(DIRECTORY, 'demos', f'demo_{template_id}.html')
         if not os.path.exists(demo_path):
             demo_path = os.path.join(DIRECTORY, 'demos', 'demo_69.html')
@@ -2423,6 +3195,9 @@ setInterval(pollStatus, 2500);
         if not user:
             self.send_redirect(f'/login.html?redirect=/gift-builder.php?id={tpl_id}')
             return
+
+        if str(tpl_id).strip() in ('72', 'vuon-hoa-3d-360', 'vuon-hoa', 'silkgarden'):
+            return self.serve_tao_vuon(query)
 
         filepath = os.path.join(DIRECTORY, 'gift-builder.php')
         if not os.path.exists(filepath):

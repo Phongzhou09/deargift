@@ -260,6 +260,11 @@ function loadPaymentData() {
 }
 
 function markPaidSuccess(giftId) {
+    try {
+        if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'paymentSuccess', orderCode: giftCode, giftId: giftId || currentGiftId || giftCode }, '*');
+        }
+    } catch(e) {}
     var statusBadge = document.getElementById('pay-status-badge');
     if (statusBadge) statusBadge.classList.add('is-active');
     var statusText = document.getElementById('pay-status-text');
