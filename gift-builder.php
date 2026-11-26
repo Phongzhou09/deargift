@@ -3715,6 +3715,23 @@ function updateTotal() {
 
 // ─── Checkout flow ────────────────────────────────────────────────
 function handleCheckout() {
+    fetch('/api/me', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+            if (!res || !res.logged_in || !res.user) {
+                var redirect = encodeURIComponent(window.location.pathname + window.location.search);
+                window.location.href = '/login.html?redirect=' + redirect;
+                return;
+            }
+            proceedCheckout();
+        })
+        .catch(function () {
+            var redirect = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = '/login.html?redirect=' + redirect;
+        });
+}
+
+function proceedCheckout() {
     var v3RecInput = document.getElementById('v3_recipient_name');
     var recInput = document.getElementById('recipient_name');
     if (v3RecInput && recInput && v3RecInput.value.trim() !== '') {

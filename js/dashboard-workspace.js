@@ -346,13 +346,8 @@
             localStorage.removeItem('deargift_user');
             localStorage.removeItem('deargift_customer');
           } catch (e) {}
-          var guestUser = { username: 'guest', full_name: 'Khách', email: 'Chưa đăng nhập' };
-          buildWorkspaceChrome(guestUser, activeKey);
-          if (window.lucide && typeof window.lucide.createIcons === 'function') {
-            window.lucide.createIcons();
-          }
-          toast('Bạn chưa đăng nhập. Dữ liệu cá nhân sẽ hiển thị sau khi đăng nhập.', true);
-          if (typeof onReady === 'function') onReady(guestUser);
+          var redirect = encodeURIComponent(window.location.pathname + window.location.search);
+          window.location.href = '/login.html?redirect=' + redirect;
           return;
         }
         try {

@@ -1960,6 +1960,9 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         # 8. API: Create Gift (handles /api/gifts/create and /gift-builder.php)
         if path in ['/api/gifts/create', '/gift-builder.php']:
             user = self.get_current_user()
+            if not user:
+                self.send_json_response({"success": False, "status": "error", "require_login": True, "message": "Vui lòng đăng nhập để tạo quà!"}, status=401)
+                return
             limited, _, wait_sec = _CREATE_LIMITER.check_and_consume(client_ip)
             if limited:
                 self.send_json_response({"success": False, "status": "error", "message": f"Tạo quà quá nhanh, thử lại sau {wait_sec} giây!"}, status=429)
