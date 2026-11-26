@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/dashboard.css?v=1794032998">
   <link rel="stylesheet" href="css/pastel-theme.css?v=1790426802">
-  <link rel="stylesheet" href="css/dashboard-shell.css?v=1790426720">
+  <link rel="stylesheet" href="css/dashboard-shell.css?v=1795670000">
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="js/qrcode.min.js"></script>
   <style>
@@ -154,7 +154,7 @@
       <a href="templates.php" class="action-card">
         <div>
           <div style="font-weight:800;font-size:14.5px;color:#1b171c;">Tạo món quà mới</div>
-          <div style="font-size:12px;color:#756d77;margin-top:3px;">Chọn từ 56 mẫu thiệp &amp; 3D</div>
+          <div style="font-size:12px;color:#756d77;margin-top:3px;">Chọn từ <span id="stat-tpl-total">56</span> mẫu thiệp &amp; 3D</div>
         </div>
         <i data-lucide="plus-circle" style="color:#d51e68;"></i>
       </a>
@@ -188,11 +188,16 @@
         <button type="button" class="tab-btn" onclick="setGiftFilter('active', this)">Đã kích hoạt (<span id="cnt-active">0</span>)</button>
         <button type="button" class="tab-btn" onclick="setGiftFilter('pending', this)">Chờ thanh toán (<span id="cnt-pending">0</span>)</button>
       </div>
-      <div style="display:flex;align-items:center;gap:10px;flex:1;max-width:360px;min-width:220px;">
+      <div class="dg-search-box">
         <i data-lucide="search" style="width:16px;height:16px;color:#8b828d;flex-shrink:0;"></i>
         <input type="text" id="gift-search" class="search-input" placeholder="Tìm theo mã #DG, tên người nhận..." oninput="renderGiftView()">
       </div>
     </section>
+
+    <div class="dg-section-bar">
+      <h2 id="gifts-section-title">Món quà gần đây</h2>
+      <a id="gifts-section-cta" href="my-gifts.php?view=all" class="dg-section-link">Xem tất cả quà →</a>
+    </div>
 
     <!-- Gifts Grid -->
     <section id="gifts-grid" class="dg-cards-grid">
@@ -204,7 +209,7 @@
 
   <div class="bottom-nav"></div>
 
-  <script src="js/dashboard-workspace.js"></script>
+  <script src="js/dashboard-workspace.js?v=1795670000"></script>
   <script>
     var params = new URLSearchParams(window.location.search);
     var isAllView = params.get('view') === 'all';
@@ -217,6 +222,10 @@
       document.getElementById('page-heading').textContent = 'Tất cả quà tặng đã tạo';
       document.getElementById('page-subtitle').textContent = 'Quản lý toàn bộ đường dẫn mở quà, mã QR chia sẻ và trạng thái kích hoạt.';
       document.getElementById('overview-actions').style.display = 'none';
+      document.getElementById('gifts-section-title').textContent = 'Thư viện quà đã tạo';
+      var ctaEl = document.getElementById('gifts-section-cta');
+      ctaEl.textContent = '+ Tạo quà mới';
+      ctaEl.href = 'templates.php';
     }
 
     function setGiftFilter(filter, btn) {
@@ -233,6 +242,9 @@
       ]).then(function (pair) {
         var res = pair[0] || {};
         templateMap = pair[1] || {};
+        var tplCnt = Object.keys(templateMap).length;
+        var tplEl = document.getElementById('stat-tpl-total');
+        if (tplEl && tplCnt > 0) tplEl.textContent = tplCnt;
         allGifts = res.orders || [];
         updateCounters();
         renderGiftView();

@@ -165,6 +165,11 @@ def run_tests():
 
         with urllib.request.urlopen(BASE + "/api/stats", timeout=3) as r:
             assert "no-store" in r.headers.get("Cache-Control", "").lower(), f"Expected no-store on /api/stats, got {r.headers.get('Cache-Control')}"
+            sdata = json.loads(r.read().decode("utf-8")).get("data", {})
+            assert sdata.get("gifts_created", 0) >= 1000, f"Expected baseline >= 1000, got {sdata}"
+            assert sdata.get("real_gifts_created", 0) >= 18, f"Expected real_gifts_created >= 18, got {sdata}"
+            assert sdata.get("total_templates") == 56 and sdata.get("free_templates") == 50, f"Unexpected template stats: {sdata}"
+            assert isinstance(sdata.get("template_real_usage"), dict)
         with urllib.request.urlopen(BASE + "/assets/images/logo-heart-32.png", timeout=3) as r:
             assert r.status == 200 and "immutable" in r.headers.get("Cache-Control", "").lower()
         print("[PASS] Healthcheck, robots, favicon, Gzip, ETag/304 & Cache-Control OK")
@@ -187,6 +192,7 @@ def run_tests():
             "/payment.php",
             "/b.html",
             "/vuon.html",
+            "/css/dashboard-shell.css",
             "/api/templates",
             "/api/settings",
             "/api/stats",
@@ -194,10 +200,18 @@ def run_tests():
         ]:
             with urllib.request.urlopen(BASE + page, timeout=5) as r:
                 assert r.status == 200, f"{page} returned {r.status}"
+                txt = r.read().decode("utf-8", errors="ignore")
                 if page == "/settings.php":
-                    stxt = r.read().decode("utf-8", errors="ignore")
-                    assert "user_a93e79" not in stxt, "Stale user_a93e79 found in settings.php!"
-                    assert "cdn-cgi" not in stxt, "Stale cdn-cgi found in settings.php!"
+                    assert "user_a93e79" not in txt, "Stale user_a93e79 found in settings.php!"
+                    assert "cdn-cgi" not in txt, "Stale cdn-cgi found in settings.php!"
+                elif page in ("/about.php", "/contact.php"):
+                    assert "header-auth-buttons" in txt and "js/header-auth.js" in txt, f"Missing header-auth on {page}"
+                elif page == "/":
+                    assert "1,000+" in txt and "56 mẫu quà" in txt and "4,176" not in txt, "Home stats not synced"
+                elif page == "/templates.php":
+                    assert "1,000+" in txt and "tm-stat-free" in txt and "3,844+" not in txt, "Templates stats not synced"
+                elif page == "/css/dashboard-shell.css":
+                    assert ".dg-account .dg-account-menu" in txt and ".dg-account-grid" in txt, "Missing .dg-account styles in dashboard-shell.css"
         # Admin page requires local or key; we connect from 127.0.0.1 so /admin returns 200
         with urllib.request.urlopen(BASE + "/admin", timeout=5) as r:
             assert r.status == 200

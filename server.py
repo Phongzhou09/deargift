@@ -767,11 +767,20 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_response(get_templates())
             return
 
-        # API: /api/stats (Real-time live system stats)
+        # API: /api/stats (Real-time live system stats synced with catalog & DB)
         if path == '/api/stats':
+            stats = db.get_stats()
+            tpl_list = get_templates()
+            free_cnt = sum(
+                1 for t in tpl_list
+                if str(t.get('price', '')).strip().lower() in ('miễn phí', 'free', '0', '')
+            )
+            stats['total_templates'] = len(tpl_list)
+            stats['free_templates'] = free_cnt
+            stats['paid_templates'] = max(0, len(tpl_list) - free_cnt)
             self.send_json_response({
                 "success": True,
-                "data": db.get_stats()
+                "data": stats
             })
             return
 

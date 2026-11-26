@@ -225,6 +225,7 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "facebook_url": "https://www.facebook.com/Phongzhouok99",
     "qr_image_url": "https://img.vietqr.io/image/MB-2006999988836-compact2.png",
     "admin_password": "Phongzhouok",
+    "stats_base_gifts": 1000,
 }
 
 
@@ -284,6 +285,12 @@ def _seed_initial_data(db_sess: _DBSession) -> None:
                 "INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING",
                 (str(k), json.dumps(v, ensure_ascii=False), now_str),
             )
+    else:
+        # Ensure new default keys such as stats_base_gifts are present on existing DBs
+        db_sess.execute(
+            "INSERT INTO settings (key, value, updated_at) VALUES (?, ?, ?) ON CONFLICT DO NOTHING",
+            ("stats_base_gifts", json.dumps(DEFAULT_SETTINGS["stats_base_gifts"]), now_str),
+        )
 
     # 2. Users
     if _count_rows(db_sess, "users") == 0:
@@ -947,17 +954,39 @@ def delete_gift(gift_id: str) -> bool:
 
 def get_stats() -> Dict[str, Any]:
     init_db()
+    template_usage: Dict[str, int] = {}
     with get_connection() as db_sess:
         users_count = _count_rows(db_sess, "users")
-        gifts_created = _count_rows(db_sess, "gifts")
+        real_gifts_created = _count_rows(db_sess, "gifts")
         row = db_sess.execute(
             "SELECT COUNT(*) AS cnt FROM gifts WHERE paid = 1 OR status = 'active'"
         ).fetchone()
         gifts_paid = int(_val(row, "cnt", 0))
+        base_row = db_sess.execute(
+            "SELECT value FROM settings WHERE key = ?", ("stats_base_gifts",)
+        ).fetchone()
+        base_gifts = 1000
+        if base_row is not None:
+            raw_base = _val(base_row, "value", 1000)
+            try:
+                base_gifts = int(_safe_json_loads(raw_base, raw_base))
+            except Exception:
+                base_gifts = 1000
+        usage_rows = db_sess.execute(
+            "SELECT template_id, COUNT(*) AS cnt FROM gifts GROUP BY template_id"
+        ).fetchall()
+        for ur in usage_rows:
+            tid = str(_val(ur, "template_id", 0) or "").strip()
+            if tid:
+                template_usage[tid] = int(_val(ur, "cnt", 0) or 0)
+    display_gifts_created = max(base_gifts, base_gifts + real_gifts_created)
     return {
         "users_count": users_count,
-        "gifts_created": gifts_created,
+        "base_gifts_created": base_gifts,
+        "real_gifts_created": real_gifts_created,
+        "gifts_created": display_gifts_created,
         "gifts_paid": gifts_paid,
+        "template_real_usage": template_usage,
         "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
     }
 

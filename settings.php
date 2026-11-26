@@ -77,7 +77,7 @@
 </head>
 <body class="user-app settings-page">
 
-    <link rel="stylesheet" href="css/dashboard-shell.css?v=1790426720">
+    <link rel="stylesheet" href="css/dashboard-shell.css?v=1795670000">
 <!-- Sidebar Overlay for Mobile -->
 <div id="sidebar_overlay" class="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
 

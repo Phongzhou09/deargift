@@ -666,9 +666,9 @@ document.addEventListener('keydown', function (event) {
 <button type="submit"><span>Tìm mẫu</span><i data-lucide="arrow-right"></i></button>
 </form>
 <div aria-label="Thống kê bộ sưu tập" class="tm-hero__stats">
-<span><strong>52</strong> mẫu phù hợp</span>
-<span><strong>3,844+</strong> lượt tạo</span>
-<span><strong>52</strong> mẫu miễn phí</span>
+<span id="tm-stat-matched"><strong>56</strong> mẫu phù hợp</span>
+<span id="tm-stat-created"><strong>1,000+</strong> lượt tạo</span>
+<span id="tm-stat-free"><strong>50</strong> mẫu miễn phí</span>
 </div>
 </div>
 <div aria-hidden="true" class="tm-hero__visual">
@@ -724,7 +724,7 @@ document.addEventListener('keydown', function (event) {
 <h2>Chọn câu chuyện bạn muốn gửi</h2>
 <p>Mỗi mẫu là một trải nghiệm hoàn chỉnh với hình ảnh, âm nhạc và hiệu ứng riêng.</p>
 </div>
-<div class="tm-result-count"><strong>52</strong><span>mẫu đang hiển thị</span></div>
+<div class="tm-result-count"><strong>56</strong><span>mẫu đang hiển thị</span></div>
 </header>
 <div class="tm-grid">
 <article class="tm-card tm-card--featured" data-category-id="4" data-category-ids="1,4" data-category-name="Ngày Phụ Nữ" data-template-id="69">
@@ -2554,6 +2554,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var qNorm = removeVietnameseTones(searchQuery || '');
         var cards = document.querySelectorAll('.tm-card');
         var visibleCount = 0;
+        var visibleFreeCount = 0;
 
         cards.forEach(function(card) {
             var cardCats = (card.getAttribute('data-category-ids') || '1').split(',');
@@ -2568,10 +2569,21 @@ document.addEventListener('DOMContentLoaded', function() {
             if (matchCat && matchSearch) {
                 card.style.display = '';
                 visibleCount++;
+                var priceEl = card.querySelector('.tm-card__price');
+                if (priceEl && (priceEl.textContent || '').toLowerCase().indexOf('miễn phí') !== -1) {
+                    visibleFreeCount++;
+                }
             } else {
                 card.style.display = 'none';
             }
         });
+
+        var matchedEl = document.querySelector('#tm-stat-matched strong');
+        if (matchedEl) matchedEl.textContent = visibleCount;
+        var freeEl = document.querySelector('#tm-stat-free strong');
+        if (freeEl) freeEl.textContent = visibleFreeCount;
+        var resultEl = document.querySelector('.tm-result-count strong');
+        if (resultEl) resultEl.textContent = visibleCount;
 
         // Update category tab active state
         document.querySelectorAll('.tm-category').forEach(function(btn) {
@@ -2690,22 +2702,40 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('/api/stats')
             .then(function(r) { return r.json(); })
             .then(function(d) {
-                if (!d || !d.success) return;
+                if (!d || !d.success || !d.data) return;
                 var data = d.data;
-                // Update elements with stat selectors or counters
+                var createdNum = Number(data.gifts_created || 1000).toLocaleString('en-US');
                 document.querySelectorAll('.stat-users, [data-stat="users"]').forEach(function(el) {
-                    el.textContent = data.users_count.toLocaleString() + ' người dùng';
+                    el.textContent = Number(data.users_count || 0).toLocaleString('en-US') + ' người dùng';
                 });
                 document.querySelectorAll('.stat-gifts, [data-stat="gifts"]').forEach(function(el) {
-                    el.textContent = data.gifts_created.toLocaleString() + ' đơn hàng';
+                    el.textContent = createdNum + ' đơn hàng';
                 });
                 document.querySelectorAll('.stat-paid, [data-stat="paid"]').forEach(function(el) {
-                    el.textContent = data.gifts_paid.toLocaleString();
+                    el.textContent = Number(data.gifts_paid || 0).toLocaleString('en-US');
                 });
-                // In templates.php tm-hero__stats
-                var heroStatSpan = document.querySelector('.tm-hero__stats span:nth-child(2) strong');
+                var heroStatSpan = document.querySelector('#tm-stat-created strong') || document.querySelector('.tm-hero__stats span:nth-child(2) strong');
                 if (heroStatSpan) {
-                    heroStatSpan.textContent = data.gifts_created.toLocaleString() + '+';
+                    heroStatSpan.textContent = createdNum + '+';
+                }
+                if (data.template_real_usage && typeof data.template_real_usage === 'object') {
+                    var updatedUsage = false;
+                    document.querySelectorAll('.tm-card[data-template-id]').forEach(function(card) {
+                        var tid = String(card.getAttribute('data-template-id') || '').trim();
+                        var delta = Number(data.template_real_usage[tid] || 0);
+                        var usageEl = card.querySelector('.tm-card__usage');
+                        if (!usageEl) return;
+                        if (!usageEl.hasAttribute('data-base-usage')) {
+                            var m = (usageEl.textContent || '').replace(/,/g, '').match(/\d+/);
+                            usageEl.setAttribute('data-base-usage', m ? m[0] : '0');
+                        }
+                        var baseU = Number(usageEl.getAttribute('data-base-usage') || 0);
+                        usageEl.innerHTML = '<i data-lucide="users"></i> ' + (baseU + delta).toLocaleString('en-US') + ' lượt dùng';
+                        updatedUsage = true;
+                    });
+                    if (updatedUsage && window.lucide && typeof window.lucide.createIcons === 'function') {
+                        try { window.lucide.createIcons(); } catch (e) {}
+                    }
                 }
             })
             .catch(function() {});
@@ -2715,6 +2745,10 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         refreshRealStats();
     }
+    document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') refreshRealStats();
+    });
+    window.addEventListener('focus', refreshRealStats);
 })();
 </script>
 
