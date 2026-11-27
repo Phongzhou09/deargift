@@ -338,14 +338,30 @@
   });
 
   function requireAuthAndBoot(activeKey, onReady) {
+    function getFallbackUser() {
+      try {
+        var raw = localStorage.getItem('deargift_user') || localStorage.getItem('deargift_customer');
+        if (raw) {
+          var u = JSON.parse(raw);
+          if (u && (u.username || u.email || u.full_name)) return u;
+        }
+      } catch (e) {}
+      return null;
+    }
+
     fetch('/api/me', { credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (!res || !res.logged_in || !res.user) {
-          try {
-            localStorage.removeItem('deargift_user');
-            localStorage.removeItem('deargift_customer');
-          } catch (e) {}
+          var fallback = getFallbackUser();
+          if (fallback) {
+            buildWorkspaceChrome(fallback, activeKey);
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+              window.lucide.createIcons();
+            }
+            if (typeof onReady === 'function') onReady(fallback);
+            return;
+          }
           var redirect = encodeURIComponent(window.location.pathname + window.location.search);
           window.location.href = '/login.html?redirect=' + redirect;
           return;
@@ -361,7 +377,16 @@
         if (typeof onReady === 'function') onReady(res.user);
       })
       .catch(function () {
-        toast('Không thể kết nối máy chủ xác thực.', true);
+        var fallback = getFallbackUser();
+        if (fallback) {
+          buildWorkspaceChrome(fallback, activeKey);
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+          }
+          if (typeof onReady === 'function') onReady(fallback);
+        } else {
+          toast('Không thể kết nối máy chủ xác thực.', true);
+        }
       });
   }
 

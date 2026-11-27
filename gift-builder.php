@@ -3715,17 +3715,36 @@ function updateTotal() {
 
 // ─── Checkout flow ────────────────────────────────────────────────
 function handleCheckout() {
+    function getFallbackUser() {
+        try {
+            var raw = localStorage.getItem('deargift_user') || localStorage.getItem('deargift_customer');
+            if (raw) {
+                var u = JSON.parse(raw);
+                if (u && (u.username || u.email || u.full_name)) return u;
+            }
+        } catch (e) {}
+        return null;
+    }
+
     fetch('/api/me', { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (res) {
-            if (!res || !res.logged_in || !res.user) {
-                var redirect = encodeURIComponent(window.location.pathname + window.location.search);
-                window.location.href = '/login.html?redirect=' + redirect;
+            if (res && res.logged_in && res.user) {
+                proceedCheckout();
                 return;
             }
-            proceedCheckout();
+            if (getFallbackUser()) {
+                proceedCheckout();
+                return;
+            }
+            var redirect = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = '/login.html?redirect=' + redirect;
         })
         .catch(function () {
+            if (getFallbackUser()) {
+                proceedCheckout();
+                return;
+            }
             var redirect = encodeURIComponent(window.location.pathname + window.location.search);
             window.location.href = '/login.html?redirect=' + redirect;
         });

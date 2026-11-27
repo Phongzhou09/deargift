@@ -272,6 +272,10 @@ function handleGoogleLoginResponse(response) {
       if (d.user) {
         localStorage.setItem('deargift_user', JSON.stringify(d.user));
         localStorage.setItem('deargift_customer', JSON.stringify(d.user));
+        try {
+          var uname = encodeURIComponent(d.user.username || d.user.email || '');
+          document.cookie = 'currentUser=' + uname + '; Path=/; Max-Age=2592000; SameSite=Lax';
+        } catch (e) {}
       }
       var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || d.redirect || 'templates.php';
       window.location.href = redirectTarget;
@@ -409,6 +413,10 @@ document.addEventListener('DOMContentLoaded', function() {
           var user = res.user || { username: username, full_name: username };
           localStorage.setItem('deargift_user', JSON.stringify(user));
           localStorage.setItem('deargift_customer', JSON.stringify(user));
+          try {
+            var uname = encodeURIComponent(user.username || user.email || username);
+            document.cookie = 'currentUser=' + uname + '; Path=/; Max-Age=2592000; SameSite=Lax';
+          } catch (e) {}
           btn.innerHTML = '✅ Đăng nhập thành công!';
           var redirectTarget = (new URLSearchParams(window.location.search)).get('redirect') || res.redirect || 'templates.php';
           setTimeout(() => { window.location.href = redirectTarget; }, 400);

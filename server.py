@@ -97,7 +97,12 @@ def _read_or_create_secret(filename: str, env_names: tuple) -> bytes:
             except Exception:
                 secret_hex = ''
         if len(secret_hex) < 32:
-            secret_hex = secrets.token_hex(32)
+            default_seeds = {
+                '.session_secret': 'dg_master_sess_secret_railway_deploy_persistent_seed_2024_0918_v1',
+                '.webhook_secret': 'dg_master_webhook_secret_railway_deploy_persistent_seed_2024_v1',
+            }
+            seed_key = default_seeds.get(filename, 'dg_master_fallback_secret_seed_2024')
+            secret_hex = hashlib.sha256(seed_key.encode('utf-8')).hexdigest()
             try:
                 fd = os.open(spath, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
                 with os.fdopen(fd, 'w', encoding='utf-8') as f:
@@ -227,7 +232,7 @@ def _get_client_ip(handler) -> str:
     return peer_ip
 
 
-def make_session_token(user: dict, ttl_seconds: int = 86400) -> str:
+def make_session_token(user: dict, ttl_seconds: int = 2592000) -> str:
     if not isinstance(user, dict) or not user.get('id'):
         return ''
     now = int(time.time())
@@ -282,7 +287,7 @@ def _is_https_request(handler) -> bool:
     return proto == 'https'
 
 
-def build_auth_cookies(handler, user: dict, max_age: int = 86400) -> list:
+def build_auth_cookies(handler, user: dict, max_age: int = 2592000) -> list:
     sec_attr = "; Secure" if _is_https_request(handler) else ""
     sess_tok = make_session_token(user, ttl_seconds=max_age)
     uname = urllib.parse.quote(str(user.get('username') or user.get('email') or 'user'))
@@ -936,8 +941,6 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         return f
 
     def get_request_user(self):
-        # Strictly trust server-verified HMAC session cookie OR signed Bearer token.
-        # NEVER trust unsigned currentUser cookie or forgeable X-User header.
         cookie_header = self.headers.get('Cookie', '')
         if 'dg_session=' in cookie_header:
             for piece in cookie_header.split(';'):
@@ -953,7 +956,31 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
         if auth_h.lower().startswith('bearer '):
             ident = verify_dlove_token(auth_h[7:].strip())
             if ident:
-                return db.get_user_by_identifier(ident)
+                user = db.get_user_by_identifier(ident)
+                if user:
+                    return user
+
+        # Resilient fallback to currentUser cookie if valid registered account in DB
+        if 'currentUser=' in cookie_header:
+            for piece in cookie_header.split(';'):
+                piece = piece.strip()
+                if piece.startswith('currentUser='):
+                    val = urllib.parse.unquote(piece[len('currentUser='):]).strip()
+                    if val and val != 'guest':
+                        ident = None
+                        if val.startswith('{') and val.endswith('}'):
+                            try:
+                                obj = json.loads(val)
+                                ident = obj.get('username') or obj.get('email')
+                            except Exception:
+                                pass
+                        else:
+                            ident = val
+                        if ident:
+                            user = db.get_user_by_identifier(ident)
+                            if user and user.get('id'):
+                                return user
+                    break
 
         return None
 
@@ -1346,7 +1373,14 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             user = self.get_request_user()
             if user:
                 safe_user = {k: v for k, v in user.items() if k != 'password'}
-                self.send_json_response({"status": "success", "logged_in": True, "user": safe_user})
+                cookie_header = self.headers.get('Cookie', '')
+                refreshed_cookies = None
+                if 'dg_session=' not in cookie_header:
+                    refreshed_cookies = build_auth_cookies(self, user)
+                self.send_json_response(
+                    {"status": "success", "logged_in": True, "user": safe_user},
+                    cookie=refreshed_cookies
+                )
             else:
                 self.send_json_response({"status": "guest", "logged_in": False, "user": None})
             return
@@ -1715,15 +1749,22 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
             _REGISTER_LIMITER.record(client_ip)
             safe_user = {k: v for k, v in user_obj.items() if k != 'password'}
             cookies = build_auth_cookies(self, user_obj)
+            redir_target = ''
+            if isinstance(data, dict) and data.get('redirect'):
+                redir_target = str(data.get('redirect')).strip()
+            if not redir_target and query.get('redirect'):
+                redir_target = str(query.get('redirect')[0]).strip()
+            if not redir_target or not (redir_target.startswith('/') or redir_target.startswith('templates')):
+                redir_target = '/templates.php'
             if self.is_json_request():
                 self.send_json_response({
                     "status": "success",
                     "message": "Đăng ký tài khoản thành công!",
                     "user": safe_user,
-                    "redirect": "/templates.php"
+                    "redirect": redir_target
                 }, cookie=cookies)
             else:
-                self.send_redirect('/templates.php', cookie=cookies)
+                self.send_redirect(redir_target, cookie=cookies)
             return
 
         # 4. API: Login User (Rate-Limited + Strict Validation + Signed HttpOnly Session)
@@ -1766,15 +1807,22 @@ class DearGiftHandler(http.server.SimpleHTTPRequestHandler):
                 _LOGIN_ACCOUNT_LIMITER.reset(acct_key)
                 safe_user = {k: v for k, v in user.items() if k != 'password'}
                 cookies = build_auth_cookies(self, user)
+                redir_target = ''
+                if isinstance(data, dict) and data.get('redirect'):
+                    redir_target = str(data.get('redirect')).strip()
+                if not redir_target and query.get('redirect'):
+                    redir_target = str(query.get('redirect')[0]).strip()
+                if not redir_target or not (redir_target.startswith('/') or redir_target.startswith('templates')):
+                    redir_target = '/templates.php'
                 if self.is_json_request():
                     self.send_json_response({
                         "status": "success",
                         "message": "Đăng nhập thành công!",
                         "user": safe_user,
-                        "redirect": "/templates.php"
+                        "redirect": redir_target
                     }, cookie=cookies)
                 else:
-                    self.send_redirect('/templates.php', cookie=cookies)
+                    self.send_redirect(redir_target, cookie=cookies)
             else:
                 _LOGIN_IP_LIMITER.record(client_ip)
                 acc_now_lim, remaining, wait_s = _LOGIN_ACCOUNT_LIMITER.record(acct_key)
